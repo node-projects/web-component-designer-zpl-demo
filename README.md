@@ -1,10 +1,10 @@
-# web-component-designer-simple-demo
+# web-component-designer-zpl-demo
 
 Demonstration Project using https://github.com/node-projects/web-component-designer
 
 ## url of demo project
 
-https://node-projects.github.io/web-component-designer-simple-demo/index.html
+https://node-projects.github.io/web-component-designer-zpl-demo/index.html
 
 ## Developing
 
