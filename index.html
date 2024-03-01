@@ -19,49 +19,61 @@
   <script>
     const importMap = {
       imports: {
+        "monaco-editor/": "./node_modules/monaco-editor/",
+        "@node-projects/web-component-designer-codeview-monaco": "./node_modules/@node-projects/web-component-designer-codeview-monaco/dist/widgets/codeView/code-view-monaco.js",
+        "@node-projects/web-component-designer-codeview-monaco/": "./node_modules/@node-projects/web-component-designer-codeview-monaco/",
         "@node-projects/web-component-designer": "./node_modules/@node-projects/web-component-designer/dist/index.js",
         "@node-projects/web-component-designer/": "./node_modules/@node-projects/web-component-designer/",
         "@node-projects/base-custom-webcomponent/": "./node_modules/@node-projects/base-custom-webcomponent/",
         "@node-projects/base-custom-webcomponent": "./node_modules/@node-projects/base-custom-webcomponent/dist/index.js",
-        "@node-projects/lean-he-esm/": "./node_modules/@node-projects/lean-he-esm/"
+        "@node-projects/web-component-designer-zpl": "./node_modules/@node-projects/web-component-designer-zpl/dist/index.js",
+        "@node-projects/web-component-designer-zpl/": "./node_modules/@node-projects/web-component-designer-zpl/",
+        "@node-projects/web-component-designer-codeview-monaco": "./node_modules/@node-projects/web-component-designer-codeview-monaco/dist/widgets/codeView/code-view-monaco.js",
+        "@node-projects/web-component-designer-codeview-monaco/": "./node_modules/@node-projects/web-component-designer-codeview-monaco/"
       }
     };
     //@ts-ignore
     importShim.addImportMap(importMap);
   </script>
 
+<script src="./node_modules/monaco-editor/min/vs/loader.js"></script>
+<script>
+     require.config({ paths: { 'vs': 'node_modules/monaco-editor/min/vs', 'vs/css': { disabled: true } } });
+     require(['vs/editor/editor.main'], () => { });    
+</script>
+
   <style>
     body {
+      height: 100%;
+      width: 100%;
       margin: 0;
       font-family: 'Roboto', 'Noto', sans-serif;
       line-height: 1.5;
       background-color: white;
       -webkit-font-smoothing: antialiased;
     }
+
+    #root {
+      display: grid;
+      grid-template-areas: 
+          "a c"
+          "b c";
+      grid-template-columns: 200px 1fr;
+      grid-template-rows: 1fr 2fr;
+      height: 100%;
+      width: 100%;
+      gap: 3px;
+    }
   </style>
 </head>
 
 <body style="height: 100%; width: 100%;">
-  <node-projects-designer-view style="height: 100%; width: 100%;">
-    <button style="width:100px;height:30px;position:absolute;top:192px;left:365px;">Button</button>
-    <div style="position:absolute;top:161px;left:149px;">Default Text 2</div>
-    <div style="position:absolute;width:20px;height:20px;top:301px;left:507px;background:red;"></div>
-    <button style="width:100px;height:30px;position:absolute;top:385px;left:507px;">Button</button>
-    <button style="width:154.23px;height:103.645px;position:absolute;top:256px;left:625px;">Button</button>
-    <svg style="position:absolute;left:326px;top:343px;width:554px;height:441px;">
-        <path d="
-      M 50 150 C70  250 , 130 250 ,150 150 
-      M150 150 C170 50 ,  230 50 , 250 150 
-      M250 150 C270 250 , 330 250 ,350 150
-      M350 150 C370 50 ,  430 50 , 450 150
-      M450 150 C470 250 , 530 250 ,550 150" fill="hsla(0,0%,75%,0.5)" stroke="black" stroke-width="2" style="position:absolute;left:-50px;top:33px;"></path>
-    </svg>
-    <div style="display: grid; column-gap: 5px; row-gap: 5px; grid-template-columns: 60px 120px 120px; grid-template-rows: 50px 50px 50px; height: 150px; width: 300px; top: 400px; left: 30px; position: absolute;">
-    <button></button>
-    <input type="range" style="width: 100%; height: 100%;">
-
-    </div>
-  </node-projects-designer-view>
+  <div id="root">
+    <node-projects-palette-view style="grid-area: a;"></node-projects-palette-view>
+    <node-projects-property-grid-with-header style="grid-area: b;"></node-projects-property-grid-with-header>
+    
+  </div>
+  
 </body>
 
 <script type="module">

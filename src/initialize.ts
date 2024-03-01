@@ -1,7 +1,19 @@
-import { CursorLinePointerExtensionProvider, DesignerView, createDefaultServiceContainer } from '@node-projects/web-component-designer';
+import { DocumentContainer, PaletteView, PropertyGridWithHeader } from '@node-projects/web-component-designer';
+import { CodeViewMonaco } from '@node-projects/web-component-designer-codeview-monaco';
+import { createZplDesignerServiceContainer } from '@node-projects/web-component-designer-zpl';
 
-await window.customElements.whenDefined("node-projects-designer-view")
-const designerView = <DesignerView><any>document.querySelector("node-projects-designer-view");
-let serviceContainer = createDefaultServiceContainer();
-serviceContainer.designerPointerExtensions.push(new CursorLinePointerExtensionProvider());
-designerView.initialize(serviceContainer);
+await window.customElements.whenDefined("node-projects-document-container");
+
+const paletteView = <PaletteView>document.querySelector('node-projects-palette-view');
+const propertyGridWithHeader = <PropertyGridWithHeader>document.querySelector('node-projects-property-grid-with-header');
+
+let serviceContainer = createZplDesignerServiceContainer();
+serviceContainer.config.codeViewWidget = CodeViewMonaco;
+
+const documentContainer = new DocumentContainer(serviceContainer);
+documentContainer.style.gridArea = 'c';
+document.getElementById('root').appendChild(documentContainer);
+
+paletteView.loadControls(serviceContainer, serviceContainer.getServices('elementsService'));
+propertyGridWithHeader.serviceContainer = serviceContainer;
+propertyGridWithHeader.instanceServiceContainer = documentContainer.instanceServiceContainer;
