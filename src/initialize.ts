@@ -1,6 +1,6 @@
 import { DocumentContainer, PaletteView, PropertyGridWithHeader } from '@node-projects/web-component-designer';
 import { CodeViewMonaco } from '@node-projects/web-component-designer-codeview-monaco';
-import { createZplDesignerServiceContainer } from '@node-projects/web-component-designer-zpl';
+import { addZplLanguageToMonaco, createZplDesignerServiceContainer } from '@node-projects/web-component-designer-zpl';
 
 await window.customElements.whenDefined("node-projects-document-container");
 
@@ -13,6 +13,9 @@ serviceContainer.config.codeViewWidget = CodeViewMonaco;
 const documentContainer = new DocumentContainer(serviceContainer);
 documentContainer.style.gridArea = 'c';
 document.getElementById('root').appendChild(documentContainer);
+(<CodeViewMonaco>documentContainer.codeView).language = "zplLanguage";
+(<CodeViewMonaco>documentContainer.codeView).theme = "zplTheme";
+addZplLanguageToMonaco();
 
 paletteView.loadControls(serviceContainer, serviceContainer.getServices('elementsService'));
 propertyGridWithHeader.serviceContainer = serviceContainer;
