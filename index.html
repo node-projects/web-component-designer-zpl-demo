@@ -36,11 +36,11 @@
     importShim.addImportMap(importMap);
   </script>
 
-<script src="./node_modules/monaco-editor/min/vs/loader.js"></script>
-<script>
-     require.config({ paths: { 'vs': 'node_modules/monaco-editor/min/vs', 'vs/css': { disabled: true } } });
-     require(['vs/editor/editor.main'], () => { });    
-</script>
+  <script src="./node_modules/monaco-editor/min/vs/loader.js"></script>
+  <script>
+    require.config({ paths: { 'vs': 'node_modules/monaco-editor/min/vs', 'vs/css': { disabled: true } } });
+    require(['vs/editor/editor.main'], () => { });    
+  </script>
 
   <style>
     body {
@@ -55,9 +55,9 @@
 
     #root {
       display: grid;
-      grid-template-areas: 
-          "a c"
-          "b c";
+      grid-template-areas:
+        "a c"
+        "b c";
       grid-template-columns: 200px 1fr;
       grid-template-rows: 1fr 2fr;
       height: 100%;
@@ -71,9 +71,9 @@
   <div id="root">
     <node-projects-palette-view style="grid-area: a;"></node-projects-palette-view>
     <node-projects-property-grid-with-header style="grid-area: b;"></node-projects-property-grid-with-header>
-    
+
   </div>
-  
+
 </body>
 
 <script type="module">
