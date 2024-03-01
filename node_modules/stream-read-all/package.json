@@ -1,0 +1,32 @@
+{
+  "name": "stream-read-all",
+  "author": "Lloyd Brookes <75pound@gmail.com>",
+  "version": "3.0.1",
+  "description": "Returns a promise which resolves once all data in the supplied stream has been read",
+  "repository": "https://github.com/75lb/stream-read-all.git",
+  "keywords": [
+    "concat",
+    "stream",
+    "read",
+    "all",
+    "collect",
+    "buffers",
+    "concatenate"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "test": "test-runner test.js",
+    "cover": "nyc --reporter=text-lcov npm test | coveralls"
+  },
+  "files": [
+    "index.js"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "coveralls": "^3.1.0",
+    "test-runner": "^0.8.13"
+  }
+}

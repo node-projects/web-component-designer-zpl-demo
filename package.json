@@ -1,0 +1,33 @@
+{
+  "name": "web-component-designer-zpl-demo",
+  "version": "1.0.0",
+  "description": "Demonstration Project using web-component-designer",
+  "type": "module",
+  "scripts": {
+    "tsc": "tsc",
+    "start": "web-dev-server --open"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/node-projects/web-component-designer-zpl-demo.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/node-projects/web-component-designer-zpl-demo/issues"
+  },
+  "homepage": "https://github.com/node-projects/web-component-designer-zpl-demo#readme",
+  "devDependencies": {
+    "@web/dev-server": "^0.4.3",
+    "copyfiles": "^2.4.1",
+    "gulp": "^4.0.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@node-projects/base-custom-webcomponent": "0.23.0",
+    "@node-projects/web-component-designer": "^0.1.95",
+    "@node-projects/web-component-designer-codeview-monaco": "^0.1.18",
+    "@node-projects/web-component-designer-zpl": "^0.1.5",
+    "es-module-shims": "^1.8.3"
+  }
+}

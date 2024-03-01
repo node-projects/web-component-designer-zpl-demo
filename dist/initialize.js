@@ -1,0 +1,14 @@
+import { DocumentContainer } from '@node-projects/web-component-designer';
+import { CodeViewMonaco } from '@node-projects/web-component-designer-codeview-monaco';
+import { createZplDesignerServiceContainer } from '@node-projects/web-component-designer-zpl';
+await window.customElements.whenDefined("node-projects-document-container");
+const paletteView = document.querySelector('node-projects-palette-view');
+const propertyGridWithHeader = document.querySelector('node-projects-property-grid-with-header');
+let serviceContainer = createZplDesignerServiceContainer();
+serviceContainer.config.codeViewWidget = CodeViewMonaco;
+const documentContainer = new DocumentContainer(serviceContainer);
+documentContainer.style.gridArea = 'c';
+document.getElementById('root').appendChild(documentContainer);
+paletteView.loadControls(serviceContainer, serviceContainer.getServices('elementsService'));
+propertyGridWithHeader.serviceContainer = serviceContainer;
+propertyGridWithHeader.instanceServiceContainer = documentContainer.instanceServiceContainer;
