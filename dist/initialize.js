@@ -3,7 +3,7 @@ import { CodeViewMonaco } from '@node-projects/web-component-designer-codeview-m
 import { addZplLanguageToMonaco, createZplDesignerServiceContainer } from '@node-projects/web-component-designer-zpl';
 await window.customElements.whenDefined("node-projects-document-container");
 const paletteView = document.querySelector('node-projects-palette-view');
-const propertyGridWithHeader = document.querySelector('node-projects-property-grid-with-header');
+const propertyGridWithHeader = document.querySelector('node-projects-web-component-designer-property-grid-with-header');
 let serviceContainer = createZplDesignerServiceContainer();
 serviceContainer.config.codeViewWidget = CodeViewMonaco;
 const documentContainer = new DocumentContainer(serviceContainer);
