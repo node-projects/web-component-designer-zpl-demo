@@ -23,9 +23,9 @@
   },
   "dependencies": {
     "@node-projects/base-custom-webcomponent": "0.25.9",
-    "@node-projects/web-component-designer": "^0.1.106",
+    "@node-projects/web-component-designer": "^0.1.110",
     "@node-projects/web-component-designer-codeview-monaco": "^0.1.24",
     "@node-projects/web-component-designer-zpl": "^0.1.17",
-    "es-module-shims": "^1.8.3"
+    "es-module-shims": "^1.9.0"
   }
 }
