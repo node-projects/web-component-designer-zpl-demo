@@ -3,13 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as dom from '../../dom.js';
+import { getBaseLayerHoverDelegate } from '../hover/hoverDelegate2.js';
+import { getDefaultHoverDelegate } from '../hover/hoverDelegateFactory.js';
 import { renderLabelWithIcons } from '../iconLabel/iconLabels.js';
+import { Disposable } from '../../../common/lifecycle.js';
 import * as objects from '../../../common/objects.js';
 /**
  * A widget which can render a label with substring highlights, often
  * originating from a filter function like the fuzzy matcher.
  */
-export class HighlightedLabel {
+export class HighlightedLabel extends Disposable {
     /**
      * Create a new {@link HighlightedLabel}.
      *
@@ -17,6 +20,8 @@ export class HighlightedLabel {
      */
     constructor(container, options) {
         var _a;
+        super();
+        this.options = options;
         this.text = '';
         this.title = '';
         this.highlights = [];
@@ -56,6 +61,7 @@ export class HighlightedLabel {
         this.render();
     }
     render() {
+        var _a, _b, _c, _d;
         const children = [];
         let pos = 0;
         for (const highlight of this.highlights) {
@@ -90,11 +96,18 @@ export class HighlightedLabel {
             }
         }
         dom.reset(this.domNode, ...children);
-        if (this.title) {
+        if ((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.hoverDelegate) === null || _b === void 0 ? void 0 : _b.showNativeHover) {
+            /* While custom hover is not inside custom hover */
             this.domNode.title = this.title;
         }
         else {
-            this.domNode.removeAttribute('title');
+            if (!this.customHover && this.title !== '') {
+                const hoverDelegate = (_d = (_c = this.options) === null || _c === void 0 ? void 0 : _c.hoverDelegate) !== null && _d !== void 0 ? _d : getDefaultHoverDelegate('mouse');
+                this.customHover = this._register(getBaseLayerHoverDelegate().setupUpdatableHover(hoverDelegate, this.domNode, this.title));
+            }
+            else if (this.customHover) {
+                this.customHover.update(this.title);
+            }
         }
         this.didEverRender = true;
     }

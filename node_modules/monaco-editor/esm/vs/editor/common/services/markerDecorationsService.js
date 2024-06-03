@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { IMarkerService, MarkerSeverity } from '../../../platform/markers/common/markers.js';
 import { Disposable, toDisposable } from '../../../base/common/lifecycle.js';
-import { OverviewRulerLane, MinimapPosition } from '../model.js';
+import { OverviewRulerLane } from '../model.js';
 import { themeColorFromId } from '../../../platform/theme/common/themeService.js';
 import { overviewRulerWarning, overviewRulerInfo, overviewRulerError } from '../core/editorColorRegistry.js';
 import { IModelService } from './model.js';
@@ -174,7 +174,7 @@ class MarkerDecorations extends Disposable {
                 zIndex = 10;
                 minimap = {
                     color: themeColorFromId(minimapInfo),
-                    position: MinimapPosition.Inline
+                    position: 1 /* MinimapPosition.Inline */
                 };
                 break;
             case MarkerSeverity.Warning:
@@ -183,7 +183,7 @@ class MarkerDecorations extends Disposable {
                 zIndex = 20;
                 minimap = {
                     color: themeColorFromId(minimapWarning),
-                    position: MinimapPosition.Inline
+                    position: 1 /* MinimapPosition.Inline */
                 };
                 break;
             case MarkerSeverity.Error:
@@ -193,7 +193,7 @@ class MarkerDecorations extends Disposable {
                 zIndex = 30;
                 minimap = {
                     color: themeColorFromId(minimapError),
-                    position: MinimapPosition.Inline
+                    position: 1 /* MinimapPosition.Inline */
                 };
                 break;
         }

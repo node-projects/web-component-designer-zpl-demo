@@ -1,4 +1,4 @@
-var _a;
+var _a, _b;
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -26,11 +26,11 @@ if (typeof $globalThis.vscode !== 'undefined' && typeof $globalThis.vscode.proce
     // Native environment (sandboxed)
     nodeProcess = $globalThis.vscode.process;
 }
-else if (typeof process !== 'undefined') {
+else if (typeof process !== 'undefined' && typeof ((_a = process === null || process === void 0 ? void 0 : process.versions) === null || _a === void 0 ? void 0 : _a.node) === 'string') {
     // Native environment (non-sandboxed)
     nodeProcess = process;
 }
-const isElectronProcess = typeof ((_a = nodeProcess === null || nodeProcess === void 0 ? void 0 : nodeProcess.versions) === null || _a === void 0 ? void 0 : _a.electron) === 'string';
+const isElectronProcess = typeof ((_b = nodeProcess === null || nodeProcess === void 0 ? void 0 : nodeProcess.versions) === null || _b === void 0 ? void 0 : _b.electron) === 'string';
 const isElectronRenderer = isElectronProcess && (nodeProcess === null || nodeProcess === void 0 ? void 0 : nodeProcess.type) === 'renderer';
 // Native environment
 if (typeof nodeProcess === 'object') {

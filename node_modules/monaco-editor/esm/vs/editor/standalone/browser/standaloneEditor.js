@@ -33,7 +33,7 @@ import { ContextKeyExpr } from '../../../platform/contextkey/common/contextkey.j
 import { IKeybindingService } from '../../../platform/keybinding/common/keybinding.js';
 import { IMarkerService } from '../../../platform/markers/common/markers.js';
 import { IOpenerService } from '../../../platform/opener/common/opener.js';
-import { MultiDiffEditorWidget } from '../../browser/widget/multiDiffEditorWidget/multiDiffEditorWidget.js';
+import { MultiDiffEditorWidget } from '../../browser/widget/multiDiffEditor/multiDiffEditorWidget.js';
 /**
  * Create a new editor under `domElement`.
  * `domElement` should be empty (not contain other dom nodes).
@@ -448,6 +448,7 @@ export function createMonacoEditorAPI() {
         EndOfLinePreference: standaloneEnums.EndOfLinePreference,
         EndOfLineSequence: standaloneEnums.EndOfLineSequence,
         MinimapPosition: standaloneEnums.MinimapPosition,
+        MinimapSectionHeaderStyle: standaloneEnums.MinimapSectionHeaderStyle,
         MouseTargetType: standaloneEnums.MouseTargetType,
         OverlayWidgetPositionPreference: standaloneEnums.OverlayWidgetPositionPreference,
         OverviewRulerLane: standaloneEnums.OverviewRulerLane,

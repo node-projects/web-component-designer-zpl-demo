@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import './highlightDecorations.css';
-import { MinimapPosition, OverviewRulerLane } from '../../../common/model.js';
+import { OverviewRulerLane } from '../../../common/model.js';
 import { ModelDecorationOptions } from '../../../common/model/textModel.js';
 import { DocumentHighlightKind } from '../../../common/languages.js';
 import * as nls from '../../../../nls.js';
@@ -28,7 +28,7 @@ const _WRITE_OPTIONS = ModelDecorationOptions.register({
     },
     minimap: {
         color: themeColorFromId(minimapSelectionOccurrenceHighlight),
-        position: MinimapPosition.Inline
+        position: 1 /* MinimapPosition.Inline */
     },
 });
 const _TEXT_OPTIONS = ModelDecorationOptions.register({
@@ -41,7 +41,7 @@ const _TEXT_OPTIONS = ModelDecorationOptions.register({
     },
     minimap: {
         color: themeColorFromId(minimapSelectionOccurrenceHighlight),
-        position: MinimapPosition.Inline
+        position: 1 /* MinimapPosition.Inline */
     },
 });
 const _SELECTION_HIGHLIGHT_OPTIONS = ModelDecorationOptions.register({
@@ -54,7 +54,7 @@ const _SELECTION_HIGHLIGHT_OPTIONS = ModelDecorationOptions.register({
     },
     minimap: {
         color: themeColorFromId(minimapSelectionOccurrenceHighlight),
-        position: MinimapPosition.Inline
+        position: 1 /* MinimapPosition.Inline */
     },
 });
 const _SELECTION_HIGHLIGHT_OPTIONS_NO_OVERVIEW = ModelDecorationOptions.register({
@@ -72,7 +72,7 @@ const _REGULAR_OPTIONS = ModelDecorationOptions.register({
     },
     minimap: {
         color: themeColorFromId(minimapSelectionOccurrenceHighlight),
-        position: MinimapPosition.Inline
+        position: 1 /* MinimapPosition.Inline */
     },
 });
 export function getHighlightDecorationOptions(kind) {

@@ -68,14 +68,15 @@ export class MouseWheelClassifier {
         }
     }
     accept(timestamp, deltaX, deltaY) {
+        let previousItem = null;
         const item = new MouseWheelClassifierItem(timestamp, deltaX, deltaY);
-        item.score = this._computeScore(item);
         if (this._front === -1 && this._rear === -1) {
             this._memory[0] = item;
             this._front = 0;
             this._rear = 0;
         }
         else {
+            previousItem = this._memory[this._rear];
             this._rear = (this._rear + 1) % this._capacity;
             if (this._rear === this._front) {
                 // Drop oldest
@@ -83,33 +84,39 @@ export class MouseWheelClassifier {
             }
             this._memory[this._rear] = item;
         }
+        item.score = this._computeScore(item, previousItem);
     }
     /**
      * A score between 0 and 1 for `item`.
      *  - a score towards 0 indicates that the source appears to be a physical mouse wheel
      *  - a score towards 1 indicates that the source appears to be a touchpad or magic mouse, etc.
      */
-    _computeScore(item) {
+    _computeScore(item, previousItem) {
         if (Math.abs(item.deltaX) > 0 && Math.abs(item.deltaY) > 0) {
             // both axes exercised => definitely not a physical mouse wheel
             return 1;
         }
         let score = 0.5;
-        const prev = (this._front === -1 && this._rear === -1 ? null : this._memory[this._rear]);
-        if (prev) {
-            // const deltaT = item.timestamp - prev.timestamp;
-            // if (deltaT < 1000 / 30) {
-            // 	// sooner than X times per second => indicator that this is not a physical mouse wheel
-            // 	score += 0.25;
-            // }
-            // if (item.deltaX === prev.deltaX && item.deltaY === prev.deltaY) {
-            // 	// equal amplitude => indicator that this is a physical mouse wheel
-            // 	score -= 0.25;
-            // }
-        }
         if (!this._isAlmostInt(item.deltaX) || !this._isAlmostInt(item.deltaY)) {
             // non-integer deltas => indicator that this is not a physical mouse wheel
             score += 0.25;
+        }
+        // Non-accelerating scroll => indicator that this is a physical mouse wheel
+        // These can be identified by seeing whether they are the module of one another.
+        if (previousItem) {
+            const absDeltaX = Math.abs(item.deltaX);
+            const absDeltaY = Math.abs(item.deltaY);
+            const absPreviousDeltaX = Math.abs(previousItem.deltaX);
+            const absPreviousDeltaY = Math.abs(previousItem.deltaY);
+            // Min 1 to avoid division by zero, module 1 will still be 0.
+            const minDeltaX = Math.max(Math.min(absDeltaX, absPreviousDeltaX), 1);
+            const minDeltaY = Math.max(Math.min(absDeltaY, absPreviousDeltaY), 1);
+            const maxDeltaX = Math.max(absDeltaX, absPreviousDeltaX);
+            const maxDeltaY = Math.max(absDeltaY, absPreviousDeltaY);
+            const isSameModulo = (maxDeltaX % minDeltaX === 0 && maxDeltaY % minDeltaY === 0);
+            if (isSameModulo) {
+                score -= 0.5;
+            }
         }
         return Math.min(Math.max(score, 0), 1);
     }
@@ -285,6 +292,7 @@ export class AbstractScrollableElement extends Widget {
         if (SCROLL_WHEEL_SMOOTH_SCROLL_ENABLED) {
             classifier.acceptStandardWheelEvent(e);
         }
+        // useful for creating unit tests:
         // console.log(`${Date.now()}, ${e.deltaY}, ${e.deltaX}`);
         let didScroll = false;
         if (e.deltaY || e.deltaX) {

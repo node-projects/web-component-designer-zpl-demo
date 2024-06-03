@@ -9,6 +9,7 @@ import { Widget } from '../../../../base/browser/ui/widget.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { FIND_IDS } from './findModel.js';
 import { asCssVariable, inputActiveOptionBackground, inputActiveOptionBorder, inputActiveOptionForeground } from '../../../../platform/theme/common/colorRegistry.js';
+import { createInstantHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 export class FindOptionsWidget extends Widget {
     constructor(editor, state, keybindingService) {
         super();
@@ -29,9 +30,11 @@ export class FindOptionsWidget extends Widget {
             inputActiveOptionForeground: asCssVariable(inputActiveOptionForeground),
             inputActiveOptionBackground: asCssVariable(inputActiveOptionBackground),
         };
+        const hoverDelegate = this._register(createInstantHoverDelegate());
         this.caseSensitive = this._register(new CaseSensitiveToggle({
             appendTitle: this._keybindingLabelFor(FIND_IDS.ToggleCaseSensitiveCommand),
             isChecked: this._state.matchCase,
+            hoverDelegate,
             ...toggleStyles
         }));
         this._domNode.appendChild(this.caseSensitive.domNode);
@@ -43,6 +46,7 @@ export class FindOptionsWidget extends Widget {
         this.wholeWords = this._register(new WholeWordsToggle({
             appendTitle: this._keybindingLabelFor(FIND_IDS.ToggleWholeWordCommand),
             isChecked: this._state.wholeWord,
+            hoverDelegate,
             ...toggleStyles
         }));
         this._domNode.appendChild(this.wholeWords.domNode);
@@ -54,6 +58,7 @@ export class FindOptionsWidget extends Widget {
         this.regex = this._register(new RegexToggle({
             appendTitle: this._keybindingLabelFor(FIND_IDS.ToggleRegexCommand),
             isChecked: this._state.isRegex,
+            hoverDelegate,
             ...toggleStyles
         }));
         this._domNode.appendChild(this.regex.domNode);

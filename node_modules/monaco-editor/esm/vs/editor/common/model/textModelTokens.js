@@ -82,6 +82,10 @@ export class TokenizerWithStateStoreAndTextModel extends TokenizerWithStateStore
         const lineTokens = new LineTokens(result.tokens, newLineContent, this._languageIdCodec);
         return lineTokens;
     }
+    hasAccurateTokensForLine(lineNumber) {
+        const firstInvalidLineNumber = this.store.getFirstInvalidEndStateLineNumberOrMax();
+        return (lineNumber < firstInvalidLineNumber);
+    }
     isCheapToTokenize(lineNumber) {
         const firstInvalidLineNumber = this.store.getFirstInvalidEndStateLineNumberOrMax();
         if (lineNumber < firstInvalidLineNumber) {

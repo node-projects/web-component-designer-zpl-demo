@@ -224,6 +224,10 @@ let DiffEditorViewModel = class DiffEditorViewModel extends Disposable {
             if (this._cancellationTokenSource.token.isCancellationRequested) {
                 return;
             }
+            if (model.original.isDisposed() || model.modified.isDisposed()) {
+                // TODO@hediet fishy?
+                return;
+            }
             result = normalizeDocumentDiff(result, model.original, model.modified);
             result = (_a = applyOriginalEdits(result, originalTextEditInfos, model.original, model.modified)) !== null && _a !== void 0 ? _a : result;
             result = (_b = applyModifiedEdits(result, modifiedTextEditInfos, model.original, model.modified)) !== null && _b !== void 0 ? _b : result;

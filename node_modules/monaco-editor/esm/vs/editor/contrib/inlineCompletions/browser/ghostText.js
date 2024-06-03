@@ -1,4 +1,12 @@
-import { applyEdits } from './utils.js';
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+import { equals } from '../../../../base/common/arrays.js';
+import { splitLines } from '../../../../base/common/strings.js';
+import { Position } from '../../../common/core/position.js';
+import { Range } from '../../../common/core/range.js';
+import { SingleTextEdit, TextEdit } from '../../../common/core/textEdit.js';
 export class GhostText {
     constructor(lineNumber, parts) {
         this.lineNumber = lineNumber;
@@ -15,10 +23,9 @@ export class GhostText {
         }
         const lastPart = this.parts[this.parts.length - 1];
         const cappedLineText = lineText.substr(0, lastPart.column - 1);
-        const text = applyEdits(cappedLineText, this.parts.map(p => ({
-            range: { startLineNumber: 1, endLineNumber: 1, startColumn: p.column, endColumn: p.column },
-            text: p.lines.join('\n')
-        })));
+        const text = new TextEdit([
+            ...this.parts.map(p => new SingleTextEdit(Range.fromPositions(new Position(1, p.column)), p.lines.join('\n'))),
+        ]).applyToString(cappedLineText);
         return text.substring(this.parts[0].column - 1);
     }
     isEmpty() {
@@ -29,15 +36,17 @@ export class GhostText {
     }
 }
 export class GhostTextPart {
-    constructor(column, lines, 
+    constructor(column, text, 
     /**
      * Indicates if this part is a preview of an inline suggestion when a suggestion is previewed.
     */
     preview) {
         this.column = column;
-        this.lines = lines;
+        this.text = text;
         this.preview = preview;
+        this.lines = splitLines(this.text);
     }
+    ;
     equals(other) {
         return this.column === other.column &&
             this.lines.length === other.lines.length &&
@@ -45,14 +54,15 @@ export class GhostTextPart {
     }
 }
 export class GhostTextReplacement {
-    constructor(lineNumber, columnRange, newLines, additionalReservedLineCount = 0) {
+    constructor(lineNumber, columnRange, text, additionalReservedLineCount = 0) {
         this.lineNumber = lineNumber;
         this.columnRange = columnRange;
-        this.newLines = newLines;
+        this.text = text;
         this.additionalReservedLineCount = additionalReservedLineCount;
         this.parts = [
-            new GhostTextPart(this.columnRange.endColumnExclusive, this.newLines, false),
+            new GhostTextPart(this.columnRange.endColumnExclusive, this.text, false),
         ];
+        this.newLines = splitLines(this.text);
     }
     renderForScreenReader(_lineText) {
         return this.newLines.join('\n');
@@ -70,6 +80,9 @@ export class GhostTextReplacement {
             this.newLines.every((line, index) => line === other.newLines[index]) &&
             this.additionalReservedLineCount === other.additionalReservedLineCount;
     }
+}
+export function ghostTextsOrReplacementsEqual(a, b) {
+    return equals(a, b, ghostTextOrReplacementEquals);
 }
 export function ghostTextOrReplacementEquals(a, b) {
     if (a === b) {

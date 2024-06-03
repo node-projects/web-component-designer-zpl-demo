@@ -16,6 +16,7 @@ import { UnicodeTextModelHighlighter } from './unicodeTextModelHighlighter.js';
 import { linesDiffComputers } from '../diff/linesDiffComputers.js';
 import { createProxyObject, getAllMethodNames } from '../../../base/common/objects.js';
 import { computeDefaultDocumentColors } from '../languages/defaultDocumentColorsComputer.js';
+import { findSectionHeaders } from './findSectionHeaders.js';
 /**
  * @internal
  */
@@ -243,6 +244,13 @@ export class EditorSimpleWorker {
             return { ranges: [], hasMore: false, ambiguousCharacterCount: 0, invisibleCharacterCount: 0, nonBasicAsciiCharacterCount: 0 };
         }
         return UnicodeTextModelHighlighter.computeUnicodeHighlights(model, options, range);
+    }
+    async findSectionHeaders(url, options) {
+        const model = this._getModel(url);
+        if (!model) {
+            return [];
+        }
+        return findSectionHeaders(model, options);
     }
     // ---- BEGIN diff --------------------------------------------------------------------------
     async computeDiff(originalUrl, modifiedUrl, options, algorithm) {

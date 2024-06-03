@@ -25,6 +25,12 @@ export class OffsetRange {
             sortedRanges.splice(i, j - i, new OffsetRange(start, end));
         }
     }
+    static tryCreate(start, endExclusive) {
+        if (start > endExclusive) {
+            return undefined;
+        }
+        return new OffsetRange(start, endExclusive);
+    }
     static ofLength(length) {
         return new OffsetRange(0, length);
     }
@@ -93,6 +99,9 @@ export class OffsetRange {
     }
     slice(arr) {
         return arr.slice(this.start, this.endExclusive);
+    }
+    substring(str) {
+        return str.substring(this.start, this.endExclusive);
     }
     /**
      * Returns the given value if it is contained in this instance, otherwise the closest value that is contained.

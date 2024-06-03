@@ -86,7 +86,7 @@ export class AbstractEditorNavigationQuickAccessProvider {
         return true;
     }
     gotoLocation({ editor }, options) {
-        editor.setSelection(options.range);
+        editor.setSelection(options.range, "code.jump" /* TextEditorSelectionSource.JUMP */);
         editor.revealRangeInCenter(options.range, 0 /* ScrollType.Smooth */);
         if (!options.preserveFocus) {
             editor.focus();

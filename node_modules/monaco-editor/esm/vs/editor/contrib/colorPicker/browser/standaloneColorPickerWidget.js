@@ -15,7 +15,7 @@ var StandaloneColorPickerController_1, StandaloneColorPickerWidget_1;
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { StandaloneColorPickerParticipant } from './colorHoverParticipant.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { EditorHoverStatusBar } from '../../hover/browser/contentHover.js';
+import { EditorHoverStatusBar } from '../../hover/browser/contentHoverStatusBar.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { ILanguageFeaturesService } from '../../../common/services/languageFeatures.js';

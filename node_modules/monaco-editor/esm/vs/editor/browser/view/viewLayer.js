@@ -192,7 +192,7 @@ export class VisibleLinesCollection {
     }
     // ---- begin view event handlers
     onConfigurationChanged(e) {
-        if (e.hasChanged(143 /* EditorOption.layoutInfo */)) {
+        if (e.hasChanged(145 /* EditorOption.layoutInfo */)) {
             return true;
         }
         return false;
@@ -333,7 +333,7 @@ class ViewLayerRenderer {
         const lines = ctx.lines;
         for (let i = startIndex; i <= endIndex; i++) {
             const lineNumber = rendLineNumberStart + i;
-            lines[i].layoutLine(lineNumber, deltaTop[lineNumber - deltaLN]);
+            lines[i].layoutLine(lineNumber, deltaTop[lineNumber - deltaLN], this.viewportData.lineHeight);
         }
     }
     _insertLinesBefore(ctx, fromLineNumber, toLineNumber, deltaTop, deltaLN) {
@@ -424,7 +424,7 @@ class ViewLayerRenderer {
                     // line is not new
                     continue;
                 }
-                const renderResult = line.renderLine(i + rendLineNumberStart, deltaTop[i], this.viewportData, sb);
+                const renderResult = line.renderLine(i + rendLineNumberStart, deltaTop[i], this.viewportData.lineHeight, this.viewportData, sb);
                 if (!renderResult) {
                     // line does not need rendering
                     continue;
@@ -447,7 +447,7 @@ class ViewLayerRenderer {
                     // line was new
                     continue;
                 }
-                const renderResult = line.renderLine(i + rendLineNumberStart, deltaTop[i], this.viewportData, sb);
+                const renderResult = line.renderLine(i + rendLineNumberStart, deltaTop[i], this.viewportData.lineHeight, this.viewportData, sb);
                 if (!renderResult) {
                     // line does not need rendering
                     continue;

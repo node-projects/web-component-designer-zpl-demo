@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import { show } from '../../dom.js';
 import { RunOnceScheduler } from '../../../common/async.js';
-import { Disposable } from '../../../common/lifecycle.js';
+import { Disposable, MutableDisposable } from '../../../common/lifecycle.js';
 import './progressbar.css';
 const CSS_DONE = 'done';
 const CSS_ACTIVE = 'active';
@@ -17,6 +17,7 @@ const CSS_DISCRETE = 'discrete';
 export class ProgressBar extends Disposable {
     constructor(container, options) {
         super();
+        this.progressSignal = this._register(new MutableDisposable());
         this.workedVal = 0;
         this.showDelayedScheduler = this._register(new RunOnceScheduler(() => show(this.element), 0));
         this.longRunningScheduler = this._register(new RunOnceScheduler(() => this.infiniteLongRunning(), ProgressBar.LONG_RUNNING_INFINITE_THRESHOLD));
@@ -40,6 +41,7 @@ export class ProgressBar extends Disposable {
         this.workedVal = 0;
         this.totalWork = undefined;
         this.longRunningScheduler.cancel();
+        this.progressSignal.clear();
     }
     /**
      * Stops the progressbar from showing any progress instantly without fading out.

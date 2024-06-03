@@ -107,3 +107,8 @@ export class CancellationTokenSource {
         }
     }
 }
+export function cancelOnDispose(store) {
+    const source = new CancellationTokenSource();
+    store.add({ dispose() { source.cancel(); } });
+    return source.token;
+}

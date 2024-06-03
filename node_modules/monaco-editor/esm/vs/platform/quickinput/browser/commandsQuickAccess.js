@@ -25,6 +25,7 @@ import { IConfigurationService } from '../../configuration/common/configuration.
 import { IDialogService } from '../../dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../keybinding/common/keybinding.js';
+import { ILogService } from '../../log/common/log.js';
 import { PickerQuickAccessProvider } from './pickerQuickAccess.js';
 import { IStorageService, WillSaveStateReason } from '../../storage/common/storage.js';
 import { ITelemetryService } from '../../telemetry/common/telemetry.js';
@@ -254,10 +255,11 @@ AbstractCommandsQuickAccessProvider = AbstractCommandsQuickAccessProvider_1 = __
 ], AbstractCommandsQuickAccessProvider);
 export { AbstractCommandsQuickAccessProvider };
 let CommandsHistory = CommandsHistory_1 = class CommandsHistory extends Disposable {
-    constructor(storageService, configurationService) {
+    constructor(storageService, configurationService, logService) {
         super();
         this.storageService = storageService;
         this.configurationService = configurationService;
+        this.logService = logService;
         this.configuredCommandsHistoryLength = 0;
         this.updateConfiguration();
         this.load();
@@ -292,7 +294,7 @@ let CommandsHistory = CommandsHistory_1 = class CommandsHistory extends Disposab
                 serializedCache = JSON.parse(raw);
             }
             catch (error) {
-                // invalid data
+                this.logService.error(`[CommandsHistory] invalid data: ${error}`);
             }
         }
         const cache = CommandsHistory_1.cache = new LRUCache(this.configuredCommandsHistoryLength, 1);
@@ -349,6 +351,7 @@ CommandsHistory.counter = 1;
 CommandsHistory.hasChanges = false;
 CommandsHistory = CommandsHistory_1 = __decorate([
     __param(0, IStorageService),
-    __param(1, IConfigurationService)
+    __param(1, IConfigurationService),
+    __param(2, ILogService)
 ], CommandsHistory);
 export { CommandsHistory };

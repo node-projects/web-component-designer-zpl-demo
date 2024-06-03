@@ -97,7 +97,7 @@ export class CursorsController extends Disposable {
     setCursorColumnSelectData(columnSelectData) {
         this._columnSelectData = columnSelectData;
     }
-    revealPrimary(eventsCollector, source, minimalReveal, verticalType, revealHorizontal, scrollType) {
+    revealAll(eventsCollector, source, minimalReveal, verticalType, revealHorizontal, scrollType) {
         const viewPositions = this._cursors.getViewPositions();
         let revealViewRange = null;
         let revealViewSelections = null;
@@ -108,6 +108,11 @@ export class CursorsController extends Disposable {
             revealViewRange = Range.fromPositions(viewPositions[0], viewPositions[0]);
         }
         eventsCollector.emitViewEvent(new ViewRevealRangeRequestEvent(source, minimalReveal, revealViewRange, revealViewSelections, verticalType, revealHorizontal, scrollType));
+    }
+    revealPrimary(eventsCollector, source, minimalReveal, verticalType, revealHorizontal, scrollType) {
+        const primaryCursor = this._cursors.getPrimaryCursor();
+        const revealViewSelections = [primaryCursor.viewState.selection];
+        eventsCollector.emitViewEvent(new ViewRevealRangeRequestEvent(source, minimalReveal, null, revealViewSelections, verticalType, revealHorizontal, scrollType));
     }
     saveState() {
         const result = [];
@@ -158,7 +163,7 @@ export class CursorsController extends Disposable {
             });
         }
         this.setStates(eventsCollector, 'restoreState', 0 /* CursorChangeReason.NotSet */, CursorState.fromModelSelections(desiredSelections));
-        this.revealPrimary(eventsCollector, 'restoreState', false, 0 /* VerticalRevealType.Simple */, true, 1 /* editorCommon.ScrollType.Immediate */);
+        this.revealAll(eventsCollector, 'restoreState', false, 0 /* VerticalRevealType.Simple */, true, 1 /* editorCommon.ScrollType.Immediate */);
     }
     onModelContentChanged(eventsCollector, event) {
         if (event instanceof ModelInjectedTextChangedEvent) {
@@ -198,7 +203,7 @@ export class CursorsController extends Disposable {
                 if (this._hasFocus && e.resultingSelection && e.resultingSelection.length > 0) {
                     const cursorState = CursorState.fromModelSelections(e.resultingSelection);
                     if (this.setStates(eventsCollector, 'modelChange', e.isUndoing ? 5 /* CursorChangeReason.Undo */ : e.isRedoing ? 6 /* CursorChangeReason.Redo */ : 2 /* CursorChangeReason.RecoverFromMarkers */, cursorState)) {
-                        this.revealPrimary(eventsCollector, 'modelChange', false, 0 /* VerticalRevealType.Simple */, true, 0 /* editorCommon.ScrollType.Smooth */);
+                        this.revealAll(eventsCollector, 'modelChange', false, 0 /* VerticalRevealType.Simple */, true, 0 /* editorCommon.ScrollType.Smooth */);
                     }
                 }
                 else {
@@ -417,7 +422,7 @@ export class CursorsController extends Disposable {
         this._cursors.startTrackingSelections();
         this._validateAutoClosedActions();
         if (this._emitStateChangedIfNecessary(eventsCollector, source, cursorChangeReason, oldState, false)) {
-            this.revealPrimary(eventsCollector, source, false, 0 /* VerticalRevealType.Simple */, true, 0 /* editorCommon.ScrollType.Smooth */);
+            this.revealAll(eventsCollector, source, false, 0 /* VerticalRevealType.Simple */, true, 0 /* editorCommon.ScrollType.Smooth */);
         }
     }
     getAutoClosedCharacters() {

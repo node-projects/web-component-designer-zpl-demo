@@ -413,8 +413,8 @@ let MonarchTokenizer = MonarchTokenizer_1 = class MonarchTokenizer extends Dispo
                 continue;
             }
             hasEmbeddedPopRule = true;
-            let regex = rule.regex;
-            const regexSource = rule.regex.source;
+            let regex = rule.resolveRegex(state.stack.state);
+            const regexSource = regex.source;
             if (regexSource.substr(0, 4) === '^(?:' && regexSource.substr(regexSource.length - 1, 1) === ')') {
                 const flags = (regex.ignoreCase ? 'i' : '') + (regex.unicode ? 'u' : '');
                 regex = new RegExp(regexSource.substr(4, regexSource.length - 5), flags);
@@ -506,7 +506,7 @@ let MonarchTokenizer = MonarchTokenizer_1 = class MonarchTokenizer extends Dispo
                 const restOfLine = line.substr(pos);
                 for (const rule of rules) {
                     if (pos === 0 || !rule.matchOnlyAtLineStart) {
-                        matches = restOfLine.match(rule.regex);
+                        matches = restOfLine.match(rule.resolveRegex(state));
                         if (matches) {
                             matched = matches[0];
                             action = rule.action;

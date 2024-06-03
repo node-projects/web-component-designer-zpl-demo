@@ -22,7 +22,7 @@ import * as objects from '../../../../base/common/objects.js';
 import './media/peekViewWidget.css';
 import { registerEditorContribution } from '../../../browser/editorExtensions.js';
 import { ICodeEditorService } from '../../../browser/services/codeEditorService.js';
-import { EmbeddedCodeEditorWidget } from '../../../browser/widget/embeddedCodeEditorWidget.js';
+import { EmbeddedCodeEditorWidget } from '../../../browser/widget/codeEditor/embeddedCodeEditorWidget.js';
 import { ZoneWidget } from '../../zoneWidget/browser/zoneWidget.js';
 import * as nls from '../../../../nls.js';
 import { createActionViewItem } from '../../../../platform/actions/browser/menuEntryActionViewItem.js';
@@ -198,7 +198,7 @@ let PeekViewWidget = class PeekViewWidget extends ZoneWidget {
             this.dispose();
             return;
         }
-        const headHeight = Math.ceil(this.editor.getOption(66 /* EditorOption.lineHeight */) * 1.2);
+        const headHeight = Math.ceil(this.editor.getOption(67 /* EditorOption.lineHeight */) * 1.2);
         const bodyHeight = Math.round(heightInPixel - (headHeight + 2 /* the border-top/bottom width*/));
         this._doLayoutHead(headHeight, widthInPixel);
         this._doLayoutBody(bodyHeight, widthInPixel);

@@ -40,6 +40,7 @@ let StandaloneLayoutService = class StandaloneLayoutService {
     getContainer() {
         return this.activeContainer;
     }
+    whenContainerStylesLoaded() { return undefined; }
     focus() {
         var _a;
         (_a = this._codeEditorService.getFocusedCodeEditor()) === null || _a === void 0 ? void 0 : _a.focus();
@@ -51,7 +52,6 @@ let StandaloneLayoutService = class StandaloneLayoutService {
         this.onDidLayoutContainer = Event.None;
         this.onDidChangeActiveContainer = Event.None;
         this.onDidAddContainer = Event.None;
-        this.whenActiveContainerStylesLoaded = Promise.resolve();
         this.mainContainerOffset = { top: 0, quickPickTop: 0 };
         this.activeContainerOffset = { top: 0, quickPickTop: 0 };
     }

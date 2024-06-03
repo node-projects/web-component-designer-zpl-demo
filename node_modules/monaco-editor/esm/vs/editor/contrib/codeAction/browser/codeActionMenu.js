@@ -7,7 +7,8 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { CodeActionKind } from '../common/types.js';
 import '../../symbolIcons/browser/symbolIcons.js'; // The codicon symbol colors are defined here and must be loaded to get colors
 import { localize } from '../../../../nls.js';
-const uncategorizedCodeActionGroup = Object.freeze({ kind: CodeActionKind.Empty, title: localize('codeAction.widget.id.more', 'More Actions...') });
+import { HierarchicalKind } from '../../../../base/common/hierarchicalKind.js';
+const uncategorizedCodeActionGroup = Object.freeze({ kind: HierarchicalKind.Empty, title: localize('codeAction.widget.id.more', 'More Actions...') });
 const codeActionGroups = Object.freeze([
     { kind: CodeActionKind.QuickFix, title: localize('codeAction.widget.id.quickfix', 'Quick Fix') },
     { kind: CodeActionKind.RefactorExtract, title: localize('codeAction.widget.id.extract', 'Extract'), icon: Codicon.wrench },
@@ -35,7 +36,7 @@ export function toMenuItems(inputCodeActions, showHeaders, keybindingResolver) {
     // Group code actions
     const menuEntries = codeActionGroups.map(group => ({ group, actions: [] }));
     for (const action of inputCodeActions) {
-        const kind = action.action.kind ? new CodeActionKind(action.action.kind) : CodeActionKind.None;
+        const kind = action.action.kind ? new HierarchicalKind(action.action.kind) : HierarchicalKind.None;
         for (const menuEntry of menuEntries) {
             if (menuEntry.group.kind.contains(kind)) {
                 menuEntry.actions.push(action);

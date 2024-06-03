@@ -254,7 +254,7 @@ registerEditorCommand(new CommandCtor({
     handler: ctrl => ctrl.next(),
     kbOpts: {
         weight: 100 /* KeybindingWeight.EditorContrib */ + 30,
-        kbExpr: EditorContextKeys.editorTextFocus,
+        kbExpr: EditorContextKeys.textInputFocus,
         primary: 2 /* KeyCode.Tab */
     }
 }));
@@ -264,7 +264,7 @@ registerEditorCommand(new CommandCtor({
     handler: ctrl => ctrl.prev(),
     kbOpts: {
         weight: 100 /* KeybindingWeight.EditorContrib */ + 30,
-        kbExpr: EditorContextKeys.editorTextFocus,
+        kbExpr: EditorContextKeys.textInputFocus,
         primary: 1024 /* KeyMod.Shift */ | 2 /* KeyCode.Tab */
     }
 }));
@@ -274,7 +274,7 @@ registerEditorCommand(new CommandCtor({
     handler: ctrl => ctrl.cancel(true),
     kbOpts: {
         weight: 100 /* KeybindingWeight.EditorContrib */ + 30,
-        kbExpr: EditorContextKeys.editorTextFocus,
+        kbExpr: EditorContextKeys.textInputFocus,
         primary: 9 /* KeyCode.Escape */,
         secondary: [1024 /* KeyMod.Shift */ | 9 /* KeyCode.Escape */]
     }

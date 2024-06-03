@@ -468,3 +468,34 @@ export class CallbackIterable {
     }
 }
 CallbackIterable.empty = new CallbackIterable(_callback => { });
+/**
+ * Represents a re-arrangement of items in an array.
+ */
+export class Permutation {
+    constructor(_indexMap) {
+        this._indexMap = _indexMap;
+    }
+    /**
+     * Returns a permutation that sorts the given array according to the given compare function.
+     */
+    static createSortPermutation(arr, compareFn) {
+        const sortIndices = Array.from(arr.keys()).sort((index1, index2) => compareFn(arr[index1], arr[index2]));
+        return new Permutation(sortIndices);
+    }
+    /**
+     * Returns a new array with the elements of the given array re-arranged according to this permutation.
+     */
+    apply(arr) {
+        return arr.map((_, index) => arr[this._indexMap[index]]);
+    }
+    /**
+     * Returns a new permutation that undoes the re-arrangement of this permutation.
+    */
+    inverse() {
+        const inverseIndexMap = this._indexMap.slice();
+        for (let i = 0; i < this._indexMap.length; i++) {
+            inverseIndexMap[this._indexMap[i]] = i;
+        }
+        return new Permutation(inverseIndexMap);
+    }
+}

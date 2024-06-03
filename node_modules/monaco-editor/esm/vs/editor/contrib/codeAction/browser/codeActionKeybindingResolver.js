@@ -12,6 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 var CodeActionKeybindingResolver_1;
+import { HierarchicalKind } from '../../../../base/common/hierarchicalKind.js';
 import { Lazy } from '../../../../base/common/lazy.js';
 import { codeActionCommandId, fixAllCommandId, organizeImportsCommandId, refactorCommandId, sourceActionCommandId } from './codeAction.js';
 import { CodeActionCommandArgs, CodeActionKind } from '../common/types.js';
@@ -37,7 +38,7 @@ let CodeActionKeybindingResolver = CodeActionKeybindingResolver_1 = class CodeAc
             return {
                 resolvedKeybinding: item.resolvedKeybinding,
                 ...CodeActionCommandArgs.fromUser(commandArgs, {
-                    kind: CodeActionKind.None,
+                    kind: HierarchicalKind.None,
                     apply: "never" /* CodeActionAutoApply.Never */
                 })
             };
@@ -54,7 +55,7 @@ let CodeActionKeybindingResolver = CodeActionKeybindingResolver_1 = class CodeAc
         if (!action.kind) {
             return undefined;
         }
-        const kind = new CodeActionKind(action.kind);
+        const kind = new HierarchicalKind(action.kind);
         return candidates
             .filter(candidate => candidate.kind.contains(kind))
             .filter(candidate => {

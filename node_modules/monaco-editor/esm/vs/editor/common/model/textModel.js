@@ -1679,8 +1679,11 @@ export class ModelDecorationGlyphMarginOptions {
 }
 export class ModelDecorationMinimapOptions extends DecorationOptions {
     constructor(options) {
+        var _a, _b;
         super(options);
         this.position = options.position;
+        this.sectionHeaderStyle = (_a = options.sectionHeaderStyle) !== null && _a !== void 0 ? _a : null;
+        this.sectionHeaderText = (_b = options.sectionHeaderText) !== null && _b !== void 0 ? _b : null;
     }
     getColor(theme) {
         if (!this._resolvedColor) {

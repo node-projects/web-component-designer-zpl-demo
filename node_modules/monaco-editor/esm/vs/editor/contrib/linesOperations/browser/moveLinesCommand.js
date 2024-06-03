@@ -17,7 +17,7 @@ import { Range } from '../../../common/core/range.js';
 import { Selection } from '../../../common/core/selection.js';
 import { IndentAction } from '../../../common/languages/languageConfiguration.js';
 import { ILanguageConfigurationService } from '../../../common/languages/languageConfigurationRegistry.js';
-import * as indentUtils from '../../indentation/browser/indentUtils.js';
+import * as indentUtils from '../../indentation/common/indentUtils.js';
 import { getGoodIndentForLine, getIndentMetadata } from '../../../common/languages/autoIndent.js';
 import { getEnterAction } from '../../../common/languages/enterAction.js';
 let MoveLinesCommand = class MoveLinesCommand {

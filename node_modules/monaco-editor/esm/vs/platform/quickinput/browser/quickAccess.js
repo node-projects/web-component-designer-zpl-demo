@@ -33,7 +33,7 @@ let QuickAccessController = class QuickAccessController extends Disposable {
         this.doShowOrPick(value, false, options);
     }
     doShowOrPick(value, pick, options) {
-        var _a;
+        var _a, _b, _c;
         // Find provider for the value to show
         const [provider, descriptor] = this.getOrInstantiateProvider(value);
         // Return early if quick access is already showing on that same prefix
@@ -74,6 +74,9 @@ let QuickAccessController = class QuickAccessController extends Disposable {
                 value = newValue;
             }
         }
+        // Store the existing selection if there was one.
+        const visibleSelection = (_a = visibleQuickAccess === null || visibleQuickAccess === void 0 ? void 0 : visibleQuickAccess.picker) === null || _a === void 0 ? void 0 : _a.valueSelection;
+        const visibleValue = (_b = visibleQuickAccess === null || visibleQuickAccess === void 0 ? void 0 : visibleQuickAccess.picker) === null || _b === void 0 ? void 0 : _b.value;
         // Create a picker for the provider to use with the initial value
         // and adjust the filtering to exclude the prefix from filtering
         const disposables = new DisposableStore();
@@ -84,7 +87,7 @@ let QuickAccessController = class QuickAccessController extends Disposable {
         picker.quickNavigate = options === null || options === void 0 ? void 0 : options.quickNavigateConfiguration;
         picker.hideInput = !!picker.quickNavigate && !visibleQuickAccess; // only hide input if there was no picker opened already
         if (typeof (options === null || options === void 0 ? void 0 : options.itemActivation) === 'number' || (options === null || options === void 0 ? void 0 : options.quickNavigateConfiguration)) {
-            picker.itemActivation = (_a = options === null || options === void 0 ? void 0 : options.itemActivation) !== null && _a !== void 0 ? _a : ItemActivation.SECOND /* quick nav is always second */;
+            picker.itemActivation = (_c = options === null || options === void 0 ? void 0 : options.itemActivation) !== null && _c !== void 0 ? _c : ItemActivation.SECOND /* quick nav is always second */;
         }
         picker.contextKey = descriptor === null || descriptor === void 0 ? void 0 : descriptor.contextKey;
         picker.filterValue = (value) => value.substring(descriptor ? descriptor.prefix.length : 0);
@@ -122,6 +125,10 @@ let QuickAccessController = class QuickAccessController extends Disposable {
         // may not call this and then our disposables would leak that rely
         // on the onDidHide event.
         picker.show();
+        // If the previous picker had a selection and the value is unchanged, we should set that in the new picker.
+        if (visibleSelection && visibleValue === value) {
+            picker.valueSelection = visibleSelection;
+        }
         // Pick mode: return with promise
         if (pick) {
             return pickPromise === null || pickPromise === void 0 ? void 0 : pickPromise.p;

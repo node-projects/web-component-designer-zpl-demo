@@ -9,7 +9,13 @@ import { ResourceMap } from '../../../base/common/map.js';
 import { Schemas } from '../../../base/common/network.js';
 import { URI } from '../../../base/common/uri.js';
 import { MarkerSeverity } from './markers.js';
-export const unsupportedSchemas = new Set([Schemas.inMemory, Schemas.vscodeSourceControl, Schemas.walkThrough, Schemas.walkThroughSnippet]);
+export const unsupportedSchemas = new Set([
+    Schemas.inMemory,
+    Schemas.vscodeSourceControl,
+    Schemas.walkThrough,
+    Schemas.walkThroughSnippet,
+    Schemas.vscodeChatCodeBlock,
+]);
 class DoubleResourceMap {
     constructor() {
         this._byResource = new ResourceMap();

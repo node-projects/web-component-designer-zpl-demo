@@ -35,6 +35,9 @@ export class QuickInputBox extends Disposable {
     select(range = null) {
         this.findInput.inputBox.select(range);
     }
+    getSelection() {
+        return this.findInput.inputBox.getSelection();
+    }
     isSelectionAtEnd() {
         return this.findInput.inputBox.isSelectionAtEnd();
     }

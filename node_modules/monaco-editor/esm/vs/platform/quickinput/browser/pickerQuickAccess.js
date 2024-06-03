@@ -218,46 +218,49 @@ export class PickerQuickAccessProvider extends Disposable {
                 item.accept(picker.keyMods, event);
             }
         }));
-        // Trigger the pick with button index if button triggered
-        disposables.add(picker.onDidTriggerItemButton(async ({ button, item }) => {
+        const buttonTrigger = async (button, item) => {
             var _a, _b;
-            if (typeof item.trigger === 'function') {
-                const buttonIndex = (_b = (_a = item.buttons) === null || _a === void 0 ? void 0 : _a.indexOf(button)) !== null && _b !== void 0 ? _b : -1;
-                if (buttonIndex >= 0) {
-                    const result = item.trigger(buttonIndex, picker.keyMods);
-                    const action = (typeof result === 'number') ? result : await result;
-                    if (token.isCancellationRequested) {
-                        return;
-                    }
-                    switch (action) {
-                        case TriggerAction.NO_ACTION:
-                            break;
-                        case TriggerAction.CLOSE_PICKER:
-                            picker.hide();
-                            break;
-                        case TriggerAction.REFRESH_PICKER:
-                            updatePickerItems();
-                            break;
-                        case TriggerAction.REMOVE_ITEM: {
-                            const index = picker.items.indexOf(item);
-                            if (index !== -1) {
-                                const items = picker.items.slice();
-                                const removed = items.splice(index, 1);
-                                const activeItems = picker.activeItems.filter(activeItem => activeItem !== removed[0]);
-                                const keepScrollPositionBefore = picker.keepScrollPosition;
-                                picker.keepScrollPosition = true;
-                                picker.items = items;
-                                if (activeItems) {
-                                    picker.activeItems = activeItems;
-                                }
-                                picker.keepScrollPosition = keepScrollPositionBefore;
+            if (typeof item.trigger !== 'function') {
+                return;
+            }
+            const buttonIndex = (_b = (_a = item.buttons) === null || _a === void 0 ? void 0 : _a.indexOf(button)) !== null && _b !== void 0 ? _b : -1;
+            if (buttonIndex >= 0) {
+                const result = item.trigger(buttonIndex, picker.keyMods);
+                const action = (typeof result === 'number') ? result : await result;
+                if (token.isCancellationRequested) {
+                    return;
+                }
+                switch (action) {
+                    case TriggerAction.NO_ACTION:
+                        break;
+                    case TriggerAction.CLOSE_PICKER:
+                        picker.hide();
+                        break;
+                    case TriggerAction.REFRESH_PICKER:
+                        updatePickerItems();
+                        break;
+                    case TriggerAction.REMOVE_ITEM: {
+                        const index = picker.items.indexOf(item);
+                        if (index !== -1) {
+                            const items = picker.items.slice();
+                            const removed = items.splice(index, 1);
+                            const activeItems = picker.activeItems.filter(activeItem => activeItem !== removed[0]);
+                            const keepScrollPositionBefore = picker.keepScrollPosition;
+                            picker.keepScrollPosition = true;
+                            picker.items = items;
+                            if (activeItems) {
+                                picker.activeItems = activeItems;
                             }
-                            break;
+                            picker.keepScrollPosition = keepScrollPositionBefore;
                         }
+                        break;
                     }
                 }
             }
-        }));
+        };
+        // Trigger the pick with button index if button triggered
+        disposables.add(picker.onDidTriggerItemButton(({ button, item }) => buttonTrigger(button, item)));
+        disposables.add(picker.onDidTriggerSeparatorButton(({ button, separator }) => buttonTrigger(button, separator)));
         return disposables;
     }
 }

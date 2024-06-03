@@ -292,6 +292,28 @@ export class LinkedMap {
         }
         this._state++;
     }
+    trimNew(newSize) {
+        if (newSize >= this.size) {
+            return;
+        }
+        if (newSize === 0) {
+            this.clear();
+            return;
+        }
+        let current = this._tail;
+        let currentSize = this.size;
+        while (current && currentSize > newSize) {
+            this._map.delete(current.key);
+            current = current.previous;
+            currentSize--;
+        }
+        this._tail = current;
+        this._size = currentSize;
+        if (current) {
+            current.next = undefined;
+        }
+        this._state++;
+    }
     addItemFirst(item) {
         // First time Insert
         if (!this._head && !this._tail) {
@@ -429,7 +451,7 @@ export class LinkedMap {
         }
     }
 }
-export class LRUCache extends LinkedMap {
+class Cache extends LinkedMap {
     constructor(limit, ratio = 1) {
         super();
         this._limit = limit;
@@ -450,13 +472,25 @@ export class LRUCache extends LinkedMap {
     }
     set(key, value) {
         super.set(key, value, 2 /* Touch.AsNew */);
-        this.checkTrim();
         return this;
     }
     checkTrim() {
         if (this.size > this._limit) {
-            this.trimOld(Math.round(this._limit * this._ratio));
+            this.trim(Math.round(this._limit * this._ratio));
         }
+    }
+}
+export class LRUCache extends Cache {
+    constructor(limit, ratio = 1) {
+        super(limit, ratio);
+    }
+    trim(newSize) {
+        this.trimOld(newSize);
+    }
+    set(key, value) {
+        super.set(key, value);
+        this.checkTrim();
+        return this;
     }
 }
 /**

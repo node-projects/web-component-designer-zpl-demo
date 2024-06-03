@@ -55,6 +55,7 @@ const shiftKeyMod = 1024 /* KeyMod.Shift */;
 const metaKeyMod = (platform.isMacintosh ? 2048 /* KeyMod.CtrlCmd */ : 256 /* KeyMod.WinCtrl */);
 export class StandardKeyboardEvent {
     constructor(source) {
+        var _a;
         this._standardKeyboardEventBrand = true;
         const e = source;
         this.browserEvent = e;
@@ -63,7 +64,7 @@ export class StandardKeyboardEvent {
         this.shiftKey = e.shiftKey;
         this.altKey = e.altKey;
         this.metaKey = e.metaKey;
-        this.altGraphKey = e.getModifierState('AltGraph');
+        this.altGraphKey = (_a = e.getModifierState) === null || _a === void 0 ? void 0 : _a.call(e, 'AltGraph');
         this.keyCode = extractKeyCode(e);
         this.code = e.code;
         // console.info(e.type + ": keyCode: " + e.keyCode + ", which: " + e.which + ", charCode: " + e.charCode + ", detail: " + e.detail + " ====> " + this.keyCode + ' -- ' + KeyCode[this.keyCode]);

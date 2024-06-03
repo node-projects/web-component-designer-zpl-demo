@@ -27,7 +27,7 @@ export class MoveWordCommand extends EditorCommand {
         if (!editor.hasModel()) {
             return;
         }
-        const wordSeparators = getMapForWordSeparators(editor.getOption(129 /* EditorOption.wordSeparators */));
+        const wordSeparators = getMapForWordSeparators(editor.getOption(131 /* EditorOption.wordSeparators */), editor.getOption(130 /* EditorOption.wordSegmenterLocales */));
         const model = editor.getModel();
         const selections = editor.getSelections();
         const result = selections.map((sel) => {
@@ -147,8 +147,8 @@ export class CursorWordAccessibilityLeft extends WordLeftCommand {
             precondition: undefined
         });
     }
-    _move(_, model, position, wordNavigationType) {
-        return super._move(getMapForWordSeparators(EditorOptions.wordSeparators.defaultValue), model, position, wordNavigationType);
+    _move(wordCharacterClassifier, model, position, wordNavigationType) {
+        return super._move(getMapForWordSeparators(EditorOptions.wordSeparators.defaultValue, wordCharacterClassifier.intlSegmenterLocales), model, position, wordNavigationType);
     }
 }
 export class CursorWordAccessibilityLeftSelect extends WordLeftCommand {
@@ -160,8 +160,8 @@ export class CursorWordAccessibilityLeftSelect extends WordLeftCommand {
             precondition: undefined
         });
     }
-    _move(_, model, position, wordNavigationType) {
-        return super._move(getMapForWordSeparators(EditorOptions.wordSeparators.defaultValue), model, position, wordNavigationType);
+    _move(wordCharacterClassifier, model, position, wordNavigationType) {
+        return super._move(getMapForWordSeparators(EditorOptions.wordSeparators.defaultValue, wordCharacterClassifier.intlSegmenterLocales), model, position, wordNavigationType);
     }
 }
 export class CursorWordStartRight extends WordRightCommand {
@@ -247,8 +247,8 @@ export class CursorWordAccessibilityRight extends WordRightCommand {
             precondition: undefined
         });
     }
-    _move(_, model, position, wordNavigationType) {
-        return super._move(getMapForWordSeparators(EditorOptions.wordSeparators.defaultValue), model, position, wordNavigationType);
+    _move(wordCharacterClassifier, model, position, wordNavigationType) {
+        return super._move(getMapForWordSeparators(EditorOptions.wordSeparators.defaultValue, wordCharacterClassifier.intlSegmenterLocales), model, position, wordNavigationType);
     }
 }
 export class CursorWordAccessibilityRightSelect extends WordRightCommand {
@@ -260,8 +260,8 @@ export class CursorWordAccessibilityRightSelect extends WordRightCommand {
             precondition: undefined
         });
     }
-    _move(_, model, position, wordNavigationType) {
-        return super._move(getMapForWordSeparators(EditorOptions.wordSeparators.defaultValue), model, position, wordNavigationType);
+    _move(wordCharacterClassifier, model, position, wordNavigationType) {
+        return super._move(getMapForWordSeparators(EditorOptions.wordSeparators.defaultValue, wordCharacterClassifier.intlSegmenterLocales), model, position, wordNavigationType);
     }
 }
 export class DeleteWordCommand extends EditorCommand {
@@ -275,7 +275,7 @@ export class DeleteWordCommand extends EditorCommand {
         if (!editor.hasModel()) {
             return;
         }
-        const wordSeparators = getMapForWordSeparators(editor.getOption(129 /* EditorOption.wordSeparators */));
+        const wordSeparators = getMapForWordSeparators(editor.getOption(131 /* EditorOption.wordSeparators */), editor.getOption(130 /* EditorOption.wordSegmenterLocales */));
         const model = editor.getModel();
         const selections = editor.getSelections();
         const autoClosingBrackets = editor.getOption(6 /* EditorOption.autoClosingBrackets */);
@@ -292,7 +292,7 @@ export class DeleteWordCommand extends EditorCommand {
                 autoClosingBrackets,
                 autoClosingQuotes,
                 autoClosingPairs,
-                autoClosedCharacters: viewModel.getCursorAutoClosedCharacters()
+                autoClosedCharacters: viewModel.getCursorAutoClosedCharacters(),
             }, this._wordNavigationType);
             return new ReplaceCommand(deleteRange, '');
         });
@@ -406,7 +406,7 @@ export class DeleteInsideWord extends EditorAction {
         if (!editor.hasModel()) {
             return;
         }
-        const wordSeparators = getMapForWordSeparators(editor.getOption(129 /* EditorOption.wordSeparators */));
+        const wordSeparators = getMapForWordSeparators(editor.getOption(131 /* EditorOption.wordSeparators */), editor.getOption(130 /* EditorOption.wordSegmenterLocales */));
         const model = editor.getModel();
         const selections = editor.getSelections();
         const commands = selections.map((sel) => {

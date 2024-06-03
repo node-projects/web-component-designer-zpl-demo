@@ -24,6 +24,7 @@ function isCollapsibleStateUpdate(update) {
 }
 export class IndexTreeModel {
     constructor(user, list, rootElement, options = {}) {
+        var _a;
         this.user = user;
         this.list = list;
         this.rootRef = [];
@@ -36,6 +37,7 @@ export class IndexTreeModel {
         this.onDidSplice = this._onDidSplice.event;
         this.refilterDelayer = new Delayer(MicrotaskDelay);
         this.collapseByDefault = typeof options.collapseByDefault === 'undefined' ? false : options.collapseByDefault;
+        this.allowNonCollapsibleParents = (_a = options.allowNonCollapsibleParents) !== null && _a !== void 0 ? _a : false;
         this.filter = options.filter;
         this.autoExpandSingleChildren = typeof options.autoExpandSingleChildren === 'undefined' ? false : options.autoExpandSingleChildren;
         this.root = {
@@ -336,7 +338,9 @@ export class IndexTreeModel {
                 child.visibleChildIndex = visibleChildrenCount++;
             }
         }
-        node.collapsible = node.collapsible || node.children.length > 0;
+        if (!this.allowNonCollapsibleParents) {
+            node.collapsible = node.collapsible || node.children.length > 0;
+        }
         node.visibleChildrenCount = visibleChildrenCount;
         node.visible = visibility === 2 /* TreeVisibility.Recurse */ ? visibleChildrenCount > 0 : (visibility === 1 /* TreeVisibility.Visible */);
         if (!node.visible) {

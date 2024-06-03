@@ -76,7 +76,7 @@ export function markAsSingleton(singleton) {
  * Check if `thing` is {@link IDisposable disposable}.
  */
 export function isDisposable(thing) {
-    return typeof thing.dispose === 'function' && thing.dispose.length === 0;
+    return typeof thing === 'object' && thing !== null && typeof thing.dispose === 'function' && thing.dispose.length === 0;
 }
 export function dispose(arg) {
     if (Iterable.is(arg)) {

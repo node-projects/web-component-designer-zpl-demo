@@ -2,6 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+import { HierarchicalKind } from '../../../../base/common/hierarchicalKind.js';
 import { escapeRegExpCharacters } from '../../../../base/common/strings.js';
 import { EditorAction, EditorCommand } from '../../../browser/editorExtensions.js';
 import { EditorContextKeys } from '../../../common/editorContextKeys.js';
@@ -77,7 +78,7 @@ export class CodeActionCommand extends EditorCommand {
     }
     runEditorCommand(_accessor, editor, userArgs) {
         const args = CodeActionCommandArgs.fromUser(userArgs, {
-            kind: CodeActionKind.Empty,
+            kind: HierarchicalKind.Empty,
             apply: "ifSingle" /* CodeActionAutoApply.IfSingle */,
         });
         return triggerCodeActionsForEditorSelection(editor, typeof (userArgs === null || userArgs === void 0 ? void 0 : userArgs.kind) === 'string'
@@ -131,7 +132,7 @@ export class RefactorAction extends EditorAction {
             : args.preferred
                 ? nls.localize('editor.action.refactor.noneMessage.preferred', "No preferred refactorings available")
                 : nls.localize('editor.action.refactor.noneMessage', "No refactorings available"), {
-            include: CodeActionKind.Refactor.contains(args.kind) ? args.kind : CodeActionKind.None,
+            include: CodeActionKind.Refactor.contains(args.kind) ? args.kind : HierarchicalKind.None,
             onlyIncludePreferredActions: args.preferred
         }, args.apply, CodeActionTriggerSource.Refactor);
     }
@@ -166,7 +167,7 @@ export class SourceAction extends EditorAction {
             : args.preferred
                 ? nls.localize('editor.action.source.noneMessage.preferred', "No preferred source actions available")
                 : nls.localize('editor.action.source.noneMessage', "No source actions available"), {
-            include: CodeActionKind.Source.contains(args.kind) ? args.kind : CodeActionKind.None,
+            include: CodeActionKind.Source.contains(args.kind) ? args.kind : HierarchicalKind.None,
             includeSourceActions: true,
             onlyIncludePreferredActions: args.preferred,
         }, args.apply, CodeActionTriggerSource.SourceAction);

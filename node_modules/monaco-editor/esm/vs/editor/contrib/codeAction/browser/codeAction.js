@@ -19,6 +19,7 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { Progress } from '../../../../platform/progress/common/progress.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { CodeActionItem, CodeActionKind, CodeActionTriggerSource, filtersAction, mayIncludeActionsOfKind } from '../common/types.js';
+import { HierarchicalKind } from '../../../../base/common/hierarchicalKind.js';
 export const codeActionCommandId = 'editor.action.codeAction';
 export const quickFixCommandId = 'editor.action.quickFix';
 export const autoFixCommandId = 'editor.action.autoFix';
@@ -63,7 +64,7 @@ class ManagedCodeActionSet extends Disposable {
         this.validActions = this.allActions.filter(({ action }) => !action.disabled);
     }
     get hasAutoFix() {
-        return this.validActions.some(({ action: fix }) => !!fix.kind && CodeActionKind.QuickFix.contains(new CodeActionKind(fix.kind)) && !!fix.isPreferred);
+        return this.validActions.some(({ action: fix }) => !!fix.kind && CodeActionKind.QuickFix.contains(new HierarchicalKind(fix.kind)) && !!fix.isPreferred);
     }
     get hasAIFix() {
         return this.validActions.some(({ action: fix }) => !!fix.isAI);
@@ -142,7 +143,7 @@ function getCodeActionProviders(registry, model, filter) {
             // We don't know what type of actions this provider will return.
             return true;
         }
-        return provider.providedCodeActionKinds.some(kind => mayIncludeActionsOfKind(filter, new CodeActionKind(kind)));
+        return provider.providedCodeActionKinds.some(kind => mayIncludeActionsOfKind(filter, new HierarchicalKind(kind)));
     });
 }
 function* getAdditionalDocumentationForShowingActions(registry, model, trigger, actionsToShow) {
@@ -159,7 +160,7 @@ function getDocumentationFromProvider(provider, providedCodeActions, only) {
     if (!provider.documentation) {
         return undefined;
     }
-    const documentation = provider.documentation.map(entry => ({ kind: new CodeActionKind(entry.kind), command: entry.command }));
+    const documentation = provider.documentation.map(entry => ({ kind: new HierarchicalKind(entry.kind), command: entry.command }));
     if (only) {
         let currentBest;
         for (const entry of documentation) {
@@ -185,7 +186,7 @@ function getDocumentationFromProvider(provider, providedCodeActions, only) {
             continue;
         }
         for (const entry of documentation) {
-            if (entry.kind.contains(new CodeActionKind(action.kind))) {
+            if (entry.kind.contains(new HierarchicalKind(action.kind))) {
                 return entry.command;
             }
         }
@@ -268,7 +269,7 @@ CommandsRegistry.registerCommand('_executeCodeActionProvider', async function (a
     if (!validatedRangeOrSelection) {
         throw illegalArgument();
     }
-    const include = typeof kind === 'string' ? new CodeActionKind(kind) : undefined;
+    const include = typeof kind === 'string' ? new HierarchicalKind(kind) : undefined;
     const codeActionSet = await getCodeActions(codeActionProvider, model, validatedRangeOrSelection, { type: 1 /* languages.CodeActionTriggerType.Invoke */, triggerAction: CodeActionTriggerSource.Default, filter: { includeSourceActions: true, include } }, Progress.None, CancellationToken.None);
     const resolving = [];
     const resolveCount = Math.min(codeActionSet.validActions.length, typeof itemResolveCount === 'number' ? itemResolveCount : 0);

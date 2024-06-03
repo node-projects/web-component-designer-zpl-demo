@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { Codicon } from '../../../../base/common/codicons.js';
-import { MinimapPosition } from '../../../common/model.js';
 import { ModelDecorationOptions } from '../../../common/model/textModel.js';
 import { localize } from '../../../../nls.js';
 import { editorSelectionBackground, iconForeground, registerColor, transparent } from '../../../../platform/theme/common/colorRegistry.js';
@@ -16,7 +15,7 @@ export const foldingExpandedIcon = registerIcon('folding-expanded', Codicon.chev
 export const foldingCollapsedIcon = registerIcon('folding-collapsed', Codicon.chevronRight, localize('foldingCollapsedIcon', 'Icon for collapsed ranges in the editor glyph margin.'));
 export const foldingManualCollapsedIcon = registerIcon('folding-manual-collapsed', foldingCollapsedIcon, localize('foldingManualCollapedIcon', 'Icon for manually collapsed ranges in the editor glyph margin.'));
 export const foldingManualExpandedIcon = registerIcon('folding-manual-expanded', foldingExpandedIcon, localize('foldingManualExpandedIcon', 'Icon for manually expanded ranges in the editor glyph margin.'));
-const foldedBackgroundMinimap = { color: themeColorFromId(foldBackground), position: MinimapPosition.Inline };
+const foldedBackgroundMinimap = { color: themeColorFromId(foldBackground), position: 1 /* MinimapPosition.Inline */ };
 const collapsed = localize('linesCollapsed', "Click to expand the range.");
 const expanded = localize('linesExpanded', "Click to collapse the range.");
 export class FoldingDecorationProvider {

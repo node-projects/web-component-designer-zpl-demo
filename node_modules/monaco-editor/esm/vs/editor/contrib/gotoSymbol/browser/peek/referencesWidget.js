@@ -19,7 +19,7 @@ import { DisposableStore, dispose } from '../../../../../base/common/lifecycle.j
 import { Schemas } from '../../../../../base/common/network.js';
 import { basenameOrAuthority, dirname } from '../../../../../base/common/resources.js';
 import './referencesWidget.css';
-import { EmbeddedCodeEditorWidget } from '../../../../browser/widget/embeddedCodeEditorWidget.js';
+import { EmbeddedCodeEditorWidget } from '../../../../browser/widget/codeEditor/embeddedCodeEditorWidget.js';
 import { Range } from '../../../../common/core/range.js';
 import { ModelDecorationOptions, TextModel } from '../../../../common/model/textModel.js';
 import { ILanguageConfigurationService } from '../../../../common/languages/languageConfigurationRegistry.js';

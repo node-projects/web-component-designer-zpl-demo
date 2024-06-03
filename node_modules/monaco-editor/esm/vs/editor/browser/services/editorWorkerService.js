@@ -28,7 +28,7 @@ import { ILanguageFeaturesService } from '../../common/services/languageFeatures
 import { MovedText } from '../../common/diff/linesDiffComputer.js';
 import { DetailedLineRangeMapping, RangeMapping, LineRangeMapping } from '../../common/diff/rangeMapping.js';
 import { LineRange } from '../../common/core/lineRange.js';
-import { $window } from '../../../base/browser/window.js';
+import { mainWindow } from '../../../base/browser/window.js';
 import { WindowIntervalTimer } from '../../../base/browser/dom.js';
 /**
  * Stop syncing a model to the worker if it was not needed for 1 min.
@@ -122,6 +122,9 @@ let EditorWorkerService = class EditorWorkerService extends Disposable {
     computeWordRanges(resource, range) {
         return this._workerManager.withWorker().then(client => client.computeWordRanges(resource, range));
     }
+    findSectionHeaders(uri, options) {
+        return this._workerManager.withWorker().then(client => client.findSectionHeaders(uri, options));
+    }
 };
 EditorWorkerService = __decorate([
     __param(0, IModelService),
@@ -198,7 +201,7 @@ class WorkerManager extends Disposable {
         this._editorWorkerClient = null;
         this._lastWorkerUsedTime = (new Date()).getTime();
         const stopWorkerInterval = this._register(new WindowIntervalTimer());
-        stopWorkerInterval.cancelAndSet(() => this._checkStopIdleWorker(), Math.round(STOP_WORKER_DELTA_TIME_MS / 2), $window);
+        stopWorkerInterval.cancelAndSet(() => this._checkStopIdleWorker(), Math.round(STOP_WORKER_DELTA_TIME_MS / 2), mainWindow);
         this._register(this._modelService.onModelRemoved(_ => this._checkStopEmptyWorker()));
     }
     dispose() {
@@ -445,6 +448,11 @@ export class EditorWorkerClient extends Disposable {
             const wordDef = wordDefRegExp.source;
             const wordDefFlags = wordDefRegExp.flags;
             return proxy.navigateValueSet(resource.toString(), range, up, wordDef, wordDefFlags);
+        });
+    }
+    findSectionHeaders(uri, options) {
+        return this._withSyncedResources([uri]).then(proxy => {
+            return proxy.findSectionHeaders(uri.toString(), options);
         });
     }
     dispose() {

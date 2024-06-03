@@ -26,8 +26,10 @@ export function createCombinedWorkspaceEdit(uri, ranges, edit) {
 export function sortEditsByYieldTo(edits) {
     var _a;
     function yieldsTo(yTo, other) {
-        return ('providerId' in yTo && yTo.providerId === other.providerId)
-            || ('mimeType' in yTo && yTo.mimeType === other.handledMimeType);
+        if ('mimeType' in yTo) {
+            return yTo.mimeType === other.handledMimeType;
+        }
+        return !!other.kind && yTo.kind.contains(other.kind);
     }
     // Build list of nodes each node yields to
     const yieldsToMap = new Map();
@@ -60,7 +62,7 @@ export function sortEditsByYieldTo(edits) {
         }
         const node = nodes[0];
         if (tempStack.includes(node)) {
-            console.warn(`Yield to cycle detected for ${node.providerId}`);
+            console.warn('Yield to cycle detected', node);
             return nodes;
         }
         if (visited.has(node)) {

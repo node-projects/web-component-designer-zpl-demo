@@ -11,11 +11,11 @@ import { DateTimeout, InfiniteTimeout, SequenceDiff } from './algorithms/diffAlg
 import { DynamicProgrammingDiffing } from './algorithms/dynamicProgrammingDiffing.js';
 import { MyersDiffAlgorithm } from './algorithms/myersDiffAlgorithm.js';
 import { computeMovedLines } from './computeMovedLines.js';
-import { extendDiffsToEntireWordIfAppropriate, optimizeSequenceDiffs, removeVeryShortMatchingLinesBetweenDiffs, removeVeryShortMatchingTextBetweenLongDiffs, removeShortMatches } from './heuristicSequenceOptimizations.js';
+import { extendDiffsToEntireWordIfAppropriate, optimizeSequenceDiffs, removeShortMatches, removeVeryShortMatchingLinesBetweenDiffs, removeVeryShortMatchingTextBetweenLongDiffs } from './heuristicSequenceOptimizations.js';
+import { LineSequence } from './lineSequence.js';
+import { LinesSliceCharSequence } from './linesSliceCharSequence.js';
 import { LinesDiff, MovedText } from '../linesDiffComputer.js';
 import { DetailedLineRangeMapping, RangeMapping } from '../rangeMapping.js';
-import { LinesSliceCharSequence } from './linesSliceCharSequence.js';
-import { LineSequence } from './lineSequence.js';
 export class DefaultLinesDiffComputer {
     constructor() {
         this.dynamicProgrammingDiffing = new DynamicProgrammingDiffing();
@@ -28,7 +28,7 @@ export class DefaultLinesDiffComputer {
         if (originalLines.length === 1 && originalLines[0].length === 0 || modifiedLines.length === 1 && modifiedLines[0].length === 0) {
             return new LinesDiff([
                 new DetailedLineRangeMapping(new LineRange(1, originalLines.length + 1), new LineRange(1, modifiedLines.length + 1), [
-                    new RangeMapping(new Range(1, 1, originalLines.length, originalLines[0].length + 1), new Range(1, 1, modifiedLines.length, modifiedLines[0].length + 1))
+                    new RangeMapping(new Range(1, 1, originalLines.length, originalLines[originalLines.length - 1].length + 1), new Range(1, 1, modifiedLines.length, modifiedLines[modifiedLines.length - 1].length + 1))
                 ])
             ], [], false);
         }
@@ -181,8 +181,11 @@ export function lineRangeMappingFromRangeMappings(alignments, originalLines, mod
         changes.push(new DetailedLineRangeMapping(first.original.join(last.original), first.modified.join(last.modified), g.map(a => a.innerChanges[0])));
     }
     assertFn(() => {
-        if (!dontAssertStartLine) {
-            if (changes.length > 0 && changes[0].original.startLineNumber !== changes[0].modified.startLineNumber) {
+        if (!dontAssertStartLine && changes.length > 0) {
+            if (changes[0].modified.startLineNumber !== changes[0].original.startLineNumber) {
+                return false;
+            }
+            if (modifiedLines.length - changes[changes.length - 1].modified.endLineNumberExclusive !== originalLines.length - changes[changes.length - 1].original.endLineNumberExclusive) {
                 return false;
             }
         }

@@ -40,21 +40,21 @@ export class ViewLineOptions {
         const fontInfo = options.get(50 /* EditorOption.fontInfo */);
         const experimentalWhitespaceRendering = options.get(38 /* EditorOption.experimentalWhitespaceRendering */);
         if (experimentalWhitespaceRendering === 'off') {
-            this.renderWhitespace = options.get(98 /* EditorOption.renderWhitespace */);
+            this.renderWhitespace = options.get(99 /* EditorOption.renderWhitespace */);
         }
         else {
             // whitespace is rendered in a different layer
             this.renderWhitespace = 'none';
         }
-        this.renderControlCharacters = options.get(93 /* EditorOption.renderControlCharacters */);
+        this.renderControlCharacters = options.get(94 /* EditorOption.renderControlCharacters */);
         this.spaceWidth = fontInfo.spaceWidth;
         this.middotWidth = fontInfo.middotWidth;
         this.wsmiddotWidth = fontInfo.wsmiddotWidth;
         this.useMonospaceOptimizations = (fontInfo.isMonospace
             && !options.get(33 /* EditorOption.disableMonospaceOptimizations */));
         this.canUseHalfwidthRightwardsArrow = fontInfo.canUseHalfwidthRightwardsArrow;
-        this.lineHeight = options.get(66 /* EditorOption.lineHeight */);
-        this.stopRenderingLineAfter = options.get(116 /* EditorOption.stopRenderingLineAfter */);
+        this.lineHeight = options.get(67 /* EditorOption.lineHeight */);
+        this.stopRenderingLineAfter = options.get(117 /* EditorOption.stopRenderingLineAfter */);
         this.fontLigatures = options.get(51 /* EditorOption.fontLigatures */);
     }
     equals(other) {
@@ -112,7 +112,7 @@ export class ViewLine {
         }
         return false;
     }
-    renderLine(lineNumber, deltaTop, viewportData, sb) {
+    renderLine(lineNumber, deltaTop, lineHeight, viewportData, sb) {
         if (this._isMaybeInvalid === false) {
             // it appears that nothing relevant has changed
             return false;
@@ -153,7 +153,7 @@ export class ViewLine {
         sb.appendString('<div style="top:');
         sb.appendString(String(deltaTop));
         sb.appendString('px;height:');
-        sb.appendString(String(this._options.lineHeight));
+        sb.appendString(String(lineHeight));
         sb.appendString('px;" class="');
         sb.appendString(ViewLine.CLASS_NAME);
         sb.appendString('">');
@@ -169,10 +169,10 @@ export class ViewLine {
         this._renderedViewLine = renderedViewLine;
         return true;
     }
-    layoutLine(lineNumber, deltaTop) {
+    layoutLine(lineNumber, deltaTop, lineHeight) {
         if (this._renderedViewLine && this._renderedViewLine.domNode) {
             this._renderedViewLine.domNode.setTop(deltaTop);
-            this._renderedViewLine.domNode.setHeight(this._options.lineHeight);
+            this._renderedViewLine.domNode.setHeight(lineHeight);
         }
     }
     // --- end IVisibleLineData

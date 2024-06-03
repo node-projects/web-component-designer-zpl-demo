@@ -43,7 +43,7 @@ export class ViewOverlays extends ViewPart {
     }
     // ---- begin IVisibleLinesHost
     createVisibleLine() {
-        return new ViewOverlayLine(this._context.configuration, this._dynamicOverlays);
+        return new ViewOverlayLine(this._dynamicOverlays);
     }
     // ---- end IVisibleLinesHost
     addDynamicOverlay(overlay) {
@@ -52,12 +52,6 @@ export class ViewOverlays extends ViewPart {
     // ----- event handlers
     onConfigurationChanged(e) {
         this._visibleLines.onConfigurationChanged(e);
-        const startLineNumber = this._visibleLines.getStartLineNumber();
-        const endLineNumber = this._visibleLines.getEndLineNumber();
-        for (let lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++) {
-            const line = this._visibleLines.getVisibleLine(lineNumber);
-            line.onConfigurationChanged(e);
-        }
         const options = this._context.configuration.options;
         const fontInfo = options.get(50 /* EditorOption.fontInfo */);
         applyFontInfo(this.domNode, fontInfo);
@@ -107,9 +101,7 @@ export class ViewOverlays extends ViewPart {
     }
 }
 export class ViewOverlayLine {
-    constructor(configuration, dynamicOverlays) {
-        this._configuration = configuration;
-        this._lineHeight = this._configuration.options.get(66 /* EditorOption.lineHeight */);
+    constructor(dynamicOverlays) {
         this._dynamicOverlays = dynamicOverlays;
         this._domNode = null;
         this._renderedContent = null;
@@ -129,10 +121,7 @@ export class ViewOverlayLine {
     onTokensChanged() {
         // Nothing
     }
-    onConfigurationChanged(e) {
-        this._lineHeight = this._configuration.options.get(66 /* EditorOption.lineHeight */);
-    }
-    renderLine(lineNumber, deltaTop, viewportData, sb) {
+    renderLine(lineNumber, deltaTop, lineHeight, viewportData, sb) {
         let result = '';
         for (let i = 0, len = this._dynamicOverlays.length; i < len; i++) {
             const dynamicOverlay = this._dynamicOverlays[i];
@@ -143,19 +132,19 @@ export class ViewOverlayLine {
             return false;
         }
         this._renderedContent = result;
-        sb.appendString('<div style="position:absolute;top:');
+        sb.appendString('<div style="top:');
         sb.appendString(String(deltaTop));
-        sb.appendString('px;width:100%;height:');
-        sb.appendString(String(this._lineHeight));
+        sb.appendString('px;height:');
+        sb.appendString(String(lineHeight));
         sb.appendString('px;">');
         sb.appendString(result);
         sb.appendString('</div>');
         return true;
     }
-    layoutLine(lineNumber, deltaTop) {
+    layoutLine(lineNumber, deltaTop, lineHeight) {
         if (this._domNode) {
             this._domNode.setTop(deltaTop);
-            this._domNode.setHeight(this._lineHeight);
+            this._domNode.setHeight(lineHeight);
         }
     }
 }
@@ -163,14 +152,14 @@ export class ContentViewOverlays extends ViewOverlays {
     constructor(context) {
         super(context);
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(143 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
         this._contentWidth = layoutInfo.contentWidth;
         this.domNode.setHeight(0);
     }
     // --- begin event handlers
     onConfigurationChanged(e) {
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(143 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
         this._contentWidth = layoutInfo.contentWidth;
         return super.onConfigurationChanged(e) || true;
     }
@@ -187,7 +176,7 @@ export class MarginViewOverlays extends ViewOverlays {
     constructor(context) {
         super(context);
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(143 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
         this._contentLeft = layoutInfo.contentLeft;
         this.domNode.setClassName('margin-view-overlays');
         this.domNode.setWidth(1);
@@ -196,7 +185,7 @@ export class MarginViewOverlays extends ViewOverlays {
     onConfigurationChanged(e) {
         const options = this._context.configuration.options;
         applyFontInfo(this.domNode, options.get(50 /* EditorOption.fontInfo */));
-        const layoutInfo = options.get(143 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
         this._contentLeft = layoutInfo.contentLeft;
         return super.onConfigurationChanged(e) || true;
     }

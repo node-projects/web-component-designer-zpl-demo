@@ -11,9 +11,10 @@ import { SnippetParser } from '../../snippet/browser/snippetParser.js';
 import { SnippetSession } from '../../snippet/browser/snippetSession.js';
 import { SuggestController } from '../../suggest/browser/suggestController.js';
 import { observableValue, transaction } from '../../../../base/common/observable.js';
-import { SingleTextEdit } from './singleTextEdit.js';
+import { SingleTextEdit } from '../../../common/core/textEdit.js';
 import { compareBy, numberComparator } from '../../../../base/common/arrays.js';
-import { findFirstMaxBy } from '../../../../base/common/arraysFind.js';
+import { findFirstMax } from '../../../../base/common/arraysFind.js';
+import { singleTextEditAugments, singleTextRemoveCommonPrefix } from './singleTextEdit.js';
 export class SuggestWidgetAdaptor extends Disposable {
     get selectedItem() {
         return this._selectedItem;
@@ -47,14 +48,14 @@ export class SuggestWidgetAdaptor extends Disposable {
             this._register(suggestController.registerSelector({
                 priority: 100,
                 select: (model, pos, suggestItems) => {
-                    var _a;
                     transaction(tx => this.checkModelVersion(tx));
                     const textModel = this.editor.getModel();
                     if (!textModel) {
                         // Should not happen
                         return -1;
                     }
-                    const itemToPreselect = (_a = this.suggestControllerPreselector()) === null || _a === void 0 ? void 0 : _a.removeCommonPrefix(textModel);
+                    const i = this.suggestControllerPreselector();
+                    const itemToPreselect = i ? singleTextRemoveCommonPrefix(i, textModel) : undefined;
                     if (!itemToPreselect) {
                         return -1;
                     }
@@ -62,12 +63,12 @@ export class SuggestWidgetAdaptor extends Disposable {
                     const candidates = suggestItems
                         .map((suggestItem, index) => {
                         const suggestItemInfo = SuggestItemInfo.fromSuggestion(suggestController, textModel, position, suggestItem, this.isShiftKeyPressed);
-                        const suggestItemTextEdit = suggestItemInfo.toSingleTextEdit().removeCommonPrefix(textModel);
-                        const valid = itemToPreselect.augments(suggestItemTextEdit);
+                        const suggestItemTextEdit = singleTextRemoveCommonPrefix(suggestItemInfo.toSingleTextEdit(), textModel);
+                        const valid = singleTextEditAugments(itemToPreselect, suggestItemTextEdit);
                         return { index, valid, prefixLength: suggestItemTextEdit.text.length, suggestItem };
                     })
                         .filter(item => item && item.valid && item.prefixLength > 0);
-                    const result = findFirstMaxBy(candidates, compareBy(s => s.prefixLength, numberComparator));
+                    const result = findFirstMax(candidates, compareBy(s => s.prefixLength, numberComparator));
                     return result ? result.index : -1;
                 }
             }));

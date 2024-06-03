@@ -148,9 +148,10 @@ FileReferencesRenderer = FileReferencesRenderer_1 = __decorate([
 export { FileReferencesRenderer };
 //#endregion
 //#region render: Reference
-class OneReferenceTemplate {
+class OneReferenceTemplate extends Disposable {
     constructor(container) {
-        this.label = new HighlightedLabel(container);
+        super();
+        this.label = this._register(new HighlightedLabel(container));
     }
     set(element, score) {
         var _a;
@@ -184,7 +185,8 @@ export class OneReferenceRenderer {
     renderElement(node, index, templateData) {
         templateData.set(node.element, node.filterData);
     }
-    disposeTemplate() {
+    disposeTemplate(templateData) {
+        templateData.dispose();
     }
 }
 OneReferenceRenderer.id = 'OneReferenceRenderer';

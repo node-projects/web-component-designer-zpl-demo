@@ -3,7 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as dom from '../../dom.js';
+import { getBaseLayerHoverDelegate } from '../hover/hoverDelegate2.js';
+import { getDefaultHoverDelegate } from '../hover/hoverDelegateFactory.js';
 import { UILabelProvider } from '../../../common/keybindingLabels.js';
+import { Disposable } from '../../../common/lifecycle.js';
 import { equals } from '../../../common/objects.js';
 import './keybindingLabel.css';
 import { localize } from '../../../../nls.js';
@@ -15,8 +18,9 @@ export const unthemedKeybindingLabelOptions = {
     keybindingLabelBottomBorder: undefined,
     keybindingLabelShadow: undefined
 };
-export class KeybindingLabel {
+export class KeybindingLabel extends Disposable {
     constructor(container, os, options) {
+        super();
         this.os = os;
         this.keyElements = new Set();
         this.options = options || Object.create(null);
@@ -25,6 +29,7 @@ export class KeybindingLabel {
         if (labelForeground) {
             this.domNode.style.color = labelForeground;
         }
+        this.hover = this._register(getBaseLayerHoverDelegate().setupUpdatableHover(getDefaultHoverDelegate('mouse'), this.domNode, ''));
         this.didEverRender = false;
         container.appendChild(this.domNode);
     }
@@ -52,12 +57,8 @@ export class KeybindingLabel {
                 this.renderChord(this.domNode, chords[i], this.matches ? this.matches.chordPart : null);
             }
             const title = ((_a = this.options.disableTitle) !== null && _a !== void 0 ? _a : false) ? undefined : this.keybinding.getAriaLabel() || undefined;
-            if (title !== undefined) {
-                this.domNode.title = title;
-            }
-            else {
-                this.domNode.removeAttribute('title');
-            }
+            this.hover.update(title);
+            this.domNode.setAttribute('aria-label', title || '');
         }
         else if (this.options && this.options.renderUnboundKeybindings) {
             this.renderUnbound(this.domNode);

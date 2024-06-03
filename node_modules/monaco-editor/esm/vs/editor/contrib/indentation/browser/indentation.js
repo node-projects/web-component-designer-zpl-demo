@@ -15,120 +15,25 @@ import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import * as strings from '../../../../base/common/strings.js';
 import { EditorAction, registerEditorAction, registerEditorContribution } from '../../../browser/editorExtensions.js';
 import { ShiftCommand } from '../../../common/commands/shiftCommand.js';
-import { EditOperation } from '../../../common/core/editOperation.js';
 import { Range } from '../../../common/core/range.js';
-import { Selection } from '../../../common/core/selection.js';
 import { EditorContextKeys } from '../../../common/editorContextKeys.js';
 import { ILanguageConfigurationService } from '../../../common/languages/languageConfigurationRegistry.js';
 import { IModelService } from '../../../common/services/model.js';
-import * as indentUtils from './indentUtils.js';
+import * as indentUtils from '../common/indentUtils.js';
 import * as nls from '../../../../nls.js';
 import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
-import { normalizeIndentation } from '../../../common/core/indentation.js';
 import { getGoodIndentForLine, getIndentMetadata } from '../../../common/languages/autoIndent.js';
-export function getReindentEditOperations(model, languageConfigurationService, startLineNumber, endLineNumber, inheritedIndent) {
-    if (model.getLineCount() === 1 && model.getLineMaxColumn(1) === 1) {
-        // Model is empty
-        return [];
-    }
-    const indentationRules = languageConfigurationService.getLanguageConfiguration(model.getLanguageId()).indentationRules;
-    if (!indentationRules) {
-        return [];
-    }
-    endLineNumber = Math.min(endLineNumber, model.getLineCount());
-    // Skip `unIndentedLinePattern` lines
-    while (startLineNumber <= endLineNumber) {
-        if (!indentationRules.unIndentedLinePattern) {
-            break;
-        }
-        const text = model.getLineContent(startLineNumber);
-        if (!indentationRules.unIndentedLinePattern.test(text)) {
-            break;
-        }
-        startLineNumber++;
-    }
-    if (startLineNumber > endLineNumber - 1) {
-        return [];
-    }
-    const { tabSize, indentSize, insertSpaces } = model.getOptions();
-    const shiftIndent = (indentation, count) => {
-        count = count || 1;
-        return ShiftCommand.shiftIndent(indentation, indentation.length + count, tabSize, indentSize, insertSpaces);
-    };
-    const unshiftIndent = (indentation, count) => {
-        count = count || 1;
-        return ShiftCommand.unshiftIndent(indentation, indentation.length + count, tabSize, indentSize, insertSpaces);
-    };
-    const indentEdits = [];
-    // indentation being passed to lines below
-    let globalIndent;
-    // Calculate indentation for the first line
-    // If there is no passed-in indentation, we use the indentation of the first line as base.
-    const currentLineText = model.getLineContent(startLineNumber);
-    let adjustedLineContent = currentLineText;
-    if (inheritedIndent !== undefined && inheritedIndent !== null) {
-        globalIndent = inheritedIndent;
-        const oldIndentation = strings.getLeadingWhitespace(currentLineText);
-        adjustedLineContent = globalIndent + currentLineText.substring(oldIndentation.length);
-        if (indentationRules.decreaseIndentPattern && indentationRules.decreaseIndentPattern.test(adjustedLineContent)) {
-            globalIndent = unshiftIndent(globalIndent);
-            adjustedLineContent = globalIndent + currentLineText.substring(oldIndentation.length);
-        }
-        if (currentLineText !== adjustedLineContent) {
-            indentEdits.push(EditOperation.replaceMove(new Selection(startLineNumber, 1, startLineNumber, oldIndentation.length + 1), normalizeIndentation(globalIndent, indentSize, insertSpaces)));
-        }
-    }
-    else {
-        globalIndent = strings.getLeadingWhitespace(currentLineText);
-    }
-    // idealIndentForNextLine doesn't equal globalIndent when there is a line matching `indentNextLinePattern`.
-    let idealIndentForNextLine = globalIndent;
-    if (indentationRules.increaseIndentPattern && indentationRules.increaseIndentPattern.test(adjustedLineContent)) {
-        idealIndentForNextLine = shiftIndent(idealIndentForNextLine);
-        globalIndent = shiftIndent(globalIndent);
-    }
-    else if (indentationRules.indentNextLinePattern && indentationRules.indentNextLinePattern.test(adjustedLineContent)) {
-        idealIndentForNextLine = shiftIndent(idealIndentForNextLine);
-    }
-    startLineNumber++;
-    // Calculate indentation adjustment for all following lines
-    for (let lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++) {
-        const text = model.getLineContent(lineNumber);
-        const oldIndentation = strings.getLeadingWhitespace(text);
-        const adjustedLineContent = idealIndentForNextLine + text.substring(oldIndentation.length);
-        if (indentationRules.decreaseIndentPattern && indentationRules.decreaseIndentPattern.test(adjustedLineContent)) {
-            idealIndentForNextLine = unshiftIndent(idealIndentForNextLine);
-            globalIndent = unshiftIndent(globalIndent);
-        }
-        if (oldIndentation !== idealIndentForNextLine) {
-            indentEdits.push(EditOperation.replaceMove(new Selection(lineNumber, 1, lineNumber, oldIndentation.length + 1), normalizeIndentation(idealIndentForNextLine, indentSize, insertSpaces)));
-        }
-        // calculate idealIndentForNextLine
-        if (indentationRules.unIndentedLinePattern && indentationRules.unIndentedLinePattern.test(text)) {
-            // In reindent phase, if the line matches `unIndentedLinePattern` we inherit indentation from above lines
-            // but don't change globalIndent and idealIndentForNextLine.
-            continue;
-        }
-        else if (indentationRules.increaseIndentPattern && indentationRules.increaseIndentPattern.test(adjustedLineContent)) {
-            globalIndent = shiftIndent(globalIndent);
-            idealIndentForNextLine = globalIndent;
-        }
-        else if (indentationRules.indentNextLinePattern && indentationRules.indentNextLinePattern.test(adjustedLineContent)) {
-            idealIndentForNextLine = shiftIndent(idealIndentForNextLine);
-        }
-        else {
-            idealIndentForNextLine = globalIndent;
-        }
-    }
-    return indentEdits;
-}
+import { getReindentEditOperations } from '../common/indentation.js';
 export class IndentationToSpacesAction extends EditorAction {
     constructor() {
         super({
             id: IndentationToSpacesAction.ID,
             label: nls.localize('indentationToSpaces', "Convert Indentation to Spaces"),
             alias: 'Convert Indentation to Spaces',
-            precondition: EditorContextKeys.writable
+            precondition: EditorContextKeys.writable,
+            metadata: {
+                description: nls.localize2('indentationToSpacesDescription', "Convert the tab indentation to spaces."),
+            }
         });
     }
     run(accessor, editor) {
@@ -157,7 +62,10 @@ export class IndentationToTabsAction extends EditorAction {
             id: IndentationToTabsAction.ID,
             label: nls.localize('indentationToTabs', "Convert Indentation to Tabs"),
             alias: 'Convert Indentation to Tabs',
-            precondition: EditorContextKeys.writable
+            precondition: EditorContextKeys.writable,
+            metadata: {
+                description: nls.localize2('indentationToTabsDescription', "Convert the spaces indentation to tabs."),
+            }
         });
     }
     run(accessor, editor) {
@@ -238,7 +146,10 @@ export class IndentUsingTabs extends ChangeIndentationSizeAction {
             id: IndentUsingTabs.ID,
             label: nls.localize('indentUsingTabs', "Indent Using Tabs"),
             alias: 'Indent Using Tabs',
-            precondition: undefined
+            precondition: undefined,
+            metadata: {
+                description: nls.localize2('indentUsingTabsDescription', "Use indentation with tabs."),
+            }
         });
     }
 }
@@ -249,7 +160,10 @@ export class IndentUsingSpaces extends ChangeIndentationSizeAction {
             id: IndentUsingSpaces.ID,
             label: nls.localize('indentUsingSpaces', "Indent Using Spaces"),
             alias: 'Indent Using Spaces',
-            precondition: undefined
+            precondition: undefined,
+            metadata: {
+                description: nls.localize2('indentUsingSpacesDescription', "Use indentation with spaces."),
+            }
         });
     }
 }
@@ -260,7 +174,10 @@ export class ChangeTabDisplaySize extends ChangeIndentationSizeAction {
             id: ChangeTabDisplaySize.ID,
             label: nls.localize('changeTabDisplaySize', "Change Tab Display Size"),
             alias: 'Change Tab Display Size',
-            precondition: undefined
+            precondition: undefined,
+            metadata: {
+                description: nls.localize2('changeTabDisplaySizeDescription', "Change the space size equivalent of the tab."),
+            }
         });
     }
 }
@@ -271,7 +188,10 @@ export class DetectIndentation extends EditorAction {
             id: DetectIndentation.ID,
             label: nls.localize('detectIndentation', "Detect Indentation from Content"),
             alias: 'Detect Indentation from Content',
-            precondition: undefined
+            precondition: undefined,
+            metadata: {
+                description: nls.localize2('detectIndentationDescription', "Detect the indentation from content."),
+            }
         });
     }
     run(accessor, editor) {
@@ -291,7 +211,10 @@ export class ReindentLinesAction extends EditorAction {
             id: 'editor.action.reindentlines',
             label: nls.localize('editor.reindentlines', "Reindent Lines"),
             alias: 'Reindent Lines',
-            precondition: EditorContextKeys.writable
+            precondition: EditorContextKeys.writable,
+            metadata: {
+                description: nls.localize2('editor.reindentlinesDescription', "Reindent the lines of the editor."),
+            }
         });
     }
     run(accessor, editor) {
@@ -314,7 +237,10 @@ export class ReindentSelectedLinesAction extends EditorAction {
             id: 'editor.action.reindentselectedlines',
             label: nls.localize('editor.reindentselectedlines', "Reindent Selected Lines"),
             alias: 'Reindent Selected Lines',
-            precondition: EditorContextKeys.writable
+            precondition: EditorContextKeys.writable,
+            metadata: {
+                description: nls.localize2('editor.reindentselectedlinesDescription', "Reindent the selected lines of the editor."),
+            }
         });
     }
     run(accessor, editor) {

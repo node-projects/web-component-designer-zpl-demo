@@ -10,6 +10,7 @@ import { Emitter } from '../../../common/event.js';
 import './findInput.css';
 import * as nls from '../../../../nls.js';
 import { DisposableStore, MutableDisposable } from '../../../common/lifecycle.js';
+import { createInstantHoverDelegate } from '../hover/hoverDelegateFactory.js';
 const NLS_DEFAULT_LABEL = nls.localize('defaultLabel', "input");
 export class FindInput extends Widget {
     constructor(parent, contextViewProvider, options) {
@@ -57,10 +58,12 @@ export class FindInput extends Widget {
             flexibleMaxHeight,
             inputBoxStyles: options.inputBoxStyles,
         }));
+        const hoverDelegate = this._register(createInstantHoverDelegate());
         if (this.showCommonFindToggles) {
             this.regex = this._register(new RegexToggle({
                 appendTitle: appendRegexLabel,
                 isChecked: false,
+                hoverDelegate,
                 ...options.toggleStyles
             }));
             this._register(this.regex.onChange(viaKeyboard => {
@@ -76,6 +79,7 @@ export class FindInput extends Widget {
             this.wholeWords = this._register(new WholeWordsToggle({
                 appendTitle: appendWholeWordsLabel,
                 isChecked: false,
+                hoverDelegate,
                 ...options.toggleStyles
             }));
             this._register(this.wholeWords.onChange(viaKeyboard => {
@@ -88,6 +92,7 @@ export class FindInput extends Widget {
             this.caseSensitive = this._register(new CaseSensitiveToggle({
                 appendTitle: appendCaseSensitiveLabel,
                 isChecked: false,
+                hoverDelegate,
                 ...options.toggleStyles
             }));
             this._register(this.caseSensitive.onChange(viaKeyboard => {

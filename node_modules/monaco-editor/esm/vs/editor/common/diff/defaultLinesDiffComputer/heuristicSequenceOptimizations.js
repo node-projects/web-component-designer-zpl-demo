@@ -191,7 +191,7 @@ export function extendDiffsToEntireWordIfAppropriate(sequence1, sequence2, seque
         // But they might touch the next ones.
         while (equalMappings.length > 0) {
             const next = equalMappings[0];
-            const intersects = next.seq1Range.intersects(w1) || next.seq2Range.intersects(w2);
+            const intersects = next.seq1Range.intersects(w.seq1Range) || next.seq2Range.intersects(w.seq2Range);
             if (!intersects) {
                 break;
             }
