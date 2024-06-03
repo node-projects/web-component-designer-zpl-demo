@@ -18,14 +18,14 @@
   },
   "homepage": "https://github.com/node-projects/web-component-designer-zpl-demo#readme",
   "devDependencies": {
-    "@web/dev-server": "^0.4.3",
-    "typescript": "^5.3.3"
+    "@web/dev-server": "^0.4.5",
+    "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@node-projects/base-custom-webcomponent": "0.23.0",
-    "@node-projects/web-component-designer": "^0.1.96",
-    "@node-projects/web-component-designer-codeview-monaco": "^0.1.18",
-    "@node-projects/web-component-designer-zpl": "^0.1.15",
-    "es-module-shims": "^1.8.3"
+    "@node-projects/base-custom-webcomponent": "0.27.6",
+    "@node-projects/web-component-designer": "^0.1.197",
+    "@node-projects/web-component-designer-codeview-monaco": "^0.1.27",
+    "@node-projects/web-component-designer-zpl": "^0.1.18",
+    "es-module-shims": "^1.10.0"
   }
 }
