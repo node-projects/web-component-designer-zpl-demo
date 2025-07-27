@@ -18,8 +18,7 @@ class DevicePixelRatioMonitor extends Disposable {
         this._handleChange(targetWindow, false);
     }
     _handleChange(targetWindow, fireEvent) {
-        var _a;
-        (_a = this._mediaQueryList) === null || _a === void 0 ? void 0 : _a.removeEventListener('change', this._listener);
+        this._mediaQueryList?.removeEventListener('change', this._listener);
         this._mediaQueryList = targetWindow.matchMedia(`(resolution: ${targetWindow.devicePixelRatio}dppx)`);
         this._mediaQueryList.addEventListener('change', this._listener);
         if (fireEvent) {
@@ -65,7 +64,7 @@ class PixelRatioMonitorFacade {
             this.mapWindowIdToPixelRatioMonitor.set(targetWindowId, pixelRatioMonitor);
             markAsSingleton(Event.once(onDidUnregisterWindow)(({ vscodeWindowId }) => {
                 if (vscodeWindowId === targetWindowId) {
-                    pixelRatioMonitor === null || pixelRatioMonitor === void 0 ? void 0 : pixelRatioMonitor.dispose();
+                    pixelRatioMonitor?.dispose();
                     this.mapWindowIdToPixelRatioMonitor.delete(targetWindowId);
                 }
             }));

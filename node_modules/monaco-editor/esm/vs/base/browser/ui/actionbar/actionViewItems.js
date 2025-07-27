@@ -76,7 +76,7 @@ export class BaseActionViewItem extends Disposable {
             container.draggable = true;
             if (isFirefox) {
                 // Firefox: requires to set a text data transfer to get going
-                this._register(addDisposableListener(container, EventType.DRAG_START, e => { var _a; return (_a = e.dataTransfer) === null || _a === void 0 ? void 0 : _a.setData(DataTransfers.TEXT, this._action.label); }));
+                this._register(addDisposableListener(container, EventType.DRAG_START, e => e.dataTransfer?.setData(DataTransfers.TEXT, this._action.label)));
             }
         }
         this._register(addDisposableListener(element, TouchEventType.Tap, e => this.onClick(e, true))); // Preserve focus on tap #125470
@@ -117,9 +117,8 @@ export class BaseActionViewItem extends Disposable {
         });
     }
     onClick(event, preserveFocus = false) {
-        var _a;
         EventHelper.stop(event, true);
-        const context = types.isUndefinedOrNull(this._context) ? ((_a = this.options) === null || _a === void 0 ? void 0 : _a.useEventAsContext) ? event : { preserveFocus } : this._context;
+        const context = types.isUndefinedOrNull(this._context) ? this.options?.useEventAsContext ? event : { preserveFocus } : this._context;
         this.actionRunner.run(this._action, context);
     }
     // Only set the tabIndex on the element once it is about to get focused
@@ -159,20 +158,19 @@ export class BaseActionViewItem extends Disposable {
         return this.action.tooltip;
     }
     updateTooltip() {
-        var _a, _b, _c;
         if (!this.element) {
             return;
         }
-        const title = (_a = this.getTooltip()) !== null && _a !== void 0 ? _a : '';
+        const title = this.getTooltip() ?? '';
         this.updateAriaLabel();
-        if ((_b = this.options.hoverDelegate) === null || _b === void 0 ? void 0 : _b.showNativeHover) {
+        if (this.options.hoverDelegate?.showNativeHover) {
             /* While custom hover is not inside custom hover */
             this.element.title = title;
         }
         else {
             if (!this.customHover && title !== '') {
-                const hoverDelegate = (_c = this.options.hoverDelegate) !== null && _c !== void 0 ? _c : getDefaultHoverDelegate('element');
-                this.customHover = this._store.add(getBaseLayerHoverDelegate().setupUpdatableHover(hoverDelegate, this.element, title));
+                const hoverDelegate = this.options.hoverDelegate ?? getDefaultHoverDelegate('element');
+                this.customHover = this._store.add(getBaseLayerHoverDelegate().setupManagedHover(hoverDelegate, this.element, title));
             }
             else if (this.customHover) {
                 this.customHover.update(title);
@@ -180,9 +178,8 @@ export class BaseActionViewItem extends Disposable {
         }
     }
     updateAriaLabel() {
-        var _a;
         if (this.element) {
-            const title = (_a = this.getTooltip()) !== null && _a !== void 0 ? _a : '';
+            const title = this.getTooltip() ?? '';
             this.element.setAttribute('aria-label', title);
         }
     }
@@ -237,6 +234,9 @@ export class ActionViewItem extends BaseActionViewItem {
             if (this.options.isMenu) {
                 return 'menuitem';
             }
+            else if (this.options.isTabList) {
+                return 'tab';
+            }
             else {
                 return 'button';
             }
@@ -276,10 +276,9 @@ export class ActionViewItem extends BaseActionViewItem {
                 title = nls.localize({ key: 'titleLabel', comment: ['action title', 'action keybinding'] }, "{0} ({1})", title, this.options.keybinding);
             }
         }
-        return title !== null && title !== void 0 ? title : undefined;
+        return title ?? undefined;
     }
     updateClass() {
-        var _a;
         if (this.cssClass && this.label) {
             this.label.classList.remove(...this.cssClass.split(' '));
         }
@@ -294,30 +293,28 @@ export class ActionViewItem extends BaseActionViewItem {
             this.updateEnabled();
         }
         else {
-            (_a = this.label) === null || _a === void 0 ? void 0 : _a.classList.remove('codicon');
+            this.label?.classList.remove('codicon');
         }
     }
     updateEnabled() {
-        var _a, _b;
         if (this.action.enabled) {
             if (this.label) {
                 this.label.removeAttribute('aria-disabled');
                 this.label.classList.remove('disabled');
             }
-            (_a = this.element) === null || _a === void 0 ? void 0 : _a.classList.remove('disabled');
+            this.element?.classList.remove('disabled');
         }
         else {
             if (this.label) {
                 this.label.setAttribute('aria-disabled', 'true');
                 this.label.classList.add('disabled');
             }
-            (_b = this.element) === null || _b === void 0 ? void 0 : _b.classList.add('disabled');
+            this.element?.classList.add('disabled');
         }
     }
     updateAriaLabel() {
-        var _a;
         if (this.label) {
-            const title = (_a = this.getTooltip()) !== null && _a !== void 0 ? _a : '';
+            const title = this.getTooltip() ?? '';
             this.label.setAttribute('aria-label', title);
         }
     }
@@ -325,12 +322,17 @@ export class ActionViewItem extends BaseActionViewItem {
         if (this.label) {
             if (this.action.checked !== undefined) {
                 this.label.classList.toggle('checked', this.action.checked);
-                this.label.setAttribute('aria-checked', this.action.checked ? 'true' : 'false');
-                this.label.setAttribute('role', 'checkbox');
+                if (this.options.isTabList) {
+                    this.label.setAttribute('aria-selected', this.action.checked ? 'true' : 'false');
+                }
+                else {
+                    this.label.setAttribute('aria-checked', this.action.checked ? 'true' : 'false');
+                    this.label.setAttribute('role', 'checkbox');
+                }
             }
             else {
                 this.label.classList.remove('checked');
-                this.label.removeAttribute('aria-checked');
+                this.label.removeAttribute(this.options.isTabList ? 'aria-selected' : 'aria-checked');
                 this.label.setAttribute('role', this.getDefaultAriaRole());
             }
         }
@@ -360,12 +362,10 @@ export class SelectActionViewItem extends BaseActionViewItem {
         this.selectBox.setFocusable(focusable);
     }
     focus() {
-        var _a;
-        (_a = this.selectBox) === null || _a === void 0 ? void 0 : _a.focus();
+        this.selectBox?.focus();
     }
     blur() {
-        var _a;
-        (_a = this.selectBox) === null || _a === void 0 ? void 0 : _a.blur();
+        this.selectBox?.blur();
     }
     render(container) {
         this.selectBox.render(container);

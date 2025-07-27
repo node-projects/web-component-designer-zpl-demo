@@ -15,14 +15,17 @@ import { h } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
-import { autorun, derived, observableFromEvent } from '../../../../base/common/observable.js';
+import { autorun, derived } from '../../../../base/common/observable.js';
 import { globalTransaction, observableValue } from '../../../../base/common/observableInternal/base.js';
+import { observableCodeEditor } from '../../observableCodeEditor.js';
 import { DiffEditorWidget } from '../diffEditor/diffEditorWidget.js';
+import { createActionViewItem } from '../../../../platform/actions/browser/menuEntryActionViewItem.js';
 import { MenuWorkbenchToolBar } from '../../../../platform/actions/browser/toolbar.js';
 import { MenuId } from '../../../../platform/actions/common/actions.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ActionRunnerWithContext } from './utils.js';
-import { createActionViewItem } from '../../../../platform/actions/browser/menuEntryActionViewItem.js';
+import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import { ServiceCollection } from '../../../../platform/instantiation/common/serviceCollection.js';
 export class TemplateData {
     constructor(viewModel, deltaScrollVertical) {
         this.viewModel = viewModel;
@@ -33,14 +36,14 @@ export class TemplateData {
     }
 }
 let DiffEditorItemTemplate = class DiffEditorItemTemplate extends Disposable {
-    constructor(_container, _overflowWidgetsDomNode, _workbenchUIElementFactory, _instantiationService) {
+    constructor(_container, _overflowWidgetsDomNode, _workbenchUIElementFactory, _instantiationService, _parentContextKeyService) {
         super();
         this._container = _container;
         this._overflowWidgetsDomNode = _overflowWidgetsDomNode;
         this._workbenchUIElementFactory = _workbenchUIElementFactory;
         this._instantiationService = _instantiationService;
         this._viewModel = observableValue(this, undefined);
-        this._collapsed = derived(this, reader => { var _a; return (_a = this._viewModel.read(reader)) === null || _a === void 0 ? void 0 : _a.collapsed.read(reader); });
+        this._collapsed = derived(this, reader => this._viewModel.read(reader)?.collapsed.read(reader));
         this._editorContentHeight = observableValue(this, 500);
         this.contentHeight = derived(this, reader => {
             const h = this._collapsed.read(reader) ? 0 : this._editorContentHeight.read(reader);
@@ -79,8 +82,8 @@ let DiffEditorItemTemplate = class DiffEditorItemTemplate extends Disposable {
         this.editor = this._register(this._instantiationService.createInstance(DiffEditorWidget, this._elements.editor, {
             overflowWidgetsDomNode: this._overflowWidgetsDomNode,
         }, {}));
-        this.isModifedFocused = isFocused(this.editor.getModifiedEditor());
-        this.isOriginalFocused = isFocused(this.editor.getOriginalEditor());
+        this.isModifedFocused = observableCodeEditor(this.editor.getModifiedEditor()).isFocused;
+        this.isOriginalFocused = observableCodeEditor(this.editor.getOriginalEditor()).isFocused;
         this.isFocused = derived(this, reader => this.isModifedFocused.read(reader) || this.isOriginalFocused.read(reader));
         this._resourceLabel = this._workbenchUIElementFactory.createResourceLabel
             ? this._register(this._workbenchUIElementFactory.createResourceLabel(this._elements.primaryPath))
@@ -88,7 +91,7 @@ let DiffEditorItemTemplate = class DiffEditorItemTemplate extends Disposable {
         this._resourceLabel2 = this._workbenchUIElementFactory.createResourceLabel
             ? this._register(this._workbenchUIElementFactory.createResourceLabel(this._elements.secondaryPath))
             : undefined;
-        this._dataStore = new DisposableStore();
+        this._dataStore = this._register(new DisposableStore());
         this._headerHeight = 40;
         this._lastScrollTop = -1;
         this._isSettingScrollTop = false;
@@ -98,8 +101,7 @@ let DiffEditorItemTemplate = class DiffEditorItemTemplate extends Disposable {
             btn.icon = this._collapsed.read(reader) ? Codicon.chevronRight : Codicon.chevronDown;
         }));
         this._register(btn.onDidClick(() => {
-            var _a;
-            (_a = this._viewModel.get()) === null || _a === void 0 ? void 0 : _a.collapsed.set(!this._collapsed.get(), undefined);
+            this._viewModel.get()?.collapsed.set(!this._collapsed.get(), undefined);
         }));
         this._register(autorun(reader => {
             this._elements.editor.style.display = this._collapsed.read(reader) ? 'none' : 'block';
@@ -130,19 +132,20 @@ let DiffEditorItemTemplate = class DiffEditorItemTemplate extends Disposable {
             this._data.deltaScrollVertical(delta);
         }));
         this._register(autorun(reader => {
-            var _a;
-            const isActive = (_a = this._viewModel.read(reader)) === null || _a === void 0 ? void 0 : _a.isActive.read(reader);
+            const isActive = this._viewModel.read(reader)?.isActive.read(reader);
             this._elements.root.classList.toggle('active', isActive);
         }));
         this._container.appendChild(this._elements.root);
         this._outerEditorHeight = this._headerHeight;
-        this._register(this._instantiationService.createInstance(MenuWorkbenchToolBar, this._elements.actions, MenuId.MultiDiffEditorFileToolbar, {
-            actionRunner: this._register(new ActionRunnerWithContext(() => { var _a; return ((_a = this._viewModel.get()) === null || _a === void 0 ? void 0 : _a.modifiedUri); })),
+        this._contextKeyService = this._register(_parentContextKeyService.createScoped(this._elements.actions));
+        const instantiationService = this._register(this._instantiationService.createChild(new ServiceCollection([IContextKeyService, this._contextKeyService])));
+        this._register(instantiationService.createInstance(MenuWorkbenchToolBar, this._elements.actions, MenuId.MultiDiffEditorFileToolbar, {
+            actionRunner: this._register(new ActionRunnerWithContext(() => (this._viewModel.get()?.modifiedUri))),
             menuOptions: {
                 shouldForwardArgs: true,
             },
             toolbarOptions: { primaryGroup: g => g.startsWith('navigation') },
-            actionViewItemProvider: (action, options) => createActionViewItem(_instantiationService, action, options),
+            actionViewItemProvider: (action, options) => createActionViewItem(instantiationService, action, options),
         }));
     }
     setScrollLeft(left) {
@@ -173,16 +176,17 @@ let DiffEditorItemTemplate = class DiffEditorItemTemplate extends Disposable {
                 overviewRulerBorder: false,
             };
         }
-        const value = data.viewModel.entry.value; // TODO
-        if (value.onOptionsDidChange) {
-            this._dataStore.add(value.onOptionsDidChange(() => {
-                var _a;
-                this.editor.updateOptions(updateOptions((_a = value.options) !== null && _a !== void 0 ? _a : {}));
-            }));
+        if (!data) {
+            globalTransaction(tx => {
+                this._viewModel.set(undefined, tx);
+                this.editor.setDiffModel(null, tx);
+                this._dataStore.clear();
+            });
+            return;
         }
+        const value = data.viewModel.documentDiffItem;
         globalTransaction(tx => {
-            var _a, _b, _c, _d;
-            (_a = this._resourceLabel) === null || _a === void 0 ? void 0 : _a.setUri((_b = data.viewModel.modifiedUri) !== null && _b !== void 0 ? _b : data.viewModel.originalUri, { strikethrough: data.viewModel.modifiedUri === undefined });
+            this._resourceLabel?.setUri(data.viewModel.modifiedUri ?? data.viewModel.originalUri, { strikethrough: data.viewModel.modifiedUri === undefined });
             let isRenamed = false;
             let isDeleted = false;
             let isAdded = false;
@@ -203,12 +207,27 @@ let DiffEditorItemTemplate = class DiffEditorItemTemplate extends Disposable {
             this._elements.status.classList.toggle('deleted', isDeleted);
             this._elements.status.classList.toggle('added', isAdded);
             this._elements.status.innerText = flag;
-            (_c = this._resourceLabel2) === null || _c === void 0 ? void 0 : _c.setUri(isRenamed ? data.viewModel.originalUri : undefined, { strikethrough: true });
+            this._resourceLabel2?.setUri(isRenamed ? data.viewModel.originalUri : undefined, { strikethrough: true });
             this._dataStore.clear();
             this._viewModel.set(data.viewModel, tx);
-            this.editor.setModel(data.viewModel.diffEditorViewModel, tx);
-            this.editor.updateOptions(updateOptions((_d = value.options) !== null && _d !== void 0 ? _d : {}));
+            this.editor.setDiffModel(data.viewModel.diffEditorViewModelRef, tx);
+            this.editor.updateOptions(updateOptions(value.options ?? {}));
         });
+        if (value.onOptionsDidChange) {
+            this._dataStore.add(value.onOptionsDidChange(() => {
+                this.editor.updateOptions(updateOptions(value.options ?? {}));
+            }));
+        }
+        data.viewModel.isAlive.recomputeInitiallyAndOnChange(this._dataStore, value => {
+            if (!value) {
+                this.setData(undefined);
+            }
+        });
+        if (data.viewModel.documentDiffItem.contextKeys) {
+            for (const [key, value] of Object.entries(data.viewModel.documentDiffItem.contextKeys)) {
+                this._contextKeyService.createKey(key, value);
+            }
+        }
     }
     render(verticalRange, width, editorScroll, viewPort) {
         this._elements.root.style.visibility = 'visible';
@@ -243,14 +262,7 @@ let DiffEditorItemTemplate = class DiffEditorItemTemplate extends Disposable {
     }
 };
 DiffEditorItemTemplate = __decorate([
-    __param(3, IInstantiationService)
+    __param(3, IInstantiationService),
+    __param(4, IContextKeyService)
 ], DiffEditorItemTemplate);
 export { DiffEditorItemTemplate };
-function isFocused(editor) {
-    return observableFromEvent(h => {
-        const store = new DisposableStore();
-        store.add(editor.onDidFocusEditorWidget(() => h(true)));
-        store.add(editor.onDidBlurEditorWidget(() => h(false)));
-        return store;
-    }, () => editor.hasTextFocus());
-}

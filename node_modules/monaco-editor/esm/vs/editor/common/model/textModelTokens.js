@@ -408,8 +408,7 @@ export class DefaultBackgroundTokenizer {
         return !this._tokenizerWithStateStore.store.allStatesValid();
     }
     _tokenizeOneInvalidLine(builder) {
-        var _a;
-        const firstInvalidLine = (_a = this._tokenizerWithStateStore) === null || _a === void 0 ? void 0 : _a.getFirstInvalidLine();
+        const firstInvalidLine = this._tokenizerWithStateStore?.getFirstInvalidLine();
         if (!firstInvalidLine) {
             return this._tokenizerWithStateStore._textModel.getLineCount() + 1;
         }

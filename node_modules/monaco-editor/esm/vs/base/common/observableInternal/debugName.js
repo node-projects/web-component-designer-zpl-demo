@@ -15,14 +15,13 @@ export class DebugNameData {
 const countPerName = new Map();
 const cachedDebugName = new WeakMap();
 export function getDebugName(target, data) {
-    var _a;
     const cached = cachedDebugName.get(target);
     if (cached) {
         return cached;
     }
     const dbgName = computeDebugName(target, data);
     if (dbgName) {
-        let count = (_a = countPerName.get(dbgName)) !== null && _a !== void 0 ? _a : 0;
+        let count = countPerName.get(dbgName) ?? 0;
         count++;
         countPerName.set(dbgName, count);
         const result = count === 1 ? dbgName : `${dbgName}#${count}`;
@@ -76,13 +75,12 @@ function findKey(obj, value) {
 const countPerClassName = new Map();
 const ownerId = new WeakMap();
 function formatOwner(owner) {
-    var _a;
     const id = ownerId.get(owner);
     if (id) {
         return id;
     }
     const className = getClassName(owner);
-    let count = (_a = countPerClassName.get(className)) !== null && _a !== void 0 ? _a : 0;
+    let count = countPerClassName.get(className) ?? 0;
     count++;
     countPerClassName.set(className, count);
     const result = count === 1 ? className : `${className}#${count}`;
@@ -102,5 +100,5 @@ export function getFunctionName(fn) {
     const regexp = /\/\*\*\s*@description\s*([^*]*)\*\//;
     const match = regexp.exec(fnSrc);
     const result = match ? match[1] : undefined;
-    return result === null || result === void 0 ? void 0 : result.trim();
+    return result?.trim();
 }

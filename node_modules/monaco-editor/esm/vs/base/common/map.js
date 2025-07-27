@@ -13,22 +13,23 @@ function isEntries(arg) {
     return Array.isArray(arg);
 }
 export class ResourceMap {
+    static { this.defaultToKey = (resource) => resource.toString(); }
     constructor(arg, toKey) {
         this[_a] = 'ResourceMap';
         if (arg instanceof ResourceMap) {
             this.map = new Map(arg.map);
-            this.toKey = toKey !== null && toKey !== void 0 ? toKey : ResourceMap.defaultToKey;
+            this.toKey = toKey ?? ResourceMap.defaultToKey;
         }
         else if (isEntries(arg)) {
             this.map = new Map();
-            this.toKey = toKey !== null && toKey !== void 0 ? toKey : ResourceMap.defaultToKey;
+            this.toKey = toKey ?? ResourceMap.defaultToKey;
             for (const [resource, value] of arg) {
                 this.set(resource, value);
             }
         }
         else {
             this.map = new Map();
-            this.toKey = arg !== null && arg !== void 0 ? arg : ResourceMap.defaultToKey;
+            this.toKey = arg ?? ResourceMap.defaultToKey;
         }
     }
     set(resource, value) {
@@ -36,8 +37,7 @@ export class ResourceMap {
         return this;
     }
     get(resource) {
-        var _c;
-        return (_c = this.map.get(this.toKey(resource))) === null || _c === void 0 ? void 0 : _c.value;
+        return this.map.get(this.toKey(resource))?.value;
     }
     has(resource) {
         return this.map.has(this.toKey(resource));
@@ -80,7 +80,6 @@ export class ResourceMap {
         }
     }
 }
-ResourceMap.defaultToKey = (resource) => resource.toString();
 export class LinkedMap {
     constructor() {
         this[_b] = 'LinkedMap';
@@ -104,12 +103,10 @@ export class LinkedMap {
         return this._size;
     }
     get first() {
-        var _c;
-        return (_c = this._head) === null || _c === void 0 ? void 0 : _c.value;
+        return this._head?.value;
     }
     get last() {
-        var _c;
-        return (_c = this._tail) === null || _c === void 0 ? void 0 : _c.value;
+        return this._tail?.value;
     }
     has(key) {
         return this._map.has(key);

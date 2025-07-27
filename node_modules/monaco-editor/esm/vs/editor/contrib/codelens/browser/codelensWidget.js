@@ -35,6 +35,7 @@ class CodeLensViewZone {
     }
 }
 class CodeLensContentWidget {
+    static { this._idPool = 0; }
     constructor(editor, line) {
         // Editor.IContentWidget.allowEditorOverflow
         this.allowEditorOverflow = false;
@@ -107,7 +108,6 @@ class CodeLensContentWidget {
         return this._widgetPosition || null;
     }
 }
-CodeLensContentWidget._idPool = 0;
 export class CodeLensHelper {
     constructor() {
         this._removeDecorations = [];
@@ -177,7 +177,7 @@ export class CodeLensWidget {
     dispose(helper, viewZoneChangeAccessor) {
         this._decorationIds.forEach(helper.removeDecoration, helper);
         this._decorationIds = [];
-        viewZoneChangeAccessor === null || viewZoneChangeAccessor === void 0 ? void 0 : viewZoneChangeAccessor.removeZone(this._viewZoneId);
+        viewZoneChangeAccessor?.removeZone(this._viewZoneId);
         if (this._contentWidget) {
             this._editor.removeContentWidget(this._contentWidget);
             this._contentWidget = undefined;
@@ -237,8 +237,7 @@ export class CodeLensWidget {
         }
     }
     getCommand(link) {
-        var _a;
-        return (_a = this._contentWidget) === null || _a === void 0 ? void 0 : _a.getCommand(link);
+        return this._contentWidget?.getCommand(link);
     }
     getLineNumber() {
         const range = this._editor.getModel().getDecorationRange(this._decorationIds[0]);

@@ -168,10 +168,9 @@ let View = class View extends ViewEventHandler {
         let maxLineNumber = 0;
         // Add all margin decorations
         glyphs = glyphs.concat(model.getAllMarginDecorations().map((decoration) => {
-            var _a, _b, _c;
-            const lane = (_b = (_a = decoration.options.glyphMargin) === null || _a === void 0 ? void 0 : _a.position) !== null && _b !== void 0 ? _b : GlyphMarginLane.Center;
+            const lane = decoration.options.glyphMargin?.position ?? GlyphMarginLane.Center;
             maxLineNumber = Math.max(maxLineNumber, decoration.range.endLineNumber);
-            return { range: decoration.range, lane, persist: (_c = decoration.options.glyphMargin) === null || _c === void 0 ? void 0 : _c.persistLane };
+            return { range: decoration.range, lane, persist: decoration.options.glyphMargin?.persistLane };
         }));
         // Add all glyph margin widgets
         glyphs = glyphs.concat(this._glyphMarginWidgets.getWidgets().map((widget) => {
@@ -236,7 +235,7 @@ let View = class View extends ViewEventHandler {
     }
     _applyLayout() {
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         this.domNode.setWidth(layoutInfo.width);
         this.domNode.setHeight(layoutInfo.height);
         this._overflowGuardContainer.setWidth(layoutInfo.width);
@@ -247,7 +246,7 @@ let View = class View extends ViewEventHandler {
     }
     _getEditorClassName() {
         const focused = this._textAreaHandler.isFocused() ? ' focused' : '';
-        return this._context.configuration.options.get(142 /* EditorOption.editorClassName */) + ' ' + getThemeTypeSelector(this._context.theme.type) + focused;
+        return this._context.configuration.options.get(143 /* EditorOption.editorClassName */) + ' ' + getThemeTypeSelector(this._context.theme.type) + focused;
     }
     // --- begin event handlers
     handleEvents(events) {
@@ -300,7 +299,7 @@ let View = class View extends ViewEventHandler {
         if (this._renderAnimationFrame === null) {
             const rendering = this._createCoordinatedRendering();
             this._renderAnimationFrame = EditorRenderingCoordinator.INSTANCE.scheduleCoordinatedRendering({
-                window: dom.getWindow(this.domNode.domNode),
+                window: dom.getWindow(this.domNode?.domNode),
                 prepareRenderText: () => {
                     if (this._store.isDisposed) {
                         throw new BugIndicatingError();
@@ -474,8 +473,7 @@ let View = class View extends ViewEventHandler {
         this._scheduleRender();
     }
     layoutContentWidget(widgetData) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
-        this._contentWidgets.setWidgetPosition(widgetData.widget, (_b = (_a = widgetData.position) === null || _a === void 0 ? void 0 : _a.position) !== null && _b !== void 0 ? _b : null, (_d = (_c = widgetData.position) === null || _c === void 0 ? void 0 : _c.secondaryPosition) !== null && _d !== void 0 ? _d : null, (_f = (_e = widgetData.position) === null || _e === void 0 ? void 0 : _e.preference) !== null && _f !== void 0 ? _f : null, (_h = (_g = widgetData.position) === null || _g === void 0 ? void 0 : _g.positionAffinity) !== null && _h !== void 0 ? _h : null);
+        this._contentWidgets.setWidgetPosition(widgetData.widget, widgetData.position?.position ?? null, widgetData.position?.secondaryPosition ?? null, widgetData.position?.preference ?? null, widgetData.position?.positionAffinity ?? null);
         this._scheduleRender();
     }
     removeContentWidget(widgetData) {
@@ -488,8 +486,7 @@ let View = class View extends ViewEventHandler {
         this._scheduleRender();
     }
     layoutOverlayWidget(widgetData) {
-        const newPreference = widgetData.position ? widgetData.position.preference : null;
-        const shouldRender = this._overlayWidgets.setWidgetPosition(widgetData.widget, newPreference);
+        const shouldRender = this._overlayWidgets.setWidgetPosition(widgetData.widget, widgetData.position);
         if (shouldRender) {
             this._scheduleRender();
         }
@@ -531,6 +528,7 @@ function safeInvokeNoArg(func) {
     }
 }
 class EditorRenderingCoordinator {
+    static { this.INSTANCE = new EditorRenderingCoordinator(); }
     constructor() {
         this._coordinatedRenderings = [];
         this._animationFrameRunners = new Map();
@@ -595,4 +593,3 @@ class EditorRenderingCoordinator {
         }
     }
 }
-EditorRenderingCoordinator.INSTANCE = new EditorRenderingCoordinator();

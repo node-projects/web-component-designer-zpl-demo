@@ -23,6 +23,7 @@ let EditorHoverStatusBar = class EditorHoverStatusBar extends Disposable {
     constructor(_keybindingService) {
         super();
         this._keybindingService = _keybindingService;
+        this.actions = [];
         this._hasContent = false;
         this.hoverElement = $('div.hover-row.status-bar');
         this.hoverElement.tabIndex = 0;
@@ -32,7 +33,9 @@ let EditorHoverStatusBar = class EditorHoverStatusBar extends Disposable {
         const keybinding = this._keybindingService.lookupKeybinding(actionOptions.commandId);
         const keybindingLabel = keybinding ? keybinding.getLabel() : null;
         this._hasContent = true;
-        return this._register(HoverAction.render(this.actionsElement, actionOptions, keybindingLabel));
+        const action = this._register(HoverAction.render(this.actionsElement, actionOptions, keybindingLabel));
+        this.actions.push(action);
+        return action;
     }
     append(element) {
         const result = dom.append(this.actionsElement, element);

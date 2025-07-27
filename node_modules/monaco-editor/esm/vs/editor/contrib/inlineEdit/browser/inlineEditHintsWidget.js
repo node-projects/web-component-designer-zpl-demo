@@ -36,11 +36,10 @@ let InlineEditHintsWidget = class InlineEditHintsWidget extends Disposable {
         this.editor = editor;
         this.model = model;
         this.instantiationService = instantiationService;
-        this.alwaysShowToolbar = observableFromEvent(this.editor.onDidChangeConfiguration, () => this.editor.getOption(63 /* EditorOption.inlineEdit */).showToolbar === 'always');
+        this.alwaysShowToolbar = observableFromEvent(this, this.editor.onDidChangeConfiguration, () => this.editor.getOption(63 /* EditorOption.inlineEdit */).showToolbar === 'always');
         this.sessionPosition = undefined;
         this.position = derived(this, reader => {
-            var _a, _b, _c;
-            const ghostText = (_a = this.model.read(reader)) === null || _a === void 0 ? void 0 : _a.widget.model.ghostText.read(reader);
+            const ghostText = this.model.read(reader)?.model.ghostText.read(reader);
             if (!this.alwaysShowToolbar.read(reader) || !ghostText || ghostText.parts.length === 0) {
                 this.sessionPosition = undefined;
                 return null;
@@ -49,7 +48,7 @@ let InlineEditHintsWidget = class InlineEditHintsWidget extends Disposable {
             if (this.sessionPosition && this.sessionPosition.lineNumber !== ghostText.lineNumber) {
                 this.sessionPosition = undefined;
             }
-            const position = new Position(ghostText.lineNumber, Math.min(firstColumn, (_c = (_b = this.sessionPosition) === null || _b === void 0 ? void 0 : _b.column) !== null && _c !== void 0 ? _c : Number.MAX_SAFE_INTEGER));
+            const position = new Position(ghostText.lineNumber, Math.min(firstColumn, this.sessionPosition?.column ?? Number.MAX_SAFE_INTEGER));
             this.sessionPosition = position;
             return position;
         });
@@ -69,7 +68,10 @@ InlineEditHintsWidget = __decorate([
     __param(2, IInstantiationService)
 ], InlineEditHintsWidget);
 export { InlineEditHintsWidget };
-let InlineEditHintsContentWidget = InlineEditHintsContentWidget_1 = class InlineEditHintsContentWidget extends Disposable {
+let InlineEditHintsContentWidget = class InlineEditHintsContentWidget extends Disposable {
+    static { InlineEditHintsContentWidget_1 = this; }
+    static { this._dropDownVisible = false; }
+    static { this.id = 0; }
     constructor(editor, withBorder, _position, instantiationService, _contextKeyService, _menuService) {
         super();
         this.editor = editor;
@@ -131,8 +133,6 @@ let InlineEditHintsContentWidget = InlineEditHintsContentWidget_1 = class Inline
         };
     }
 };
-InlineEditHintsContentWidget._dropDownVisible = false;
-InlineEditHintsContentWidget.id = 0;
 InlineEditHintsContentWidget = InlineEditHintsContentWidget_1 = __decorate([
     __param(3, IInstantiationService),
     __param(4, IContextKeyService),
@@ -174,10 +174,9 @@ let CustomizedMenuWorkbenchToolBar = class CustomizedMenuWorkbenchToolBar extend
         this.updateToolbar();
     }
     updateToolbar() {
-        var _a, _b, _c, _d, _e, _f, _g;
         const primary = [];
         const secondary = [];
-        createAndFillInActionBarActions(this.menu, (_a = this.options2) === null || _a === void 0 ? void 0 : _a.menuOptions, { primary, secondary }, (_c = (_b = this.options2) === null || _b === void 0 ? void 0 : _b.toolbarOptions) === null || _c === void 0 ? void 0 : _c.primaryGroup, (_e = (_d = this.options2) === null || _d === void 0 ? void 0 : _d.toolbarOptions) === null || _e === void 0 ? void 0 : _e.shouldInlineSubmenu, (_g = (_f = this.options2) === null || _f === void 0 ? void 0 : _f.toolbarOptions) === null || _g === void 0 ? void 0 : _g.useSeparatorsInPrimaryActions);
+        createAndFillInActionBarActions(this.menu, this.options2?.menuOptions, { primary, secondary }, this.options2?.toolbarOptions?.primaryGroup, this.options2?.toolbarOptions?.shouldInlineSubmenu, this.options2?.toolbarOptions?.useSeparatorsInPrimaryActions);
         secondary.push(...this.additionalActions);
         primary.unshift(...this.prependedPrimaryActions);
         this.setActions(primary, secondary);

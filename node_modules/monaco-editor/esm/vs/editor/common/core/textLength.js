@@ -8,6 +8,7 @@ import { Range } from './range.js';
  * Represents a non-negative length of text in terms of line and column count.
 */
 export class TextLength {
+    static { this.zero = new TextLength(0, 0); }
     static betweenPositions(position1, position2) {
         if (position1.lineNumber === position2.lineNumber) {
             return new TextLength(0, position2.column - position1.column);
@@ -63,4 +64,3 @@ export class TextLength {
         return `${this.lineCount},${this.columnCount}`;
     }
 }
-TextLength.zero = new TextLength(0, 0);

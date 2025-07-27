@@ -13,10 +13,11 @@ import { registerThemingParticipant } from '../../../../platform/theme/common/th
 import { isHighContrast } from '../../../../platform/theme/common/theme.js';
 import { WindowIntervalTimer, getWindow } from '../../../../base/browser/dom.js';
 export class ViewCursors extends ViewPart {
+    static { this.BLINK_INTERVAL = 500; }
     constructor(context) {
         super(context);
         const options = this._context.configuration.options;
-        this._readOnly = options.get(91 /* EditorOption.readOnly */);
+        this._readOnly = options.get(92 /* EditorOption.readOnly */);
         this._cursorBlinking = options.get(26 /* EditorOption.cursorBlinking */);
         this._cursorStyle = options.get(28 /* EditorOption.cursorStyle */);
         this._cursorSmoothCaretAnimation = options.get(27 /* EditorOption.cursorSmoothCaretAnimation */);
@@ -58,7 +59,7 @@ export class ViewCursors extends ViewPart {
     }
     onConfigurationChanged(e) {
         const options = this._context.configuration.options;
-        this._readOnly = options.get(91 /* EditorOption.readOnly */);
+        this._readOnly = options.get(92 /* EditorOption.readOnly */);
         this._cursorBlinking = options.get(26 /* EditorOption.cursorBlinking */);
         this._cursorStyle = options.get(28 /* EditorOption.cursorStyle */);
         this._cursorSmoothCaretAnimation = options.get(27 /* EditorOption.cursorSmoothCaretAnimation */);
@@ -306,7 +307,6 @@ export class ViewCursors extends ViewPart {
         return this._renderData;
     }
 }
-ViewCursors.BLINK_INTERVAL = 500;
 registerThemingParticipant((theme, collector) => {
     const cursorThemes = [
         { class: '.cursor', foreground: editorCursorForeground, background: editorCursorBackground },

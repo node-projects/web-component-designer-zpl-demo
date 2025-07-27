@@ -15,16 +15,22 @@ var PostEditWidget_1;
 import * as dom from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { toAction } from '../../../../base/common/actions.js';
+import { toErrorMessage } from '../../../../base/common/errorMessage.js';
+import { isCancellationError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import './postEditWidget.css';
 import { IBulkEditService } from '../../../browser/services/bulkEditService.js';
 import { createCombinedWorkspaceEdit } from './edit.js';
+import { localize } from '../../../../nls.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
-let PostEditWidget = PostEditWidget_1 = class PostEditWidget extends Disposable {
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
+let PostEditWidget = class PostEditWidget extends Disposable {
+    static { PostEditWidget_1 = this; }
+    static { this.baseId = 'editor.widget.postEditWidget'; }
     constructor(typeId, editor, visibleContext, showCommand, range, edits, onSelectNewEdit, _contextMenuService, contextKeyService, _keybindingService) {
         super();
         this.typeId = typeId;
@@ -54,8 +60,7 @@ let PostEditWidget = PostEditWidget_1 = class PostEditWidget extends Disposable 
         }));
     }
     _updateButtonTitle() {
-        var _a;
-        const binding = (_a = this._keybindingService.lookupKeybinding(this.showCommand.id)) === null || _a === void 0 ? void 0 : _a.getLabel();
+        const binding = this._keybindingService.lookupKeybinding(this.showCommand.id)?.getLabel();
         this.button.element.title = this.showCommand.label + (binding ? ` (${binding})` : '');
     }
     create() {
@@ -99,14 +104,13 @@ let PostEditWidget = PostEditWidget_1 = class PostEditWidget extends Disposable 
         });
     }
 };
-PostEditWidget.baseId = 'editor.widget.postEditWidget';
 PostEditWidget = PostEditWidget_1 = __decorate([
     __param(7, IContextMenuService),
     __param(8, IContextKeyService),
     __param(9, IKeybindingService)
 ], PostEditWidget);
 let PostEditWidgetManager = class PostEditWidgetManager extends Disposable {
-    constructor(_id, _editor, _visibleContext, _showCommand, _instantiationService, _bulkEditService) {
+    constructor(_id, _editor, _visibleContext, _showCommand, _instantiationService, _bulkEditService, _notificationService) {
         super();
         this._id = _id;
         this._editor = _editor;
@@ -114,6 +118,7 @@ let PostEditWidgetManager = class PostEditWidgetManager extends Disposable {
         this._showCommand = _showCommand;
         this._instantiationService = _instantiationService;
         this._bulkEditService = _bulkEditService;
+        this._notificationService = _notificationService;
         this._currentWidget = this._register(new MutableDisposable());
         this._register(Event.any(_editor.onDidChangeModel, _editor.onDidChangeModelContent)(() => this.clear()));
     }
@@ -126,7 +131,30 @@ let PostEditWidgetManager = class PostEditWidgetManager extends Disposable {
         if (!edit) {
             return;
         }
-        const resolvedEdit = await resolve(edit, token);
+        const onDidSelectEdit = async (newEditIndex) => {
+            const model = this._editor.getModel();
+            if (!model) {
+                return;
+            }
+            await model.undo();
+            this.applyEditAndShowIfNeeded(ranges, { activeEditIndex: newEditIndex, allEdits: edits.allEdits }, canShowWidget, resolve, token);
+        };
+        const handleError = (e, message) => {
+            if (isCancellationError(e)) {
+                return;
+            }
+            this._notificationService.error(message);
+            if (canShowWidget) {
+                this.show(ranges[0], edits, onDidSelectEdit);
+            }
+        };
+        let resolvedEdit;
+        try {
+            resolvedEdit = await resolve(edit, token);
+        }
+        catch (e) {
+            return handleError(e, localize('resolveError', "Error resolving edit '{0}':\n{1}", edit.title, toErrorMessage(e)));
+        }
         if (token.isCancellationRequested) {
             return;
         }
@@ -144,6 +172,9 @@ let PostEditWidgetManager = class PostEditWidgetManager extends Disposable {
             editResult = await this._bulkEditService.apply(combinedWorkspaceEdit, { editor: this._editor, token });
             editRange = model.getDecorationRange(editTrackingDecoration[0]);
         }
+        catch (e) {
+            return handleError(e, localize('applyError', "Error applying edit '{0}':\n{1}", edit.title, toErrorMessage(e)));
+        }
         finally {
             model.deltaDecorations(editTrackingDecoration, []);
         }
@@ -151,14 +182,7 @@ let PostEditWidgetManager = class PostEditWidgetManager extends Disposable {
             return;
         }
         if (canShowWidget && editResult.isApplied && edits.allEdits.length > 1) {
-            this.show(editRange !== null && editRange !== void 0 ? editRange : primaryRange, edits, async (newEditIndex) => {
-                const model = this._editor.getModel();
-                if (!model) {
-                    return;
-                }
-                await model.undo();
-                this.applyEditAndShowIfNeeded(ranges, { activeEditIndex: newEditIndex, allEdits: edits.allEdits }, canShowWidget, resolve, token);
-            });
+            this.show(editRange ?? primaryRange, edits, onDidSelectEdit);
         }
     }
     show(range, edits, onDidSelectEdit) {
@@ -171,12 +195,12 @@ let PostEditWidgetManager = class PostEditWidgetManager extends Disposable {
         this._currentWidget.clear();
     }
     tryShowSelector() {
-        var _a;
-        (_a = this._currentWidget.value) === null || _a === void 0 ? void 0 : _a.showSelector();
+        this._currentWidget.value?.showSelector();
     }
 };
 PostEditWidgetManager = __decorate([
     __param(4, IInstantiationService),
-    __param(5, IBulkEditService)
+    __param(5, IBulkEditService),
+    __param(6, INotificationService)
 ], PostEditWidgetManager);
 export { PostEditWidgetManager };

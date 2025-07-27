@@ -20,13 +20,11 @@ import { registerSingleton } from '../../../platform/instantiation/common/extens
 import { ILayoutService } from '../../../platform/layout/browser/layoutService.js';
 let StandaloneLayoutService = class StandaloneLayoutService {
     get mainContainer() {
-        var _a, _b;
-        return (_b = (_a = firstOrDefault(this._codeEditorService.listCodeEditors())) === null || _a === void 0 ? void 0 : _a.getContainerDomNode()) !== null && _b !== void 0 ? _b : mainWindow.document.body;
+        return firstOrDefault(this._codeEditorService.listCodeEditors())?.getContainerDomNode() ?? mainWindow.document.body;
     }
     get activeContainer() {
-        var _a, _b;
-        const activeCodeEditor = (_a = this._codeEditorService.getFocusedCodeEditor()) !== null && _a !== void 0 ? _a : this._codeEditorService.getActiveCodeEditor();
-        return (_b = activeCodeEditor === null || activeCodeEditor === void 0 ? void 0 : activeCodeEditor.getContainerDomNode()) !== null && _b !== void 0 ? _b : this.mainContainer;
+        const activeCodeEditor = this._codeEditorService.getFocusedCodeEditor() ?? this._codeEditorService.getActiveCodeEditor();
+        return activeCodeEditor?.getContainerDomNode() ?? this.mainContainer;
     }
     get mainContainerDimension() {
         return dom.getClientArea(this.mainContainer);
@@ -42,8 +40,7 @@ let StandaloneLayoutService = class StandaloneLayoutService {
     }
     whenContainerStylesLoaded() { return undefined; }
     focus() {
-        var _a;
-        (_a = this._codeEditorService.getFocusedCodeEditor()) === null || _a === void 0 ? void 0 : _a.focus();
+        this._codeEditorService.getFocusedCodeEditor()?.focus();
     }
     constructor(_codeEditorService) {
         this._codeEditorService = _codeEditorService;

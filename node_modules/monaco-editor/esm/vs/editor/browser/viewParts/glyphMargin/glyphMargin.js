@@ -21,7 +21,7 @@ export class DecorationToRender {
         this.className = className;
         this.tooltip = tooltip;
         this._decorationToRenderBrand = undefined;
-        this.zIndex = zIndex !== null && zIndex !== void 0 ? zIndex : 0;
+        this.zIndex = zIndex ?? 0;
     }
 }
 /**
@@ -101,7 +101,7 @@ export class GlyphMarginWidgets extends ViewPart {
         this._widgets = {};
         this._context = context;
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         this.domNode = createFastDomNode(document.createElement('div'));
         this.domNode.setClassName('glyph-margin-widgets');
         this.domNode.setPosition('absolute');
@@ -126,7 +126,7 @@ export class GlyphMarginWidgets extends ViewPart {
     // --- begin event handlers
     onConfigurationChanged(e) {
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         this._lineHeight = options.get(67 /* EditorOption.lineHeight */);
         this._glyphMargin = options.get(57 /* EditorOption.glyphMargin */);
         this._glyphMarginLeft = layoutInfo.glyphMarginLeft;
@@ -183,19 +183,17 @@ export class GlyphMarginWidgets extends ViewPart {
         return true;
     }
     removeWidget(widget) {
-        var _a;
         const widgetId = widget.getId();
         if (this._widgets[widgetId]) {
             const widgetData = this._widgets[widgetId];
             const domNode = widgetData.domNode.domNode;
             delete this._widgets[widgetId];
-            (_a = domNode.parentNode) === null || _a === void 0 ? void 0 : _a.removeChild(domNode);
+            domNode.remove();
             this.setShouldRender();
         }
     }
     // --- end widget management
     _collectDecorationBasedGlyphRenderRequest(ctx, requests) {
-        var _a, _b, _c;
         const visibleStartLineNumber = ctx.visibleRange.startLineNumber;
         const visibleEndLineNumber = ctx.visibleRange.endLineNumber;
         const decorations = ctx.getDecorationsInViewport();
@@ -206,8 +204,8 @@ export class GlyphMarginWidgets extends ViewPart {
             }
             const startLineNumber = Math.max(d.range.startLineNumber, visibleStartLineNumber);
             const endLineNumber = Math.min(d.range.endLineNumber, visibleEndLineNumber);
-            const lane = (_b = (_a = d.options.glyphMargin) === null || _a === void 0 ? void 0 : _a.position) !== null && _b !== void 0 ? _b : GlyphMarginLane.Center;
-            const zIndex = (_c = d.options.zIndex) !== null && _c !== void 0 ? _c : 0;
+            const lane = d.options.glyphMargin?.position ?? GlyphMarginLane.Center;
+            const zIndex = d.options.zIndex ?? 0;
             for (let lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++) {
                 const modelPosition = this._context.viewModel.coordinatesConverter.convertViewPositionToModelPosition(new Position(lineNumber, 0));
                 const laneIndex = this._context.viewModel.glyphLanes.getLanesAtLine(modelPosition.lineNumber).indexOf(lane);
@@ -315,7 +313,7 @@ export class GlyphMarginWidgets extends ViewPart {
             }
             while (this._managedDomNodes.length > 0) {
                 const domNode = this._managedDomNodes.pop();
-                domNode === null || domNode === void 0 ? void 0 : domNode.domNode.remove();
+                domNode?.domNode.remove();
             }
             return;
         }
@@ -360,7 +358,7 @@ export class GlyphMarginWidgets extends ViewPart {
         // remove extra dom nodes
         while (this._managedDomNodes.length > this._decorationGlyphsToRender.length) {
             const domNode = this._managedDomNodes.pop();
-            domNode === null || domNode === void 0 ? void 0 : domNode.domNode.remove();
+            domNode?.domNode.remove();
         }
     }
 }

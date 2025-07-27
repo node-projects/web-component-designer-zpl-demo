@@ -9,9 +9,13 @@ import { registerThemingParticipant } from '../../../../platform/theme/common/th
 import { HoverParticipantRegistry } from './hoverTypes.js';
 import { MarkdownHoverParticipant } from './markdownHoverParticipant.js';
 import { MarkerHoverParticipant } from './markerHoverParticipant.js';
-import { HoverController } from './hoverController.js';
+import { ContentHoverController } from './contentHoverController2.js';
+import { MarginHoverController } from './marginHoverController.js';
 import './hover.css';
-registerEditorContribution(HoverController.ID, HoverController, 2 /* EditorContributionInstantiation.BeforeFirstInteraction */);
+import { AccessibleViewRegistry } from '../../../../platform/accessibility/browser/accessibleViewRegistry.js';
+import { ExtHoverAccessibleView, HoverAccessibilityHelp, HoverAccessibleView } from './hoverAccessibleViews.js';
+registerEditorContribution(ContentHoverController.ID, ContentHoverController, 2 /* EditorContributionInstantiation.BeforeFirstInteraction */);
+registerEditorContribution(MarginHoverController.ID, MarginHoverController, 2 /* EditorContributionInstantiation.BeforeFirstInteraction */);
 registerEditorAction(ShowOrFocusHoverAction);
 registerEditorAction(ShowDefinitionPreviewHoverAction);
 registerEditorAction(ScrollUpHoverAction);
@@ -35,3 +39,6 @@ registerThemingParticipant((theme, collector) => {
         collector.addRule(`.monaco-editor .monaco-hover hr { border-bottom: 0px solid ${hoverBorder.transparent(0.5)}; }`);
     }
 });
+AccessibleViewRegistry.register(new HoverAccessibleView());
+AccessibleViewRegistry.register(new HoverAccessibilityHelp());
+AccessibleViewRegistry.register(new ExtHoverAccessibleView());

@@ -1,6 +1,6 @@
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.49.0(383fdf3fc0e1e1a024068b8d0fd4f3dcbae74d04)
+ * Version: 0.52.2(404545bded1df6ffa41ea0af4e8ddb219018c6c1)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
@@ -147,15 +147,37 @@ var moduleExports = (() => {
   };
 
   // node_modules/vscode-languageserver-types/lib/esm/main.js
+  var DocumentUri;
+  (function(DocumentUri2) {
+    function is(value) {
+      return typeof value === "string";
+    }
+    DocumentUri2.is = is;
+  })(DocumentUri || (DocumentUri = {}));
+  var URI;
+  (function(URI2) {
+    function is(value) {
+      return typeof value === "string";
+    }
+    URI2.is = is;
+  })(URI || (URI = {}));
   var integer;
   (function(integer2) {
     integer2.MIN_VALUE = -2147483648;
     integer2.MAX_VALUE = 2147483647;
+    function is(value) {
+      return typeof value === "number" && integer2.MIN_VALUE <= value && value <= integer2.MAX_VALUE;
+    }
+    integer2.is = is;
   })(integer || (integer = {}));
   var uinteger;
   (function(uinteger2) {
     uinteger2.MIN_VALUE = 0;
     uinteger2.MAX_VALUE = 2147483647;
+    function is(value) {
+      return typeof value === "number" && uinteger2.MIN_VALUE <= value && value <= uinteger2.MAX_VALUE;
+    }
+    uinteger2.is = is;
   })(uinteger || (uinteger = {}));
   var Position;
   (function(Position3) {
@@ -170,7 +192,7 @@ var moduleExports = (() => {
     }
     Position3.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return Is.objectLiteral(candidate) && Is.uinteger(candidate.line) && Is.uinteger(candidate.character);
     }
     Position3.is = is;
@@ -183,12 +205,12 @@ var moduleExports = (() => {
       } else if (Position.is(one) && Position.is(two)) {
         return { start: one, end: two };
       } else {
-        throw new Error("Range#create called with invalid arguments[" + one + ", " + two + ", " + three + ", " + four + "]");
+        throw new Error(`Range#create called with invalid arguments[${one}, ${two}, ${three}, ${four}]`);
       }
     }
     Range3.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return Is.objectLiteral(candidate) && Position.is(candidate.start) && Position.is(candidate.end);
     }
     Range3.is = is;
@@ -200,8 +222,8 @@ var moduleExports = (() => {
     }
     Location2.create = create;
     function is(value) {
-      var candidate = value;
-      return Is.defined(candidate) && Range.is(candidate.range) && (Is.string(candidate.uri) || Is.undefined(candidate.uri));
+      let candidate = value;
+      return Is.objectLiteral(candidate) && Range.is(candidate.range) && (Is.string(candidate.uri) || Is.undefined(candidate.uri));
     }
     Location2.is = is;
   })(Location || (Location = {}));
@@ -212,8 +234,8 @@ var moduleExports = (() => {
     }
     LocationLink2.create = create;
     function is(value) {
-      var candidate = value;
-      return Is.defined(candidate) && Range.is(candidate.targetRange) && Is.string(candidate.targetUri) && (Range.is(candidate.targetSelectionRange) || Is.undefined(candidate.targetSelectionRange)) && (Range.is(candidate.originSelectionRange) || Is.undefined(candidate.originSelectionRange));
+      let candidate = value;
+      return Is.objectLiteral(candidate) && Range.is(candidate.targetRange) && Is.string(candidate.targetUri) && Range.is(candidate.targetSelectionRange) && (Range.is(candidate.originSelectionRange) || Is.undefined(candidate.originSelectionRange));
     }
     LocationLink2.is = is;
   })(LocationLink || (LocationLink = {}));
@@ -229,8 +251,8 @@ var moduleExports = (() => {
     }
     Color2.create = create;
     function is(value) {
-      var candidate = value;
-      return Is.numberRange(candidate.red, 0, 1) && Is.numberRange(candidate.green, 0, 1) && Is.numberRange(candidate.blue, 0, 1) && Is.numberRange(candidate.alpha, 0, 1);
+      const candidate = value;
+      return Is.objectLiteral(candidate) && Is.numberRange(candidate.red, 0, 1) && Is.numberRange(candidate.green, 0, 1) && Is.numberRange(candidate.blue, 0, 1) && Is.numberRange(candidate.alpha, 0, 1);
     }
     Color2.is = is;
   })(Color || (Color = {}));
@@ -244,8 +266,8 @@ var moduleExports = (() => {
     }
     ColorInformation2.create = create;
     function is(value) {
-      var candidate = value;
-      return Range.is(candidate.range) && Color.is(candidate.color);
+      const candidate = value;
+      return Is.objectLiteral(candidate) && Range.is(candidate.range) && Color.is(candidate.color);
     }
     ColorInformation2.is = is;
   })(ColorInformation || (ColorInformation = {}));
@@ -260,21 +282,21 @@ var moduleExports = (() => {
     }
     ColorPresentation2.create = create;
     function is(value) {
-      var candidate = value;
-      return Is.string(candidate.label) && (Is.undefined(candidate.textEdit) || TextEdit.is(candidate)) && (Is.undefined(candidate.additionalTextEdits) || Is.typedArray(candidate.additionalTextEdits, TextEdit.is));
+      const candidate = value;
+      return Is.objectLiteral(candidate) && Is.string(candidate.label) && (Is.undefined(candidate.textEdit) || TextEdit.is(candidate)) && (Is.undefined(candidate.additionalTextEdits) || Is.typedArray(candidate.additionalTextEdits, TextEdit.is));
     }
     ColorPresentation2.is = is;
   })(ColorPresentation || (ColorPresentation = {}));
   var FoldingRangeKind;
   (function(FoldingRangeKind2) {
-    FoldingRangeKind2["Comment"] = "comment";
-    FoldingRangeKind2["Imports"] = "imports";
-    FoldingRangeKind2["Region"] = "region";
+    FoldingRangeKind2.Comment = "comment";
+    FoldingRangeKind2.Imports = "imports";
+    FoldingRangeKind2.Region = "region";
   })(FoldingRangeKind || (FoldingRangeKind = {}));
   var FoldingRange;
   (function(FoldingRange2) {
-    function create(startLine, endLine, startCharacter, endCharacter, kind) {
-      var result = {
+    function create(startLine, endLine, startCharacter, endCharacter, kind, collapsedText) {
+      const result = {
         startLine,
         endLine
       };
@@ -287,12 +309,15 @@ var moduleExports = (() => {
       if (Is.defined(kind)) {
         result.kind = kind;
       }
+      if (Is.defined(collapsedText)) {
+        result.collapsedText = collapsedText;
+      }
       return result;
     }
     FoldingRange2.create = create;
     function is(value) {
-      var candidate = value;
-      return Is.uinteger(candidate.startLine) && Is.uinteger(candidate.startLine) && (Is.undefined(candidate.startCharacter) || Is.uinteger(candidate.startCharacter)) && (Is.undefined(candidate.endCharacter) || Is.uinteger(candidate.endCharacter)) && (Is.undefined(candidate.kind) || Is.string(candidate.kind));
+      const candidate = value;
+      return Is.objectLiteral(candidate) && Is.uinteger(candidate.startLine) && Is.uinteger(candidate.startLine) && (Is.undefined(candidate.startCharacter) || Is.uinteger(candidate.startCharacter)) && (Is.undefined(candidate.endCharacter) || Is.uinteger(candidate.endCharacter)) && (Is.undefined(candidate.kind) || Is.string(candidate.kind));
     }
     FoldingRange2.is = is;
   })(FoldingRange || (FoldingRange = {}));
@@ -306,7 +331,7 @@ var moduleExports = (() => {
     }
     DiagnosticRelatedInformation2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return Is.defined(candidate) && Location.is(candidate.location) && Is.string(candidate.message);
     }
     DiagnosticRelatedInformation2.is = is;
@@ -326,15 +351,15 @@ var moduleExports = (() => {
   var CodeDescription;
   (function(CodeDescription2) {
     function is(value) {
-      var candidate = value;
-      return candidate !== void 0 && candidate !== null && Is.string(candidate.href);
+      const candidate = value;
+      return Is.objectLiteral(candidate) && Is.string(candidate.href);
     }
     CodeDescription2.is = is;
   })(CodeDescription || (CodeDescription = {}));
   var Diagnostic;
   (function(Diagnostic2) {
     function create(range, message, severity, code, source, relatedInformation) {
-      var result = { range, message };
+      let result = { range, message };
       if (Is.defined(severity)) {
         result.severity = severity;
       }
@@ -352,19 +377,15 @@ var moduleExports = (() => {
     Diagnostic2.create = create;
     function is(value) {
       var _a;
-      var candidate = value;
+      let candidate = value;
       return Is.defined(candidate) && Range.is(candidate.range) && Is.string(candidate.message) && (Is.number(candidate.severity) || Is.undefined(candidate.severity)) && (Is.integer(candidate.code) || Is.string(candidate.code) || Is.undefined(candidate.code)) && (Is.undefined(candidate.codeDescription) || Is.string((_a = candidate.codeDescription) === null || _a === void 0 ? void 0 : _a.href)) && (Is.string(candidate.source) || Is.undefined(candidate.source)) && (Is.undefined(candidate.relatedInformation) || Is.typedArray(candidate.relatedInformation, DiagnosticRelatedInformation.is));
     }
     Diagnostic2.is = is;
   })(Diagnostic || (Diagnostic = {}));
   var Command;
   (function(Command2) {
-    function create(title, command) {
-      var args = [];
-      for (var _i = 2; _i < arguments.length; _i++) {
-        args[_i - 2] = arguments[_i];
-      }
-      var result = { title, command };
+    function create(title, command, ...args) {
+      let result = { title, command };
       if (Is.defined(args) && args.length > 0) {
         result.arguments = args;
       }
@@ -372,7 +393,7 @@ var moduleExports = (() => {
     }
     Command2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return Is.defined(candidate) && Is.string(candidate.title) && Is.string(candidate.command);
     }
     Command2.is = is;
@@ -392,7 +413,7 @@ var moduleExports = (() => {
     }
     TextEdit2.del = del;
     function is(value) {
-      var candidate = value;
+      const candidate = value;
       return Is.objectLiteral(candidate) && Is.string(candidate.newText) && Range.is(candidate.range);
     }
     TextEdit2.is = is;
@@ -400,7 +421,7 @@ var moduleExports = (() => {
   var ChangeAnnotation;
   (function(ChangeAnnotation2) {
     function create(label, needsConfirmation, description) {
-      var result = { label };
+      const result = { label };
       if (needsConfirmation !== void 0) {
         result.needsConfirmation = needsConfirmation;
       }
@@ -411,16 +432,16 @@ var moduleExports = (() => {
     }
     ChangeAnnotation2.create = create;
     function is(value) {
-      var candidate = value;
-      return candidate !== void 0 && Is.objectLiteral(candidate) && Is.string(candidate.label) && (Is.boolean(candidate.needsConfirmation) || candidate.needsConfirmation === void 0) && (Is.string(candidate.description) || candidate.description === void 0);
+      const candidate = value;
+      return Is.objectLiteral(candidate) && Is.string(candidate.label) && (Is.boolean(candidate.needsConfirmation) || candidate.needsConfirmation === void 0) && (Is.string(candidate.description) || candidate.description === void 0);
     }
     ChangeAnnotation2.is = is;
   })(ChangeAnnotation || (ChangeAnnotation = {}));
   var ChangeAnnotationIdentifier;
   (function(ChangeAnnotationIdentifier2) {
     function is(value) {
-      var candidate = value;
-      return typeof candidate === "string";
+      const candidate = value;
+      return Is.string(candidate);
     }
     ChangeAnnotationIdentifier2.is = is;
   })(ChangeAnnotationIdentifier || (ChangeAnnotationIdentifier = {}));
@@ -439,7 +460,7 @@ var moduleExports = (() => {
     }
     AnnotatedTextEdit2.del = del;
     function is(value) {
-      var candidate = value;
+      const candidate = value;
       return TextEdit.is(candidate) && (ChangeAnnotation.is(candidate.annotationId) || ChangeAnnotationIdentifier.is(candidate.annotationId));
     }
     AnnotatedTextEdit2.is = is;
@@ -451,7 +472,7 @@ var moduleExports = (() => {
     }
     TextDocumentEdit2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return Is.defined(candidate) && OptionalVersionedTextDocumentIdentifier.is(candidate.textDocument) && Array.isArray(candidate.edits);
     }
     TextDocumentEdit2.is = is;
@@ -459,7 +480,7 @@ var moduleExports = (() => {
   var CreateFile;
   (function(CreateFile2) {
     function create(uri, options, annotation) {
-      var result = {
+      let result = {
         kind: "create",
         uri
       };
@@ -473,7 +494,7 @@ var moduleExports = (() => {
     }
     CreateFile2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return candidate && candidate.kind === "create" && Is.string(candidate.uri) && (candidate.options === void 0 || (candidate.options.overwrite === void 0 || Is.boolean(candidate.options.overwrite)) && (candidate.options.ignoreIfExists === void 0 || Is.boolean(candidate.options.ignoreIfExists))) && (candidate.annotationId === void 0 || ChangeAnnotationIdentifier.is(candidate.annotationId));
     }
     CreateFile2.is = is;
@@ -481,7 +502,7 @@ var moduleExports = (() => {
   var RenameFile;
   (function(RenameFile2) {
     function create(oldUri, newUri, options, annotation) {
-      var result = {
+      let result = {
         kind: "rename",
         oldUri,
         newUri
@@ -496,7 +517,7 @@ var moduleExports = (() => {
     }
     RenameFile2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return candidate && candidate.kind === "rename" && Is.string(candidate.oldUri) && Is.string(candidate.newUri) && (candidate.options === void 0 || (candidate.options.overwrite === void 0 || Is.boolean(candidate.options.overwrite)) && (candidate.options.ignoreIfExists === void 0 || Is.boolean(candidate.options.ignoreIfExists))) && (candidate.annotationId === void 0 || ChangeAnnotationIdentifier.is(candidate.annotationId));
     }
     RenameFile2.is = is;
@@ -504,7 +525,7 @@ var moduleExports = (() => {
   var DeleteFile;
   (function(DeleteFile2) {
     function create(uri, options, annotation) {
-      var result = {
+      let result = {
         kind: "delete",
         uri
       };
@@ -518,7 +539,7 @@ var moduleExports = (() => {
     }
     DeleteFile2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return candidate && candidate.kind === "delete" && Is.string(candidate.uri) && (candidate.options === void 0 || (candidate.options.recursive === void 0 || Is.boolean(candidate.options.recursive)) && (candidate.options.ignoreIfNotExists === void 0 || Is.boolean(candidate.options.ignoreIfNotExists))) && (candidate.annotationId === void 0 || ChangeAnnotationIdentifier.is(candidate.annotationId));
     }
     DeleteFile2.is = is;
@@ -526,8 +547,8 @@ var moduleExports = (() => {
   var WorkspaceEdit;
   (function(WorkspaceEdit2) {
     function is(value) {
-      var candidate = value;
-      return candidate && (candidate.changes !== void 0 || candidate.documentChanges !== void 0) && (candidate.documentChanges === void 0 || candidate.documentChanges.every(function(change) {
+      let candidate = value;
+      return candidate && (candidate.changes !== void 0 || candidate.documentChanges !== void 0) && (candidate.documentChanges === void 0 || candidate.documentChanges.every((change) => {
         if (Is.string(change.kind)) {
           return CreateFile.is(change) || RenameFile.is(change) || DeleteFile.is(change);
         } else {
@@ -537,294 +558,6 @@ var moduleExports = (() => {
     }
     WorkspaceEdit2.is = is;
   })(WorkspaceEdit || (WorkspaceEdit = {}));
-  var TextEditChangeImpl = (
-    /** @class */
-    function() {
-      function TextEditChangeImpl2(edits, changeAnnotations) {
-        this.edits = edits;
-        this.changeAnnotations = changeAnnotations;
-      }
-      TextEditChangeImpl2.prototype.insert = function(position, newText, annotation) {
-        var edit;
-        var id;
-        if (annotation === void 0) {
-          edit = TextEdit.insert(position, newText);
-        } else if (ChangeAnnotationIdentifier.is(annotation)) {
-          id = annotation;
-          edit = AnnotatedTextEdit.insert(position, newText, annotation);
-        } else {
-          this.assertChangeAnnotations(this.changeAnnotations);
-          id = this.changeAnnotations.manage(annotation);
-          edit = AnnotatedTextEdit.insert(position, newText, id);
-        }
-        this.edits.push(edit);
-        if (id !== void 0) {
-          return id;
-        }
-      };
-      TextEditChangeImpl2.prototype.replace = function(range, newText, annotation) {
-        var edit;
-        var id;
-        if (annotation === void 0) {
-          edit = TextEdit.replace(range, newText);
-        } else if (ChangeAnnotationIdentifier.is(annotation)) {
-          id = annotation;
-          edit = AnnotatedTextEdit.replace(range, newText, annotation);
-        } else {
-          this.assertChangeAnnotations(this.changeAnnotations);
-          id = this.changeAnnotations.manage(annotation);
-          edit = AnnotatedTextEdit.replace(range, newText, id);
-        }
-        this.edits.push(edit);
-        if (id !== void 0) {
-          return id;
-        }
-      };
-      TextEditChangeImpl2.prototype.delete = function(range, annotation) {
-        var edit;
-        var id;
-        if (annotation === void 0) {
-          edit = TextEdit.del(range);
-        } else if (ChangeAnnotationIdentifier.is(annotation)) {
-          id = annotation;
-          edit = AnnotatedTextEdit.del(range, annotation);
-        } else {
-          this.assertChangeAnnotations(this.changeAnnotations);
-          id = this.changeAnnotations.manage(annotation);
-          edit = AnnotatedTextEdit.del(range, id);
-        }
-        this.edits.push(edit);
-        if (id !== void 0) {
-          return id;
-        }
-      };
-      TextEditChangeImpl2.prototype.add = function(edit) {
-        this.edits.push(edit);
-      };
-      TextEditChangeImpl2.prototype.all = function() {
-        return this.edits;
-      };
-      TextEditChangeImpl2.prototype.clear = function() {
-        this.edits.splice(0, this.edits.length);
-      };
-      TextEditChangeImpl2.prototype.assertChangeAnnotations = function(value) {
-        if (value === void 0) {
-          throw new Error("Text edit change is not configured to manage change annotations.");
-        }
-      };
-      return TextEditChangeImpl2;
-    }()
-  );
-  var ChangeAnnotations = (
-    /** @class */
-    function() {
-      function ChangeAnnotations2(annotations) {
-        this._annotations = annotations === void 0 ? /* @__PURE__ */ Object.create(null) : annotations;
-        this._counter = 0;
-        this._size = 0;
-      }
-      ChangeAnnotations2.prototype.all = function() {
-        return this._annotations;
-      };
-      Object.defineProperty(ChangeAnnotations2.prototype, "size", {
-        get: function() {
-          return this._size;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      ChangeAnnotations2.prototype.manage = function(idOrAnnotation, annotation) {
-        var id;
-        if (ChangeAnnotationIdentifier.is(idOrAnnotation)) {
-          id = idOrAnnotation;
-        } else {
-          id = this.nextId();
-          annotation = idOrAnnotation;
-        }
-        if (this._annotations[id] !== void 0) {
-          throw new Error("Id " + id + " is already in use.");
-        }
-        if (annotation === void 0) {
-          throw new Error("No annotation provided for id " + id);
-        }
-        this._annotations[id] = annotation;
-        this._size++;
-        return id;
-      };
-      ChangeAnnotations2.prototype.nextId = function() {
-        this._counter++;
-        return this._counter.toString();
-      };
-      return ChangeAnnotations2;
-    }()
-  );
-  var WorkspaceChange = (
-    /** @class */
-    function() {
-      function WorkspaceChange2(workspaceEdit) {
-        var _this = this;
-        this._textEditChanges = /* @__PURE__ */ Object.create(null);
-        if (workspaceEdit !== void 0) {
-          this._workspaceEdit = workspaceEdit;
-          if (workspaceEdit.documentChanges) {
-            this._changeAnnotations = new ChangeAnnotations(workspaceEdit.changeAnnotations);
-            workspaceEdit.changeAnnotations = this._changeAnnotations.all();
-            workspaceEdit.documentChanges.forEach(function(change) {
-              if (TextDocumentEdit.is(change)) {
-                var textEditChange = new TextEditChangeImpl(change.edits, _this._changeAnnotations);
-                _this._textEditChanges[change.textDocument.uri] = textEditChange;
-              }
-            });
-          } else if (workspaceEdit.changes) {
-            Object.keys(workspaceEdit.changes).forEach(function(key) {
-              var textEditChange = new TextEditChangeImpl(workspaceEdit.changes[key]);
-              _this._textEditChanges[key] = textEditChange;
-            });
-          }
-        } else {
-          this._workspaceEdit = {};
-        }
-      }
-      Object.defineProperty(WorkspaceChange2.prototype, "edit", {
-        /**
-         * Returns the underlying [WorkspaceEdit](#WorkspaceEdit) literal
-         * use to be returned from a workspace edit operation like rename.
-         */
-        get: function() {
-          this.initDocumentChanges();
-          if (this._changeAnnotations !== void 0) {
-            if (this._changeAnnotations.size === 0) {
-              this._workspaceEdit.changeAnnotations = void 0;
-            } else {
-              this._workspaceEdit.changeAnnotations = this._changeAnnotations.all();
-            }
-          }
-          return this._workspaceEdit;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      WorkspaceChange2.prototype.getTextEditChange = function(key) {
-        if (OptionalVersionedTextDocumentIdentifier.is(key)) {
-          this.initDocumentChanges();
-          if (this._workspaceEdit.documentChanges === void 0) {
-            throw new Error("Workspace edit is not configured for document changes.");
-          }
-          var textDocument = { uri: key.uri, version: key.version };
-          var result = this._textEditChanges[textDocument.uri];
-          if (!result) {
-            var edits = [];
-            var textDocumentEdit = {
-              textDocument,
-              edits
-            };
-            this._workspaceEdit.documentChanges.push(textDocumentEdit);
-            result = new TextEditChangeImpl(edits, this._changeAnnotations);
-            this._textEditChanges[textDocument.uri] = result;
-          }
-          return result;
-        } else {
-          this.initChanges();
-          if (this._workspaceEdit.changes === void 0) {
-            throw new Error("Workspace edit is not configured for normal text edit changes.");
-          }
-          var result = this._textEditChanges[key];
-          if (!result) {
-            var edits = [];
-            this._workspaceEdit.changes[key] = edits;
-            result = new TextEditChangeImpl(edits);
-            this._textEditChanges[key] = result;
-          }
-          return result;
-        }
-      };
-      WorkspaceChange2.prototype.initDocumentChanges = function() {
-        if (this._workspaceEdit.documentChanges === void 0 && this._workspaceEdit.changes === void 0) {
-          this._changeAnnotations = new ChangeAnnotations();
-          this._workspaceEdit.documentChanges = [];
-          this._workspaceEdit.changeAnnotations = this._changeAnnotations.all();
-        }
-      };
-      WorkspaceChange2.prototype.initChanges = function() {
-        if (this._workspaceEdit.documentChanges === void 0 && this._workspaceEdit.changes === void 0) {
-          this._workspaceEdit.changes = /* @__PURE__ */ Object.create(null);
-        }
-      };
-      WorkspaceChange2.prototype.createFile = function(uri, optionsOrAnnotation, options) {
-        this.initDocumentChanges();
-        if (this._workspaceEdit.documentChanges === void 0) {
-          throw new Error("Workspace edit is not configured for document changes.");
-        }
-        var annotation;
-        if (ChangeAnnotation.is(optionsOrAnnotation) || ChangeAnnotationIdentifier.is(optionsOrAnnotation)) {
-          annotation = optionsOrAnnotation;
-        } else {
-          options = optionsOrAnnotation;
-        }
-        var operation;
-        var id;
-        if (annotation === void 0) {
-          operation = CreateFile.create(uri, options);
-        } else {
-          id = ChangeAnnotationIdentifier.is(annotation) ? annotation : this._changeAnnotations.manage(annotation);
-          operation = CreateFile.create(uri, options, id);
-        }
-        this._workspaceEdit.documentChanges.push(operation);
-        if (id !== void 0) {
-          return id;
-        }
-      };
-      WorkspaceChange2.prototype.renameFile = function(oldUri, newUri, optionsOrAnnotation, options) {
-        this.initDocumentChanges();
-        if (this._workspaceEdit.documentChanges === void 0) {
-          throw new Error("Workspace edit is not configured for document changes.");
-        }
-        var annotation;
-        if (ChangeAnnotation.is(optionsOrAnnotation) || ChangeAnnotationIdentifier.is(optionsOrAnnotation)) {
-          annotation = optionsOrAnnotation;
-        } else {
-          options = optionsOrAnnotation;
-        }
-        var operation;
-        var id;
-        if (annotation === void 0) {
-          operation = RenameFile.create(oldUri, newUri, options);
-        } else {
-          id = ChangeAnnotationIdentifier.is(annotation) ? annotation : this._changeAnnotations.manage(annotation);
-          operation = RenameFile.create(oldUri, newUri, options, id);
-        }
-        this._workspaceEdit.documentChanges.push(operation);
-        if (id !== void 0) {
-          return id;
-        }
-      };
-      WorkspaceChange2.prototype.deleteFile = function(uri, optionsOrAnnotation, options) {
-        this.initDocumentChanges();
-        if (this._workspaceEdit.documentChanges === void 0) {
-          throw new Error("Workspace edit is not configured for document changes.");
-        }
-        var annotation;
-        if (ChangeAnnotation.is(optionsOrAnnotation) || ChangeAnnotationIdentifier.is(optionsOrAnnotation)) {
-          annotation = optionsOrAnnotation;
-        } else {
-          options = optionsOrAnnotation;
-        }
-        var operation;
-        var id;
-        if (annotation === void 0) {
-          operation = DeleteFile.create(uri, options);
-        } else {
-          id = ChangeAnnotationIdentifier.is(annotation) ? annotation : this._changeAnnotations.manage(annotation);
-          operation = DeleteFile.create(uri, options, id);
-        }
-        this._workspaceEdit.documentChanges.push(operation);
-        if (id !== void 0) {
-          return id;
-        }
-      };
-      return WorkspaceChange2;
-    }()
-  );
   var TextDocumentIdentifier;
   (function(TextDocumentIdentifier2) {
     function create(uri) {
@@ -832,7 +565,7 @@ var moduleExports = (() => {
     }
     TextDocumentIdentifier2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return Is.defined(candidate) && Is.string(candidate.uri);
     }
     TextDocumentIdentifier2.is = is;
@@ -844,7 +577,7 @@ var moduleExports = (() => {
     }
     VersionedTextDocumentIdentifier2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return Is.defined(candidate) && Is.string(candidate.uri) && Is.integer(candidate.version);
     }
     VersionedTextDocumentIdentifier2.is = is;
@@ -856,7 +589,7 @@ var moduleExports = (() => {
     }
     OptionalVersionedTextDocumentIdentifier2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return Is.defined(candidate) && Is.string(candidate.uri) && (candidate.version === null || Is.integer(candidate.version));
     }
     OptionalVersionedTextDocumentIdentifier2.is = is;
@@ -868,7 +601,7 @@ var moduleExports = (() => {
     }
     TextDocumentItem2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return Is.defined(candidate) && Is.string(candidate.uri) && Is.string(candidate.languageId) && Is.integer(candidate.version) && Is.string(candidate.text);
     }
     TextDocumentItem2.is = is;
@@ -877,10 +610,8 @@ var moduleExports = (() => {
   (function(MarkupKind2) {
     MarkupKind2.PlainText = "plaintext";
     MarkupKind2.Markdown = "markdown";
-  })(MarkupKind || (MarkupKind = {}));
-  (function(MarkupKind2) {
     function is(value) {
-      var candidate = value;
+      const candidate = value;
       return candidate === MarkupKind2.PlainText || candidate === MarkupKind2.Markdown;
     }
     MarkupKind2.is = is;
@@ -888,7 +619,7 @@ var moduleExports = (() => {
   var MarkupContent;
   (function(MarkupContent2) {
     function is(value) {
-      var candidate = value;
+      const candidate = value;
       return Is.objectLiteral(value) && MarkupKind.is(candidate.kind) && Is.string(candidate.value);
     }
     MarkupContent2.is = is;
@@ -937,7 +668,7 @@ var moduleExports = (() => {
     }
     InsertReplaceEdit2.create = create;
     function is(value) {
-      var candidate = value;
+      const candidate = value;
       return candidate && Is.string(candidate.newText) && Range.is(candidate.insert) && Range.is(candidate.replace);
     }
     InsertReplaceEdit2.is = is;
@@ -947,6 +678,14 @@ var moduleExports = (() => {
     InsertTextMode2.asIs = 1;
     InsertTextMode2.adjustIndentation = 2;
   })(InsertTextMode || (InsertTextMode = {}));
+  var CompletionItemLabelDetails;
+  (function(CompletionItemLabelDetails2) {
+    function is(value) {
+      const candidate = value;
+      return candidate && (Is.string(candidate.detail) || candidate.detail === void 0) && (Is.string(candidate.description) || candidate.description === void 0);
+    }
+    CompletionItemLabelDetails2.is = is;
+  })(CompletionItemLabelDetails || (CompletionItemLabelDetails = {}));
   var CompletionItem;
   (function(CompletionItem2) {
     function create(label) {
@@ -968,7 +707,7 @@ var moduleExports = (() => {
     }
     MarkedString2.fromPlainText = fromPlainText;
     function is(value) {
-      var candidate = value;
+      const candidate = value;
       return Is.string(candidate) || Is.objectLiteral(candidate) && Is.string(candidate.language) && Is.string(candidate.value);
     }
     MarkedString2.is = is;
@@ -976,7 +715,7 @@ var moduleExports = (() => {
   var Hover;
   (function(Hover2) {
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return !!candidate && Is.objectLiteral(candidate) && (MarkupContent.is(candidate.contents) || MarkedString.is(candidate.contents) || Is.typedArray(candidate.contents, MarkedString.is)) && (value.range === void 0 || Range.is(value.range));
     }
     Hover2.is = is;
@@ -990,12 +729,8 @@ var moduleExports = (() => {
   })(ParameterInformation || (ParameterInformation = {}));
   var SignatureInformation;
   (function(SignatureInformation2) {
-    function create(label, documentation) {
-      var parameters = [];
-      for (var _i = 2; _i < arguments.length; _i++) {
-        parameters[_i - 2] = arguments[_i];
-      }
-      var result = { label };
+    function create(label, documentation, ...parameters) {
+      let result = { label };
       if (Is.defined(documentation)) {
         result.documentation = documentation;
       }
@@ -1017,7 +752,7 @@ var moduleExports = (() => {
   var DocumentHighlight;
   (function(DocumentHighlight2) {
     function create(range, kind) {
-      var result = { range };
+      let result = { range };
       if (Is.number(kind)) {
         result.kind = kind;
       }
@@ -1061,7 +796,7 @@ var moduleExports = (() => {
   var SymbolInformation;
   (function(SymbolInformation2) {
     function create(name, kind, range, uri, containerName) {
-      var result = {
+      let result = {
         name,
         kind,
         location: { uri, range }
@@ -1073,10 +808,17 @@ var moduleExports = (() => {
     }
     SymbolInformation2.create = create;
   })(SymbolInformation || (SymbolInformation = {}));
+  var WorkspaceSymbol;
+  (function(WorkspaceSymbol2) {
+    function create(name, kind, uri, range) {
+      return range !== void 0 ? { name, kind, location: { uri, range } } : { name, kind, location: { uri } };
+    }
+    WorkspaceSymbol2.create = create;
+  })(WorkspaceSymbol || (WorkspaceSymbol = {}));
   var DocumentSymbol;
   (function(DocumentSymbol2) {
     function create(name, detail, kind, range, selectionRange, children) {
-      var result = {
+      let result = {
         name,
         detail,
         kind,
@@ -1090,7 +832,7 @@ var moduleExports = (() => {
     }
     DocumentSymbol2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return candidate && Is.string(candidate.name) && Is.number(candidate.kind) && Range.is(candidate.range) && Range.is(candidate.selectionRange) && (candidate.detail === void 0 || Is.string(candidate.detail)) && (candidate.deprecated === void 0 || Is.boolean(candidate.deprecated)) && (candidate.children === void 0 || Array.isArray(candidate.children)) && (candidate.tags === void 0 || Array.isArray(candidate.tags));
     }
     DocumentSymbol2.is = is;
@@ -1107,27 +849,35 @@ var moduleExports = (() => {
     CodeActionKind2.SourceOrganizeImports = "source.organizeImports";
     CodeActionKind2.SourceFixAll = "source.fixAll";
   })(CodeActionKind || (CodeActionKind = {}));
+  var CodeActionTriggerKind;
+  (function(CodeActionTriggerKind2) {
+    CodeActionTriggerKind2.Invoked = 1;
+    CodeActionTriggerKind2.Automatic = 2;
+  })(CodeActionTriggerKind || (CodeActionTriggerKind = {}));
   var CodeActionContext;
   (function(CodeActionContext2) {
-    function create(diagnostics, only) {
-      var result = { diagnostics };
+    function create(diagnostics, only, triggerKind) {
+      let result = { diagnostics };
       if (only !== void 0 && only !== null) {
         result.only = only;
+      }
+      if (triggerKind !== void 0 && triggerKind !== null) {
+        result.triggerKind = triggerKind;
       }
       return result;
     }
     CodeActionContext2.create = create;
     function is(value) {
-      var candidate = value;
-      return Is.defined(candidate) && Is.typedArray(candidate.diagnostics, Diagnostic.is) && (candidate.only === void 0 || Is.typedArray(candidate.only, Is.string));
+      let candidate = value;
+      return Is.defined(candidate) && Is.typedArray(candidate.diagnostics, Diagnostic.is) && (candidate.only === void 0 || Is.typedArray(candidate.only, Is.string)) && (candidate.triggerKind === void 0 || candidate.triggerKind === CodeActionTriggerKind.Invoked || candidate.triggerKind === CodeActionTriggerKind.Automatic);
     }
     CodeActionContext2.is = is;
   })(CodeActionContext || (CodeActionContext = {}));
   var CodeAction;
   (function(CodeAction2) {
     function create(title, kindOrCommandOrEdit, kind) {
-      var result = { title };
-      var checkKind = true;
+      let result = { title };
+      let checkKind = true;
       if (typeof kindOrCommandOrEdit === "string") {
         checkKind = false;
         result.kind = kindOrCommandOrEdit;
@@ -1143,7 +893,7 @@ var moduleExports = (() => {
     }
     CodeAction2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return candidate && Is.string(candidate.title) && (candidate.diagnostics === void 0 || Is.typedArray(candidate.diagnostics, Diagnostic.is)) && (candidate.kind === void 0 || Is.string(candidate.kind)) && (candidate.edit !== void 0 || candidate.command !== void 0) && (candidate.command === void 0 || Command.is(candidate.command)) && (candidate.isPreferred === void 0 || Is.boolean(candidate.isPreferred)) && (candidate.edit === void 0 || WorkspaceEdit.is(candidate.edit));
     }
     CodeAction2.is = is;
@@ -1151,7 +901,7 @@ var moduleExports = (() => {
   var CodeLens;
   (function(CodeLens2) {
     function create(range, data) {
-      var result = { range };
+      let result = { range };
       if (Is.defined(data)) {
         result.data = data;
       }
@@ -1159,7 +909,7 @@ var moduleExports = (() => {
     }
     CodeLens2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return Is.defined(candidate) && Range.is(candidate.range) && (Is.undefined(candidate.command) || Command.is(candidate.command));
     }
     CodeLens2.is = is;
@@ -1171,7 +921,7 @@ var moduleExports = (() => {
     }
     FormattingOptions2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return Is.defined(candidate) && Is.uinteger(candidate.tabSize) && Is.boolean(candidate.insertSpaces);
     }
     FormattingOptions2.is = is;
@@ -1183,7 +933,7 @@ var moduleExports = (() => {
     }
     DocumentLink2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return Is.defined(candidate) && Range.is(candidate.range) && (Is.undefined(candidate.target) || Is.string(candidate.target));
     }
     DocumentLink2.is = is;
@@ -1195,11 +945,191 @@ var moduleExports = (() => {
     }
     SelectionRange2.create = create;
     function is(value) {
-      var candidate = value;
-      return candidate !== void 0 && Range.is(candidate.range) && (candidate.parent === void 0 || SelectionRange2.is(candidate.parent));
+      let candidate = value;
+      return Is.objectLiteral(candidate) && Range.is(candidate.range) && (candidate.parent === void 0 || SelectionRange2.is(candidate.parent));
     }
     SelectionRange2.is = is;
   })(SelectionRange || (SelectionRange = {}));
+  var SemanticTokenTypes;
+  (function(SemanticTokenTypes2) {
+    SemanticTokenTypes2["namespace"] = "namespace";
+    SemanticTokenTypes2["type"] = "type";
+    SemanticTokenTypes2["class"] = "class";
+    SemanticTokenTypes2["enum"] = "enum";
+    SemanticTokenTypes2["interface"] = "interface";
+    SemanticTokenTypes2["struct"] = "struct";
+    SemanticTokenTypes2["typeParameter"] = "typeParameter";
+    SemanticTokenTypes2["parameter"] = "parameter";
+    SemanticTokenTypes2["variable"] = "variable";
+    SemanticTokenTypes2["property"] = "property";
+    SemanticTokenTypes2["enumMember"] = "enumMember";
+    SemanticTokenTypes2["event"] = "event";
+    SemanticTokenTypes2["function"] = "function";
+    SemanticTokenTypes2["method"] = "method";
+    SemanticTokenTypes2["macro"] = "macro";
+    SemanticTokenTypes2["keyword"] = "keyword";
+    SemanticTokenTypes2["modifier"] = "modifier";
+    SemanticTokenTypes2["comment"] = "comment";
+    SemanticTokenTypes2["string"] = "string";
+    SemanticTokenTypes2["number"] = "number";
+    SemanticTokenTypes2["regexp"] = "regexp";
+    SemanticTokenTypes2["operator"] = "operator";
+    SemanticTokenTypes2["decorator"] = "decorator";
+  })(SemanticTokenTypes || (SemanticTokenTypes = {}));
+  var SemanticTokenModifiers;
+  (function(SemanticTokenModifiers2) {
+    SemanticTokenModifiers2["declaration"] = "declaration";
+    SemanticTokenModifiers2["definition"] = "definition";
+    SemanticTokenModifiers2["readonly"] = "readonly";
+    SemanticTokenModifiers2["static"] = "static";
+    SemanticTokenModifiers2["deprecated"] = "deprecated";
+    SemanticTokenModifiers2["abstract"] = "abstract";
+    SemanticTokenModifiers2["async"] = "async";
+    SemanticTokenModifiers2["modification"] = "modification";
+    SemanticTokenModifiers2["documentation"] = "documentation";
+    SemanticTokenModifiers2["defaultLibrary"] = "defaultLibrary";
+  })(SemanticTokenModifiers || (SemanticTokenModifiers = {}));
+  var SemanticTokens;
+  (function(SemanticTokens2) {
+    function is(value) {
+      const candidate = value;
+      return Is.objectLiteral(candidate) && (candidate.resultId === void 0 || typeof candidate.resultId === "string") && Array.isArray(candidate.data) && (candidate.data.length === 0 || typeof candidate.data[0] === "number");
+    }
+    SemanticTokens2.is = is;
+  })(SemanticTokens || (SemanticTokens = {}));
+  var InlineValueText;
+  (function(InlineValueText2) {
+    function create(range, text) {
+      return { range, text };
+    }
+    InlineValueText2.create = create;
+    function is(value) {
+      const candidate = value;
+      return candidate !== void 0 && candidate !== null && Range.is(candidate.range) && Is.string(candidate.text);
+    }
+    InlineValueText2.is = is;
+  })(InlineValueText || (InlineValueText = {}));
+  var InlineValueVariableLookup;
+  (function(InlineValueVariableLookup2) {
+    function create(range, variableName, caseSensitiveLookup) {
+      return { range, variableName, caseSensitiveLookup };
+    }
+    InlineValueVariableLookup2.create = create;
+    function is(value) {
+      const candidate = value;
+      return candidate !== void 0 && candidate !== null && Range.is(candidate.range) && Is.boolean(candidate.caseSensitiveLookup) && (Is.string(candidate.variableName) || candidate.variableName === void 0);
+    }
+    InlineValueVariableLookup2.is = is;
+  })(InlineValueVariableLookup || (InlineValueVariableLookup = {}));
+  var InlineValueEvaluatableExpression;
+  (function(InlineValueEvaluatableExpression2) {
+    function create(range, expression) {
+      return { range, expression };
+    }
+    InlineValueEvaluatableExpression2.create = create;
+    function is(value) {
+      const candidate = value;
+      return candidate !== void 0 && candidate !== null && Range.is(candidate.range) && (Is.string(candidate.expression) || candidate.expression === void 0);
+    }
+    InlineValueEvaluatableExpression2.is = is;
+  })(InlineValueEvaluatableExpression || (InlineValueEvaluatableExpression = {}));
+  var InlineValueContext;
+  (function(InlineValueContext2) {
+    function create(frameId, stoppedLocation) {
+      return { frameId, stoppedLocation };
+    }
+    InlineValueContext2.create = create;
+    function is(value) {
+      const candidate = value;
+      return Is.defined(candidate) && Range.is(value.stoppedLocation);
+    }
+    InlineValueContext2.is = is;
+  })(InlineValueContext || (InlineValueContext = {}));
+  var InlayHintKind;
+  (function(InlayHintKind2) {
+    InlayHintKind2.Type = 1;
+    InlayHintKind2.Parameter = 2;
+    function is(value) {
+      return value === 1 || value === 2;
+    }
+    InlayHintKind2.is = is;
+  })(InlayHintKind || (InlayHintKind = {}));
+  var InlayHintLabelPart;
+  (function(InlayHintLabelPart2) {
+    function create(value) {
+      return { value };
+    }
+    InlayHintLabelPart2.create = create;
+    function is(value) {
+      const candidate = value;
+      return Is.objectLiteral(candidate) && (candidate.tooltip === void 0 || Is.string(candidate.tooltip) || MarkupContent.is(candidate.tooltip)) && (candidate.location === void 0 || Location.is(candidate.location)) && (candidate.command === void 0 || Command.is(candidate.command));
+    }
+    InlayHintLabelPart2.is = is;
+  })(InlayHintLabelPart || (InlayHintLabelPart = {}));
+  var InlayHint;
+  (function(InlayHint2) {
+    function create(position, label, kind) {
+      const result = { position, label };
+      if (kind !== void 0) {
+        result.kind = kind;
+      }
+      return result;
+    }
+    InlayHint2.create = create;
+    function is(value) {
+      const candidate = value;
+      return Is.objectLiteral(candidate) && Position.is(candidate.position) && (Is.string(candidate.label) || Is.typedArray(candidate.label, InlayHintLabelPart.is)) && (candidate.kind === void 0 || InlayHintKind.is(candidate.kind)) && candidate.textEdits === void 0 || Is.typedArray(candidate.textEdits, TextEdit.is) && (candidate.tooltip === void 0 || Is.string(candidate.tooltip) || MarkupContent.is(candidate.tooltip)) && (candidate.paddingLeft === void 0 || Is.boolean(candidate.paddingLeft)) && (candidate.paddingRight === void 0 || Is.boolean(candidate.paddingRight));
+    }
+    InlayHint2.is = is;
+  })(InlayHint || (InlayHint = {}));
+  var StringValue;
+  (function(StringValue2) {
+    function createSnippet(value) {
+      return { kind: "snippet", value };
+    }
+    StringValue2.createSnippet = createSnippet;
+  })(StringValue || (StringValue = {}));
+  var InlineCompletionItem;
+  (function(InlineCompletionItem2) {
+    function create(insertText, filterText, range, command) {
+      return { insertText, filterText, range, command };
+    }
+    InlineCompletionItem2.create = create;
+  })(InlineCompletionItem || (InlineCompletionItem = {}));
+  var InlineCompletionList;
+  (function(InlineCompletionList2) {
+    function create(items) {
+      return { items };
+    }
+    InlineCompletionList2.create = create;
+  })(InlineCompletionList || (InlineCompletionList = {}));
+  var InlineCompletionTriggerKind;
+  (function(InlineCompletionTriggerKind2) {
+    InlineCompletionTriggerKind2.Invoked = 0;
+    InlineCompletionTriggerKind2.Automatic = 1;
+  })(InlineCompletionTriggerKind || (InlineCompletionTriggerKind = {}));
+  var SelectedCompletionInfo;
+  (function(SelectedCompletionInfo2) {
+    function create(range, text) {
+      return { range, text };
+    }
+    SelectedCompletionInfo2.create = create;
+  })(SelectedCompletionInfo || (SelectedCompletionInfo = {}));
+  var InlineCompletionContext;
+  (function(InlineCompletionContext2) {
+    function create(triggerKind, selectedCompletionInfo) {
+      return { triggerKind, selectedCompletionInfo };
+    }
+    InlineCompletionContext2.create = create;
+  })(InlineCompletionContext || (InlineCompletionContext = {}));
+  var WorkspaceFolder;
+  (function(WorkspaceFolder2) {
+    function is(value) {
+      const candidate = value;
+      return Is.objectLiteral(candidate) && URI.is(candidate.uri) && Is.string(candidate.name);
+    }
+    WorkspaceFolder2.is = is;
+  })(WorkspaceFolder || (WorkspaceFolder = {}));
   var TextDocument;
   (function(TextDocument2) {
     function create(uri, languageId, version, content) {
@@ -1207,24 +1137,24 @@ var moduleExports = (() => {
     }
     TextDocument2.create = create;
     function is(value) {
-      var candidate = value;
+      let candidate = value;
       return Is.defined(candidate) && Is.string(candidate.uri) && (Is.undefined(candidate.languageId) || Is.string(candidate.languageId)) && Is.uinteger(candidate.lineCount) && Is.func(candidate.getText) && Is.func(candidate.positionAt) && Is.func(candidate.offsetAt) ? true : false;
     }
     TextDocument2.is = is;
     function applyEdits(document, edits) {
-      var text = document.getText();
-      var sortedEdits = mergeSort(edits, function(a, b) {
-        var diff = a.range.start.line - b.range.start.line;
+      let text = document.getText();
+      let sortedEdits = mergeSort(edits, (a, b) => {
+        let diff = a.range.start.line - b.range.start.line;
         if (diff === 0) {
           return a.range.start.character - b.range.start.character;
         }
         return diff;
       });
-      var lastModifiedOffset = text.length;
-      for (var i = sortedEdits.length - 1; i >= 0; i--) {
-        var e = sortedEdits[i];
-        var startOffset = document.offsetAt(e.range.start);
-        var endOffset = document.offsetAt(e.range.end);
+      let lastModifiedOffset = text.length;
+      for (let i = sortedEdits.length - 1; i >= 0; i--) {
+        let e = sortedEdits[i];
+        let startOffset = document.offsetAt(e.range.start);
+        let endOffset = document.offsetAt(e.range.end);
         if (endOffset <= lastModifiedOffset) {
           text = text.substring(0, startOffset) + e.newText + text.substring(endOffset, text.length);
         } else {
@@ -1239,16 +1169,16 @@ var moduleExports = (() => {
       if (data.length <= 1) {
         return data;
       }
-      var p = data.length / 2 | 0;
-      var left = data.slice(0, p);
-      var right = data.slice(p);
+      const p = data.length / 2 | 0;
+      const left = data.slice(0, p);
+      const right = data.slice(p);
       mergeSort(left, compare);
       mergeSort(right, compare);
-      var leftIdx = 0;
-      var rightIdx = 0;
-      var i = 0;
+      let leftIdx = 0;
+      let rightIdx = 0;
+      let i = 0;
       while (leftIdx < left.length && rightIdx < right.length) {
-        var ret = compare(left[leftIdx], right[rightIdx]);
+        let ret = compare(left[leftIdx], right[rightIdx]);
         if (ret <= 0) {
           data[i++] = left[leftIdx++];
         } else {
@@ -1264,115 +1194,95 @@ var moduleExports = (() => {
       return data;
     }
   })(TextDocument || (TextDocument = {}));
-  var FullTextDocument = (
-    /** @class */
-    function() {
-      function FullTextDocument2(uri, languageId, version, content) {
-        this._uri = uri;
-        this._languageId = languageId;
-        this._version = version;
-        this._content = content;
-        this._lineOffsets = void 0;
+  var FullTextDocument = class {
+    constructor(uri, languageId, version, content) {
+      this._uri = uri;
+      this._languageId = languageId;
+      this._version = version;
+      this._content = content;
+      this._lineOffsets = void 0;
+    }
+    get uri() {
+      return this._uri;
+    }
+    get languageId() {
+      return this._languageId;
+    }
+    get version() {
+      return this._version;
+    }
+    getText(range) {
+      if (range) {
+        let start = this.offsetAt(range.start);
+        let end = this.offsetAt(range.end);
+        return this._content.substring(start, end);
       }
-      Object.defineProperty(FullTextDocument2.prototype, "uri", {
-        get: function() {
-          return this._uri;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(FullTextDocument2.prototype, "languageId", {
-        get: function() {
-          return this._languageId;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(FullTextDocument2.prototype, "version", {
-        get: function() {
-          return this._version;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      FullTextDocument2.prototype.getText = function(range) {
-        if (range) {
-          var start = this.offsetAt(range.start);
-          var end = this.offsetAt(range.end);
-          return this._content.substring(start, end);
-        }
-        return this._content;
-      };
-      FullTextDocument2.prototype.update = function(event, version) {
-        this._content = event.text;
-        this._version = version;
-        this._lineOffsets = void 0;
-      };
-      FullTextDocument2.prototype.getLineOffsets = function() {
-        if (this._lineOffsets === void 0) {
-          var lineOffsets = [];
-          var text = this._content;
-          var isLineStart = true;
-          for (var i = 0; i < text.length; i++) {
-            if (isLineStart) {
-              lineOffsets.push(i);
-              isLineStart = false;
-            }
-            var ch = text.charAt(i);
-            isLineStart = ch === "\r" || ch === "\n";
-            if (ch === "\r" && i + 1 < text.length && text.charAt(i + 1) === "\n") {
-              i++;
-            }
+      return this._content;
+    }
+    update(event, version) {
+      this._content = event.text;
+      this._version = version;
+      this._lineOffsets = void 0;
+    }
+    getLineOffsets() {
+      if (this._lineOffsets === void 0) {
+        let lineOffsets = [];
+        let text = this._content;
+        let isLineStart = true;
+        for (let i = 0; i < text.length; i++) {
+          if (isLineStart) {
+            lineOffsets.push(i);
+            isLineStart = false;
           }
-          if (isLineStart && text.length > 0) {
-            lineOffsets.push(text.length);
-          }
-          this._lineOffsets = lineOffsets;
-        }
-        return this._lineOffsets;
-      };
-      FullTextDocument2.prototype.positionAt = function(offset) {
-        offset = Math.max(Math.min(offset, this._content.length), 0);
-        var lineOffsets = this.getLineOffsets();
-        var low = 0, high = lineOffsets.length;
-        if (high === 0) {
-          return Position.create(0, offset);
-        }
-        while (low < high) {
-          var mid = Math.floor((low + high) / 2);
-          if (lineOffsets[mid] > offset) {
-            high = mid;
-          } else {
-            low = mid + 1;
+          let ch = text.charAt(i);
+          isLineStart = ch === "\r" || ch === "\n";
+          if (ch === "\r" && i + 1 < text.length && text.charAt(i + 1) === "\n") {
+            i++;
           }
         }
-        var line = low - 1;
-        return Position.create(line, offset - lineOffsets[line]);
-      };
-      FullTextDocument2.prototype.offsetAt = function(position) {
-        var lineOffsets = this.getLineOffsets();
-        if (position.line >= lineOffsets.length) {
-          return this._content.length;
-        } else if (position.line < 0) {
-          return 0;
+        if (isLineStart && text.length > 0) {
+          lineOffsets.push(text.length);
         }
-        var lineOffset = lineOffsets[position.line];
-        var nextLineOffset = position.line + 1 < lineOffsets.length ? lineOffsets[position.line + 1] : this._content.length;
-        return Math.max(Math.min(lineOffset + position.character, nextLineOffset), lineOffset);
-      };
-      Object.defineProperty(FullTextDocument2.prototype, "lineCount", {
-        get: function() {
-          return this.getLineOffsets().length;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return FullTextDocument2;
-    }()
-  );
+        this._lineOffsets = lineOffsets;
+      }
+      return this._lineOffsets;
+    }
+    positionAt(offset) {
+      offset = Math.max(Math.min(offset, this._content.length), 0);
+      let lineOffsets = this.getLineOffsets();
+      let low = 0, high = lineOffsets.length;
+      if (high === 0) {
+        return Position.create(0, offset);
+      }
+      while (low < high) {
+        let mid = Math.floor((low + high) / 2);
+        if (lineOffsets[mid] > offset) {
+          high = mid;
+        } else {
+          low = mid + 1;
+        }
+      }
+      let line = low - 1;
+      return Position.create(line, offset - lineOffsets[line]);
+    }
+    offsetAt(position) {
+      let lineOffsets = this.getLineOffsets();
+      if (position.line >= lineOffsets.length) {
+        return this._content.length;
+      } else if (position.line < 0) {
+        return 0;
+      }
+      let lineOffset = lineOffsets[position.line];
+      let nextLineOffset = position.line + 1 < lineOffsets.length ? lineOffsets[position.line + 1] : this._content.length;
+      return Math.max(Math.min(lineOffset + position.character, nextLineOffset), lineOffset);
+    }
+    get lineCount() {
+      return this.getLineOffsets().length;
+    }
+  };
   var Is;
   (function(Is2) {
-    var toString = Object.prototype.toString;
+    const toString = Object.prototype.toString;
     function defined(value) {
       return typeof value !== "undefined";
     }
@@ -2061,17 +1971,14 @@ var moduleExports = (() => {
   };
 
   // node_modules/jsonc-parser/lib/esm/impl/scanner.js
-  function createScanner(text, ignoreTrivia) {
-    if (ignoreTrivia === void 0) {
-      ignoreTrivia = false;
-    }
-    var len = text.length;
-    var pos = 0, value = "", tokenOffset = 0, token = 16, lineNumber = 0, lineStartOffset = 0, tokenLineStartOffset = 0, prevTokenLineStartOffset = 0, scanError = 0;
+  function createScanner(text, ignoreTrivia = false) {
+    const len = text.length;
+    let pos = 0, value = "", tokenOffset = 0, token = 16, lineNumber = 0, lineStartOffset = 0, tokenLineStartOffset = 0, prevTokenLineStartOffset = 0, scanError = 0;
     function scanHexDigits(count, exact) {
-      var digits = 0;
-      var value2 = 0;
+      let digits = 0;
+      let value2 = 0;
       while (digits < count || !exact) {
-        var ch = text.charCodeAt(pos);
+        let ch = text.charCodeAt(pos);
         if (ch >= 48 && ch <= 57) {
           value2 = value2 * 16 + ch - 48;
         } else if (ch >= 65 && ch <= 70) {
@@ -2097,7 +2004,7 @@ var moduleExports = (() => {
       scanError = 0;
     }
     function scanNumber() {
-      var start = pos;
+      let start = pos;
       if (text.charCodeAt(pos) === 48) {
         pos++;
       } else {
@@ -2118,7 +2025,7 @@ var moduleExports = (() => {
           return text.substring(start, pos);
         }
       }
-      var end = pos;
+      let end = pos;
       if (pos < text.length && (text.charCodeAt(pos) === 69 || text.charCodeAt(pos) === 101)) {
         pos++;
         if (pos < text.length && text.charCodeAt(pos) === 43 || text.charCodeAt(pos) === 45) {
@@ -2137,14 +2044,14 @@ var moduleExports = (() => {
       return text.substring(start, end);
     }
     function scanString() {
-      var result = "", start = pos;
+      let result = "", start = pos;
       while (true) {
         if (pos >= len) {
           result += text.substring(start, pos);
           scanError = 2;
           break;
         }
-        var ch = text.charCodeAt(pos);
+        const ch = text.charCodeAt(pos);
         if (ch === 34) {
           result += text.substring(start, pos);
           pos++;
@@ -2157,7 +2064,7 @@ var moduleExports = (() => {
             scanError = 2;
             break;
           }
-          var ch2 = text.charCodeAt(pos++);
+          const ch2 = text.charCodeAt(pos++);
           switch (ch2) {
             case 34:
               result += '"';
@@ -2184,7 +2091,7 @@ var moduleExports = (() => {
               result += "	";
               break;
             case 117:
-              var ch3 = scanHexDigits(4, true);
+              const ch3 = scanHexDigits(4, true);
               if (ch3 >= 0) {
                 result += String.fromCharCode(ch3);
               } else {
@@ -2220,7 +2127,7 @@ var moduleExports = (() => {
         tokenOffset = len;
         return token = 17;
       }
-      var code = text.charCodeAt(pos);
+      let code = text.charCodeAt(pos);
       if (isWhiteSpace(code)) {
         do {
           pos++;
@@ -2264,7 +2171,7 @@ var moduleExports = (() => {
           value = scanString();
           return token = 10;
         case 47:
-          var start = pos - 1;
+          const start = pos - 1;
           if (text.charCodeAt(pos + 1) === 47) {
             pos += 2;
             while (pos < len) {
@@ -2278,10 +2185,10 @@ var moduleExports = (() => {
           }
           if (text.charCodeAt(pos + 1) === 42) {
             pos += 2;
-            var safeLength = len - 1;
-            var commentClosed = false;
+            const safeLength = len - 1;
+            let commentClosed = false;
             while (pos < safeLength) {
-              var ch = text.charCodeAt(pos);
+              const ch = text.charCodeAt(pos);
               if (ch === 42 && text.charCodeAt(pos + 1) === 47) {
                 pos += 2;
                 commentClosed = true;
@@ -2364,7 +2271,7 @@ var moduleExports = (() => {
       return true;
     }
     function scanNextNonTrivia() {
-      var result;
+      let result;
       do {
         result = scanNext();
       } while (result >= 12 && result <= 15);
@@ -2372,42 +2279,139 @@ var moduleExports = (() => {
     }
     return {
       setPosition,
-      getPosition: function() {
-        return pos;
-      },
+      getPosition: () => pos,
       scan: ignoreTrivia ? scanNextNonTrivia : scanNext,
-      getToken: function() {
-        return token;
-      },
-      getTokenValue: function() {
-        return value;
-      },
-      getTokenOffset: function() {
-        return tokenOffset;
-      },
-      getTokenLength: function() {
-        return pos - tokenOffset;
-      },
-      getTokenStartLine: function() {
-        return lineStartOffset;
-      },
-      getTokenStartCharacter: function() {
-        return tokenOffset - prevTokenLineStartOffset;
-      },
-      getTokenError: function() {
-        return scanError;
-      }
+      getToken: () => token,
+      getTokenValue: () => value,
+      getTokenOffset: () => tokenOffset,
+      getTokenLength: () => pos - tokenOffset,
+      getTokenStartLine: () => lineStartOffset,
+      getTokenStartCharacter: () => tokenOffset - prevTokenLineStartOffset,
+      getTokenError: () => scanError
     };
   }
   function isWhiteSpace(ch) {
-    return ch === 32 || ch === 9 || ch === 11 || ch === 12 || ch === 160 || ch === 5760 || ch >= 8192 && ch <= 8203 || ch === 8239 || ch === 8287 || ch === 12288 || ch === 65279;
+    return ch === 32 || ch === 9;
   }
   function isLineBreak(ch) {
-    return ch === 10 || ch === 13 || ch === 8232 || ch === 8233;
+    return ch === 10 || ch === 13;
   }
   function isDigit(ch) {
     return ch >= 48 && ch <= 57;
   }
+  var CharacterCodes;
+  (function(CharacterCodes2) {
+    CharacterCodes2[CharacterCodes2["lineFeed"] = 10] = "lineFeed";
+    CharacterCodes2[CharacterCodes2["carriageReturn"] = 13] = "carriageReturn";
+    CharacterCodes2[CharacterCodes2["space"] = 32] = "space";
+    CharacterCodes2[CharacterCodes2["_0"] = 48] = "_0";
+    CharacterCodes2[CharacterCodes2["_1"] = 49] = "_1";
+    CharacterCodes2[CharacterCodes2["_2"] = 50] = "_2";
+    CharacterCodes2[CharacterCodes2["_3"] = 51] = "_3";
+    CharacterCodes2[CharacterCodes2["_4"] = 52] = "_4";
+    CharacterCodes2[CharacterCodes2["_5"] = 53] = "_5";
+    CharacterCodes2[CharacterCodes2["_6"] = 54] = "_6";
+    CharacterCodes2[CharacterCodes2["_7"] = 55] = "_7";
+    CharacterCodes2[CharacterCodes2["_8"] = 56] = "_8";
+    CharacterCodes2[CharacterCodes2["_9"] = 57] = "_9";
+    CharacterCodes2[CharacterCodes2["a"] = 97] = "a";
+    CharacterCodes2[CharacterCodes2["b"] = 98] = "b";
+    CharacterCodes2[CharacterCodes2["c"] = 99] = "c";
+    CharacterCodes2[CharacterCodes2["d"] = 100] = "d";
+    CharacterCodes2[CharacterCodes2["e"] = 101] = "e";
+    CharacterCodes2[CharacterCodes2["f"] = 102] = "f";
+    CharacterCodes2[CharacterCodes2["g"] = 103] = "g";
+    CharacterCodes2[CharacterCodes2["h"] = 104] = "h";
+    CharacterCodes2[CharacterCodes2["i"] = 105] = "i";
+    CharacterCodes2[CharacterCodes2["j"] = 106] = "j";
+    CharacterCodes2[CharacterCodes2["k"] = 107] = "k";
+    CharacterCodes2[CharacterCodes2["l"] = 108] = "l";
+    CharacterCodes2[CharacterCodes2["m"] = 109] = "m";
+    CharacterCodes2[CharacterCodes2["n"] = 110] = "n";
+    CharacterCodes2[CharacterCodes2["o"] = 111] = "o";
+    CharacterCodes2[CharacterCodes2["p"] = 112] = "p";
+    CharacterCodes2[CharacterCodes2["q"] = 113] = "q";
+    CharacterCodes2[CharacterCodes2["r"] = 114] = "r";
+    CharacterCodes2[CharacterCodes2["s"] = 115] = "s";
+    CharacterCodes2[CharacterCodes2["t"] = 116] = "t";
+    CharacterCodes2[CharacterCodes2["u"] = 117] = "u";
+    CharacterCodes2[CharacterCodes2["v"] = 118] = "v";
+    CharacterCodes2[CharacterCodes2["w"] = 119] = "w";
+    CharacterCodes2[CharacterCodes2["x"] = 120] = "x";
+    CharacterCodes2[CharacterCodes2["y"] = 121] = "y";
+    CharacterCodes2[CharacterCodes2["z"] = 122] = "z";
+    CharacterCodes2[CharacterCodes2["A"] = 65] = "A";
+    CharacterCodes2[CharacterCodes2["B"] = 66] = "B";
+    CharacterCodes2[CharacterCodes2["C"] = 67] = "C";
+    CharacterCodes2[CharacterCodes2["D"] = 68] = "D";
+    CharacterCodes2[CharacterCodes2["E"] = 69] = "E";
+    CharacterCodes2[CharacterCodes2["F"] = 70] = "F";
+    CharacterCodes2[CharacterCodes2["G"] = 71] = "G";
+    CharacterCodes2[CharacterCodes2["H"] = 72] = "H";
+    CharacterCodes2[CharacterCodes2["I"] = 73] = "I";
+    CharacterCodes2[CharacterCodes2["J"] = 74] = "J";
+    CharacterCodes2[CharacterCodes2["K"] = 75] = "K";
+    CharacterCodes2[CharacterCodes2["L"] = 76] = "L";
+    CharacterCodes2[CharacterCodes2["M"] = 77] = "M";
+    CharacterCodes2[CharacterCodes2["N"] = 78] = "N";
+    CharacterCodes2[CharacterCodes2["O"] = 79] = "O";
+    CharacterCodes2[CharacterCodes2["P"] = 80] = "P";
+    CharacterCodes2[CharacterCodes2["Q"] = 81] = "Q";
+    CharacterCodes2[CharacterCodes2["R"] = 82] = "R";
+    CharacterCodes2[CharacterCodes2["S"] = 83] = "S";
+    CharacterCodes2[CharacterCodes2["T"] = 84] = "T";
+    CharacterCodes2[CharacterCodes2["U"] = 85] = "U";
+    CharacterCodes2[CharacterCodes2["V"] = 86] = "V";
+    CharacterCodes2[CharacterCodes2["W"] = 87] = "W";
+    CharacterCodes2[CharacterCodes2["X"] = 88] = "X";
+    CharacterCodes2[CharacterCodes2["Y"] = 89] = "Y";
+    CharacterCodes2[CharacterCodes2["Z"] = 90] = "Z";
+    CharacterCodes2[CharacterCodes2["asterisk"] = 42] = "asterisk";
+    CharacterCodes2[CharacterCodes2["backslash"] = 92] = "backslash";
+    CharacterCodes2[CharacterCodes2["closeBrace"] = 125] = "closeBrace";
+    CharacterCodes2[CharacterCodes2["closeBracket"] = 93] = "closeBracket";
+    CharacterCodes2[CharacterCodes2["colon"] = 58] = "colon";
+    CharacterCodes2[CharacterCodes2["comma"] = 44] = "comma";
+    CharacterCodes2[CharacterCodes2["dot"] = 46] = "dot";
+    CharacterCodes2[CharacterCodes2["doubleQuote"] = 34] = "doubleQuote";
+    CharacterCodes2[CharacterCodes2["minus"] = 45] = "minus";
+    CharacterCodes2[CharacterCodes2["openBrace"] = 123] = "openBrace";
+    CharacterCodes2[CharacterCodes2["openBracket"] = 91] = "openBracket";
+    CharacterCodes2[CharacterCodes2["plus"] = 43] = "plus";
+    CharacterCodes2[CharacterCodes2["slash"] = 47] = "slash";
+    CharacterCodes2[CharacterCodes2["formFeed"] = 12] = "formFeed";
+    CharacterCodes2[CharacterCodes2["tab"] = 9] = "tab";
+  })(CharacterCodes || (CharacterCodes = {}));
+
+  // node_modules/jsonc-parser/lib/esm/impl/string-intern.js
+  var cachedSpaces = new Array(20).fill(0).map((_, index) => {
+    return " ".repeat(index);
+  });
+  var maxCachedValues = 200;
+  var cachedBreakLinesWithSpaces = {
+    " ": {
+      "\n": new Array(maxCachedValues).fill(0).map((_, index) => {
+        return "\n" + " ".repeat(index);
+      }),
+      "\r": new Array(maxCachedValues).fill(0).map((_, index) => {
+        return "\r" + " ".repeat(index);
+      }),
+      "\r\n": new Array(maxCachedValues).fill(0).map((_, index) => {
+        return "\r\n" + " ".repeat(index);
+      })
+    },
+    "	": {
+      "\n": new Array(maxCachedValues).fill(0).map((_, index) => {
+        return "\n" + "	".repeat(index);
+      }),
+      "\r": new Array(maxCachedValues).fill(0).map((_, index) => {
+        return "\r" + "	".repeat(index);
+      }),
+      "\r\n": new Array(maxCachedValues).fill(0).map((_, index) => {
+        return "\r\n" + "	".repeat(index);
+      })
+    }
+  };
 
   // node_modules/jsonc-parser/lib/esm/impl/parser.js
   var ParseOptions;
@@ -2419,6 +2423,55 @@ var moduleExports = (() => {
 
   // node_modules/jsonc-parser/lib/esm/main.js
   var createScanner2 = createScanner;
+  var ScanError;
+  (function(ScanError2) {
+    ScanError2[ScanError2["None"] = 0] = "None";
+    ScanError2[ScanError2["UnexpectedEndOfComment"] = 1] = "UnexpectedEndOfComment";
+    ScanError2[ScanError2["UnexpectedEndOfString"] = 2] = "UnexpectedEndOfString";
+    ScanError2[ScanError2["UnexpectedEndOfNumber"] = 3] = "UnexpectedEndOfNumber";
+    ScanError2[ScanError2["InvalidUnicode"] = 4] = "InvalidUnicode";
+    ScanError2[ScanError2["InvalidEscapeCharacter"] = 5] = "InvalidEscapeCharacter";
+    ScanError2[ScanError2["InvalidCharacter"] = 6] = "InvalidCharacter";
+  })(ScanError || (ScanError = {}));
+  var SyntaxKind;
+  (function(SyntaxKind2) {
+    SyntaxKind2[SyntaxKind2["OpenBraceToken"] = 1] = "OpenBraceToken";
+    SyntaxKind2[SyntaxKind2["CloseBraceToken"] = 2] = "CloseBraceToken";
+    SyntaxKind2[SyntaxKind2["OpenBracketToken"] = 3] = "OpenBracketToken";
+    SyntaxKind2[SyntaxKind2["CloseBracketToken"] = 4] = "CloseBracketToken";
+    SyntaxKind2[SyntaxKind2["CommaToken"] = 5] = "CommaToken";
+    SyntaxKind2[SyntaxKind2["ColonToken"] = 6] = "ColonToken";
+    SyntaxKind2[SyntaxKind2["NullKeyword"] = 7] = "NullKeyword";
+    SyntaxKind2[SyntaxKind2["TrueKeyword"] = 8] = "TrueKeyword";
+    SyntaxKind2[SyntaxKind2["FalseKeyword"] = 9] = "FalseKeyword";
+    SyntaxKind2[SyntaxKind2["StringLiteral"] = 10] = "StringLiteral";
+    SyntaxKind2[SyntaxKind2["NumericLiteral"] = 11] = "NumericLiteral";
+    SyntaxKind2[SyntaxKind2["LineCommentTrivia"] = 12] = "LineCommentTrivia";
+    SyntaxKind2[SyntaxKind2["BlockCommentTrivia"] = 13] = "BlockCommentTrivia";
+    SyntaxKind2[SyntaxKind2["LineBreakTrivia"] = 14] = "LineBreakTrivia";
+    SyntaxKind2[SyntaxKind2["Trivia"] = 15] = "Trivia";
+    SyntaxKind2[SyntaxKind2["Unknown"] = 16] = "Unknown";
+    SyntaxKind2[SyntaxKind2["EOF"] = 17] = "EOF";
+  })(SyntaxKind || (SyntaxKind = {}));
+  var ParseErrorCode;
+  (function(ParseErrorCode2) {
+    ParseErrorCode2[ParseErrorCode2["InvalidSymbol"] = 1] = "InvalidSymbol";
+    ParseErrorCode2[ParseErrorCode2["InvalidNumberFormat"] = 2] = "InvalidNumberFormat";
+    ParseErrorCode2[ParseErrorCode2["PropertyNameExpected"] = 3] = "PropertyNameExpected";
+    ParseErrorCode2[ParseErrorCode2["ValueExpected"] = 4] = "ValueExpected";
+    ParseErrorCode2[ParseErrorCode2["ColonExpected"] = 5] = "ColonExpected";
+    ParseErrorCode2[ParseErrorCode2["CommaExpected"] = 6] = "CommaExpected";
+    ParseErrorCode2[ParseErrorCode2["CloseBraceExpected"] = 7] = "CloseBraceExpected";
+    ParseErrorCode2[ParseErrorCode2["CloseBracketExpected"] = 8] = "CloseBracketExpected";
+    ParseErrorCode2[ParseErrorCode2["EndOfFileExpected"] = 9] = "EndOfFileExpected";
+    ParseErrorCode2[ParseErrorCode2["InvalidCommentToken"] = 10] = "InvalidCommentToken";
+    ParseErrorCode2[ParseErrorCode2["UnexpectedEndOfComment"] = 11] = "UnexpectedEndOfComment";
+    ParseErrorCode2[ParseErrorCode2["UnexpectedEndOfString"] = 12] = "UnexpectedEndOfString";
+    ParseErrorCode2[ParseErrorCode2["UnexpectedEndOfNumber"] = 13] = "UnexpectedEndOfNumber";
+    ParseErrorCode2[ParseErrorCode2["InvalidUnicode"] = 14] = "InvalidUnicode";
+    ParseErrorCode2[ParseErrorCode2["InvalidEscapeCharacter"] = 15] = "InvalidEscapeCharacter";
+    ParseErrorCode2[ParseErrorCode2["InvalidCharacter"] = 16] = "InvalidCharacter";
+  })(ParseErrorCode || (ParseErrorCode = {}));
 
   // src/language/json/tokenization.ts
   function createTokenizationSupport(supportComments) {

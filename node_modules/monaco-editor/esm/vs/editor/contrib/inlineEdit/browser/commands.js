@@ -32,7 +32,7 @@ export class AcceptInlineEdit extends EditorAction {
     }
     async run(accessor, editor) {
         const controller = InlineEditController.get(editor);
-        await (controller === null || controller === void 0 ? void 0 : controller.accept());
+        await controller?.accept();
     }
 }
 export class TriggerInlineEdit extends EditorAction {
@@ -52,7 +52,7 @@ export class TriggerInlineEdit extends EditorAction {
     }
     async run(accessor, editor) {
         const controller = InlineEditController.get(editor);
-        controller === null || controller === void 0 ? void 0 : controller.trigger();
+        controller?.trigger();
     }
 }
 export class JumpToInlineEdit extends EditorAction {
@@ -79,7 +79,7 @@ export class JumpToInlineEdit extends EditorAction {
     }
     async run(accessor, editor) {
         const controller = InlineEditController.get(editor);
-        controller === null || controller === void 0 ? void 0 : controller.jumpToCurrent();
+        controller?.jumpToCurrent();
     }
 }
 export class JumpBackInlineEdit extends EditorAction {
@@ -106,7 +106,7 @@ export class JumpBackInlineEdit extends EditorAction {
     }
     async run(accessor, editor) {
         const controller = InlineEditController.get(editor);
-        controller === null || controller === void 0 ? void 0 : controller.jumpBack();
+        controller?.jumpBack();
     }
 }
 export class RejectInlineEdit extends EditorAction {
@@ -132,6 +132,6 @@ export class RejectInlineEdit extends EditorAction {
     }
     async run(accessor, editor) {
         const controller = InlineEditController.get(editor);
-        await (controller === null || controller === void 0 ? void 0 : controller.clear());
+        await controller?.clear();
     }
 }

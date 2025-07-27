@@ -13,15 +13,23 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var BrowserClipboardService_1;
 import { isSafari, isWebkitWebView } from '../../../base/browser/browser.js';
-import { $, addDisposableListener, getActiveDocument, onDidRegisterWindow } from '../../../base/browser/dom.js';
+import { $, addDisposableListener, getActiveDocument, getActiveWindow, isHTMLElement, onDidRegisterWindow } from '../../../base/browser/dom.js';
 import { mainWindow } from '../../../base/browser/window.js';
 import { DeferredPromise } from '../../../base/common/async.js';
 import { Event } from '../../../base/common/event.js';
 import { hash } from '../../../base/common/hash.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
+import { URI } from '../../../base/common/uri.js';
 import { ILayoutService } from '../../layout/browser/layoutService.js';
 import { ILogService } from '../../log/common/log.js';
-let BrowserClipboardService = BrowserClipboardService_1 = class BrowserClipboardService extends Disposable {
+/**
+ * Custom mime type used for storing a list of uris in the clipboard.
+ *
+ * Requires support for custom web clipboards https://github.com/w3c/clipboard-apis/pull/175
+ */
+const vscodeResourcesMime = 'application/vnd.code.resources';
+let BrowserClipboardService = class BrowserClipboardService extends Disposable {
+    static { BrowserClipboardService_1 = this; }
     constructor(layoutService, logService) {
         super();
         this.layoutService = layoutService;
@@ -38,7 +46,7 @@ let BrowserClipboardService = BrowserClipboardService_1 = class BrowserClipboard
         // and not in the clipboard, we have to invalidate
         // that state when the user copies other data.
         this._register(Event.runAndSubscribe(onDidRegisterWindow, ({ window, disposables }) => {
-            disposables.add(addDisposableListener(window.document, 'copy', () => this.clearResources()));
+            disposables.add(addDisposableListener(window.document, 'copy', () => this.clearResourcesState()));
         }, { window: mainWindow, disposables: this._store }));
     }
     // In Safari, it has the following note:
@@ -65,7 +73,7 @@ let BrowserClipboardService = BrowserClipboardService_1 = class BrowserClipboard
             // This allows us to pass in a Promise that will either be cancelled by another event or
             // resolved with the contents of the first call to this.writeText.
             // see https://developer.mozilla.org/en-US/docs/Web/API/ClipboardItem/ClipboardItem#parameters
-            navigator.clipboard.write([new ClipboardItem({
+            getActiveWindow().navigator.clipboard.write([new ClipboardItem({
                     'text/plain': currentWritePromise.p,
                 })]).catch(async (err) => {
                 if (!(err instanceof Error) || err.name !== 'NotAllowedError' || !currentWritePromise.isRejected) {
@@ -80,7 +88,7 @@ let BrowserClipboardService = BrowserClipboardService_1 = class BrowserClipboard
     }
     async writeText(text, type) {
         // Clear resources given we are writing text
-        this.writeResources([]);
+        this.clearResourcesState();
         // With type: only in-memory is supported
         if (type) {
             this.mapTextToType.set(type, text);
@@ -96,7 +104,7 @@ let BrowserClipboardService = BrowserClipboardService_1 = class BrowserClipboard
         // as we have seen DOMExceptions in certain browsers
         // due to security policies.
         try {
-            return await navigator.clipboard.writeText(text);
+            return await getActiveWindow().navigator.clipboard.writeText(text);
         }
         catch (error) {
             console.error(error);
@@ -115,10 +123,10 @@ let BrowserClipboardService = BrowserClipboardService_1 = class BrowserClipboard
         textArea.focus();
         textArea.select();
         activeDocument.execCommand('copy');
-        if (activeElement instanceof HTMLElement) {
+        if (isHTMLElement(activeElement)) {
             activeElement.focus();
         }
-        activeDocument.body.removeChild(textArea);
+        textArea.remove();
     }
     async readText(type) {
         // With type: only in-memory is supported
@@ -129,7 +137,7 @@ let BrowserClipboardService = BrowserClipboardService_1 = class BrowserClipboard
         // as we have seen DOMExceptions in certain browsers
         // due to security policies.
         try {
-            return await navigator.clipboard.readText();
+            return await getActiveWindow().navigator.clipboard.readText();
         }
         catch (error) {
             console.error(error);
@@ -142,19 +150,27 @@ let BrowserClipboardService = BrowserClipboardService_1 = class BrowserClipboard
     async writeFindText(text) {
         this.findText = text;
     }
-    async writeResources(resources) {
-        if (resources.length === 0) {
-            this.clearResources();
-        }
-        else {
-            this.resources = resources;
-            this.resourcesStateHash = await this.computeResourcesStateHash();
-        }
-    }
+    static { this.MAX_RESOURCE_STATE_SOURCE_LENGTH = 1000; }
     async readResources() {
+        // Guard access to navigator.clipboard with try/catch
+        // as we have seen DOMExceptions in certain browsers
+        // due to security policies.
+        try {
+            const items = await getActiveWindow().navigator.clipboard.read();
+            for (const item of items) {
+                if (item.types.includes(`web ${vscodeResourcesMime}`)) {
+                    const blob = await item.getType(`web ${vscodeResourcesMime}`);
+                    const resources = JSON.parse(await blob.text()).map(x => URI.from(x));
+                    return resources;
+                }
+            }
+        }
+        catch (error) {
+            // Noop
+        }
         const resourcesStateHash = await this.computeResourcesStateHash();
         if (this.resourcesStateHash !== resourcesStateHash) {
-            this.clearResources(); // state mismatch, resources no longer valid
+            this.clearResourcesState(); // state mismatch, resources no longer valid
         }
         return this.resources;
     }
@@ -169,12 +185,14 @@ let BrowserClipboardService = BrowserClipboardService_1 = class BrowserClipboard
         const clipboardText = await this.readText();
         return hash(clipboardText.substring(0, BrowserClipboardService_1.MAX_RESOURCE_STATE_SOURCE_LENGTH));
     }
-    clearResources() {
+    clearInternalState() {
+        this.clearResourcesState();
+    }
+    clearResourcesState() {
         this.resources = [];
         this.resourcesStateHash = undefined;
     }
 };
-BrowserClipboardService.MAX_RESOURCE_STATE_SOURCE_LENGTH = 1000;
 BrowserClipboardService = BrowserClipboardService_1 = __decorate([
     __param(0, ILayoutService),
     __param(1, ILogService)

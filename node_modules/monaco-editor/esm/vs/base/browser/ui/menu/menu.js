@@ -171,8 +171,7 @@ export class Menu extends ActionBar {
         const window = getWindow(container);
         menuElement.style.maxHeight = `${Math.max(10, window.innerHeight - container.getBoundingClientRect().top - 35)}px`;
         actions = actions.filter((a, idx) => {
-            var _a;
-            if ((_a = options.submenuIds) === null || _a === void 0 ? void 0 : _a.has(a.id)) {
+            if (options.submenuIds?.has(a.id)) {
                 console.warn(`Found submenu cycle: ${a.id}`);
                 return false;
             }
@@ -210,9 +209,8 @@ export class Menu extends ActionBar {
         this.styleSheet.textContent = getMenuWidgetCSS(style, isInShadowDOM(container));
     }
     styleScrollElement(scrollElement, style) {
-        var _a, _b;
-        const fgColor = (_a = style.foregroundColor) !== null && _a !== void 0 ? _a : '';
-        const bgColor = (_b = style.backgroundColor) !== null && _b !== void 0 ? _b : '';
+        const fgColor = style.foregroundColor ?? '';
+        const bgColor = style.backgroundColor ?? '';
         const border = style.borderColor ? `1px solid ${style.borderColor}` : '';
         const borderRadius = '5px';
         const shadow = style.shadowColor ? `0 2px 8px ${style.shadowColor}` : '';
@@ -398,9 +396,8 @@ class BaseMenuActionViewItem extends BaseActionViewItem {
         this.applyStyle();
     }
     focus() {
-        var _a;
         super.focus();
-        (_a = this.item) === null || _a === void 0 ? void 0 : _a.focus();
+        this.item?.focus();
         this.applyStyle();
     }
     updatePositionInSet(pos, setSize) {
@@ -410,7 +407,6 @@ class BaseMenuActionViewItem extends BaseActionViewItem {
         }
     }
     updateLabel() {
-        var _a;
         if (!this.label) {
             return;
         }
@@ -440,7 +436,7 @@ class BaseMenuActionViewItem extends BaseActionViewItem {
                     else {
                         this.label.innerText = replaceDoubleEscapes(label).trim();
                     }
-                    (_a = this.item) === null || _a === void 0 ? void 0 : _a.setAttribute('aria-keyshortcuts', (!!matches[1] ? matches[1] : matches[3]).toLocaleLowerCase());
+                    this.item?.setAttribute('aria-keyshortcuts', (!!matches[1] ? matches[1] : matches[3]).toLocaleLowerCase());
                 }
                 else {
                     this.label.innerText = label.replace(/&&/g, '&').trim();
@@ -515,13 +511,13 @@ class BaseMenuActionViewItem extends BaseActionViewItem {
         const outline = isSelected && this.menuStyle.selectionBorderColor ? `1px solid ${this.menuStyle.selectionBorderColor}` : '';
         const outlineOffset = isSelected && this.menuStyle.selectionBorderColor ? `-1px` : '';
         if (this.item) {
-            this.item.style.color = fgColor !== null && fgColor !== void 0 ? fgColor : '';
-            this.item.style.backgroundColor = bgColor !== null && bgColor !== void 0 ? bgColor : '';
+            this.item.style.color = fgColor ?? '';
+            this.item.style.backgroundColor = bgColor ?? '';
             this.item.style.outline = outline;
             this.item.style.outlineOffset = outlineOffset;
         }
         if (this.check) {
-            this.check.style.color = fgColor !== null && fgColor !== void 0 ? fgColor : '';
+            this.check.style.color = fgColor ?? '';
         }
     }
 }
@@ -614,7 +610,7 @@ class SubmenuMenuActionViewItem extends BaseMenuActionViewItem {
             try {
                 this.parentData.submenu.dispose();
             }
-            catch (_a) { }
+            catch { }
             this.parentData.submenu = undefined;
             this.updateAriaExpanded('false');
             if (this.submenuContainer) {
@@ -701,9 +697,8 @@ class SubmenuMenuActionViewItem extends BaseMenuActionViewItem {
         }
     }
     updateAriaExpanded(value) {
-        var _a;
         if (this.item) {
-            (_a = this.item) === null || _a === void 0 ? void 0 : _a.setAttribute('aria-expanded', value);
+            this.item?.setAttribute('aria-expanded', value);
         }
     }
     applyStyle() {
@@ -711,7 +706,7 @@ class SubmenuMenuActionViewItem extends BaseMenuActionViewItem {
         const isSelected = this.element && this.element.classList.contains('focused');
         const fgColor = isSelected && this.menuStyle.selectionForegroundColor ? this.menuStyle.selectionForegroundColor : this.menuStyle.foregroundColor;
         if (this.submenuIndicator) {
-            this.submenuIndicator.style.color = fgColor !== null && fgColor !== void 0 ? fgColor : '';
+            this.submenuIndicator.style.color = fgColor ?? '';
         }
     }
     dispose() {

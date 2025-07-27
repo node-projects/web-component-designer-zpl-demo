@@ -2,18 +2,18 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+import { isHTMLElement } from '../../../../base/browser/dom.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { isMarkdownString } from '../../../../base/common/htmlContent.js';
 import { isFunction, isString } from '../../../../base/common/types.js';
 import { localize } from '../../../../nls.js';
-export class UpdatableHoverWidget {
+export class ManagedHoverWidget {
     constructor(hoverDelegate, target, fadeInAnimation) {
         this.hoverDelegate = hoverDelegate;
         this.target = target;
         this.fadeInAnimation = fadeInAnimation;
     }
     async update(content, focus, options) {
-        var _a;
         if (this._cancellationTokenSource) {
             // there's an computation ongoing, cancel it
             this._cancellationTokenSource.dispose(true);
@@ -23,17 +23,17 @@ export class UpdatableHoverWidget {
             return;
         }
         let resolvedContent;
-        if (content === undefined || isString(content) || content instanceof HTMLElement) {
+        if (content === undefined || isString(content) || isHTMLElement(content)) {
             resolvedContent = content;
         }
         else if (!isFunction(content.markdown)) {
-            resolvedContent = (_a = content.markdown) !== null && _a !== void 0 ? _a : content.markdownNotSupportedFallback;
+            resolvedContent = content.markdown ?? content.markdownNotSupportedFallback;
         }
         else {
             // compute the content, potentially long-running
             // show 'Loading' if no hover is up yet
             if (!this._hoverWidget) {
-                this.show(localize('iconLabel.loading', "Loading..."), focus);
+                this.show(localize('iconLabel.loading', "Loading..."), focus, options);
             }
             // compute the content
             this._cancellationTokenSource = new CancellationTokenSource();
@@ -56,18 +56,21 @@ export class UpdatableHoverWidget {
             const hoverOptions = {
                 content,
                 target: this.target,
+                actions: options?.actions,
+                linkHandler: options?.linkHandler,
+                trapFocus: options?.trapFocus,
                 appearance: {
                     showPointer: this.hoverDelegate.placement === 'element',
                     skipFadeInAnimation: !this.fadeInAnimation || !!oldHoverWidget, // do not fade in if the hover is already showing
+                    showHoverHint: options?.appearance?.showHoverHint,
                 },
                 position: {
                     hoverPosition: 2 /* HoverPosition.BELOW */,
                 },
-                ...options
             };
             this._hoverWidget = this.hoverDelegate.showHover(hoverOptions, focus);
         }
-        oldHoverWidget === null || oldHoverWidget === void 0 ? void 0 : oldHoverWidget.dispose();
+        oldHoverWidget?.dispose();
     }
     hasContent(content) {
         if (!content) {
@@ -79,13 +82,11 @@ export class UpdatableHoverWidget {
         return true;
     }
     get isDisposed() {
-        var _a;
-        return (_a = this._hoverWidget) === null || _a === void 0 ? void 0 : _a.isDisposed;
+        return this._hoverWidget?.isDisposed;
     }
     dispose() {
-        var _a, _b;
-        (_a = this._hoverWidget) === null || _a === void 0 ? void 0 : _a.dispose();
-        (_b = this._cancellationTokenSource) === null || _b === void 0 ? void 0 : _b.dispose(true);
+        this._hoverWidget?.dispose();
+        this._cancellationTokenSource?.dispose(true);
         this._cancellationTokenSource = undefined;
     }
 }

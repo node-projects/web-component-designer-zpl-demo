@@ -41,7 +41,9 @@ import { CodeActionModel } from './codeActionModel.js';
 import { HierarchicalKind } from '../../../../base/common/hierarchicalKind.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 const DECORATION_CLASS_NAME = 'quickfix-edit-highlight';
-let CodeActionController = CodeActionController_1 = class CodeActionController extends Disposable {
+let CodeActionController = class CodeActionController extends Disposable {
+    static { CodeActionController_1 = this; }
+    static { this.ID = 'editor.contrib.codeActionController'; }
     static get(editor) {
         return editor.getContribution(CodeActionController_1.ID);
     }
@@ -56,7 +58,7 @@ let CodeActionController = CodeActionController_1 = class CodeActionController e
         this._showDisabled = false;
         this._disposed = false;
         this._editor = editor;
-        this._model = this._register(new CodeActionModel(this._editor, languageFeaturesService.codeActionProvider, markerService, contextKeyService, progressService, _configurationService));
+        this._model = this._register(new CodeActionModel(this._editor, languageFeaturesService.codeActionProvider, markerService, contextKeyService, progressService, _configurationService, this._telemetryService));
         this._register(this._model.onDidChangeState(newState => this.update(newState)));
         this._lightBulbWidget = new Lazy(() => {
             const widget = this._editor.getContribution(LightBulbWidget.ID);
@@ -73,11 +75,6 @@ let CodeActionController = CodeActionController_1 = class CodeActionController e
         super.dispose();
     }
     async showCodeActionsFromLightbulb(actions, at) {
-        this._telemetryService.publicLog2('codeAction.showCodeActionsFromLightbulb', {
-            codeActionListLength: actions.validActions.length,
-            codeActions: actions.validActions.map(action => action.action.title),
-            codeActionProviders: actions.validActions.map(action => { var _a, _b; return (_b = (_a = action.provider) === null || _a === void 0 ? void 0 : _a.displayName) !== null && _b !== void 0 ? _b : ''; }),
-        });
         if (actions.allAIFixes && actions.validActions.length === 1) {
             const actionItem = actions.validActions[0];
             const command = actionItem.action.command;
@@ -95,11 +92,10 @@ let CodeActionController = CodeActionController_1 = class CodeActionController e
         return this.showCodeActionList(actions, at, { includeDisabledActions: false, fromLightbulb: false });
     }
     manualTriggerAtCurrentPosition(notAvailableMessage, triggerAction, filter, autoApply) {
-        var _a;
         if (!this._editor.hasModel()) {
             return;
         }
-        (_a = MessageController.get(this._editor)) === null || _a === void 0 ? void 0 : _a.closeMessage();
+        MessageController.get(this._editor)?.closeMessage();
         const triggerPosition = this._editor.getPosition();
         this._trigger({ type: 1 /* CodeActionTriggerType.Invoke */, triggerAction, filter, autoApply, context: { notAvailableMessage, position: triggerPosition } });
     }
@@ -116,10 +112,13 @@ let CodeActionController = CodeActionController_1 = class CodeActionController e
             }
         }
     }
+    hideLightBulbWidget() {
+        this._lightBulbWidget.rawValue?.hide();
+        this._lightBulbWidget.rawValue?.gutterHide();
+    }
     async update(newState) {
-        var _a, _b, _c, _d, _e, _f, _g;
         if (newState.type !== 1 /* CodeActionsState.Type.Triggered */) {
-            (_a = this._lightBulbWidget.rawValue) === null || _a === void 0 ? void 0 : _a.hide();
+            this.hideLightBulbWidget();
             return;
         }
         let actions;
@@ -133,14 +132,18 @@ let CodeActionController = CodeActionController_1 = class CodeActionController e
         if (this._disposed) {
             return;
         }
-        (_b = this._lightBulbWidget.value) === null || _b === void 0 ? void 0 : _b.update(actions, newState.trigger, newState.position);
+        const selection = this._editor.getSelection();
+        if (selection?.startLineNumber !== newState.position.lineNumber) {
+            return;
+        }
+        this._lightBulbWidget.value?.update(actions, newState.trigger, newState.position);
         if (newState.trigger.type === 1 /* CodeActionTriggerType.Invoke */) {
-            if ((_c = newState.trigger.filter) === null || _c === void 0 ? void 0 : _c.include) { // Triggered for specific scope
+            if (newState.trigger.filter?.include) { // Triggered for specific scope
                 // Check to see if we want to auto apply.
                 const validActionToApply = this.tryGetValidActionToApply(newState.trigger, actions);
                 if (validActionToApply) {
                     try {
-                        (_d = this._lightBulbWidget.value) === null || _d === void 0 ? void 0 : _d.hide();
+                        this.hideLightBulbWidget();
                         await this._applyCodeAction(validActionToApply, false, false, ApplyCodeActionReason.FromCodeActions);
                     }
                     finally {
@@ -152,16 +155,16 @@ let CodeActionController = CodeActionController_1 = class CodeActionController e
                 if (newState.trigger.context) {
                     const invalidAction = this.getInvalidActionThatWouldHaveBeenApplied(newState.trigger, actions);
                     if (invalidAction && invalidAction.action.disabled) {
-                        (_e = MessageController.get(this._editor)) === null || _e === void 0 ? void 0 : _e.showMessage(invalidAction.action.disabled, newState.trigger.context.position);
+                        MessageController.get(this._editor)?.showMessage(invalidAction.action.disabled, newState.trigger.context.position);
                         actions.dispose();
                         return;
                     }
                 }
             }
-            const includeDisabledActions = !!((_f = newState.trigger.filter) === null || _f === void 0 ? void 0 : _f.include);
+            const includeDisabledActions = !!newState.trigger.filter?.include;
             if (newState.trigger.context) {
                 if (!actions.allActions.length || !includeDisabledActions && !actions.validActions.length) {
-                    (_g = MessageController.get(this._editor)) === null || _g === void 0 ? void 0 : _g.showMessage(newState.trigger.context.notAvailableMessage, newState.trigger.context.position);
+                    MessageController.get(this._editor)?.showMessage(newState.trigger.context.notAvailableMessage, newState.trigger.context.position);
                     this._activeCodeActions.value = actions;
                     actions.dispose();
                     return;
@@ -201,6 +204,10 @@ let CodeActionController = CodeActionController_1 = class CodeActionController e
         }
         return undefined;
     }
+    static { this.DECORATION = ModelDecorationOptions.register({
+        description: 'quickfix-highlight',
+        className: DECORATION_CLASS_NAME
+    }); }
     async showCodeActionList(actions, at, options) {
         const currentDecorations = this._editor.createDecorationsCollection();
         const editorDom = this._editor.getDomNode();
@@ -219,19 +226,10 @@ let CodeActionController = CodeActionController_1 = class CodeActionController e
                 currentDecorations.clear();
             },
             onHide: (didCancel) => {
-                var _a;
-                (_a = this._editor) === null || _a === void 0 ? void 0 : _a.focus();
+                this._editor?.focus();
                 currentDecorations.clear();
-                // Telemetry for showing code actions here. only log on `showLightbulb`. Logs when code action list is quit out.
-                if (options.fromLightbulb && didCancel !== undefined) {
-                    this._telemetryService.publicLog2('codeAction.showCodeActionList.onHide', {
-                        codeActionListLength: actions.validActions.length,
-                        didCancel: didCancel,
-                    });
-                }
             },
             onHover: async (action, token) => {
-                var _a;
                 if (token.isCancellationRequested) {
                     return;
                 }
@@ -248,17 +246,16 @@ let CodeActionController = CodeActionController_1 = class CodeActionController e
                     ];
                     canPreview = refactorKinds.some(refactorKind => refactorKind.contains(hierarchicalKind));
                 }
-                return { canPreview: canPreview || !!((_a = action.action.edit) === null || _a === void 0 ? void 0 : _a.edits.length) };
+                return { canPreview: canPreview || !!action.action.edit?.edits.length };
             },
             onFocus: (action) => {
-                var _a, _b;
                 if (action && action.action) {
                     const ranges = action.action.ranges;
                     const diagnostics = action.action.diagnostics;
                     currentDecorations.clear();
                     if (ranges && ranges.length > 0) {
                         // Handles case for `fix all` where there are multiple diagnostics.
-                        const decorations = (diagnostics && (diagnostics === null || diagnostics === void 0 ? void 0 : diagnostics.length) > 1)
+                        const decorations = (diagnostics && diagnostics?.length > 1)
                             ? diagnostics.map(diagnostic => ({ range: diagnostic, options: CodeActionController_1.DECORATION }))
                             : ranges.map(range => ({ range, options: CodeActionController_1.DECORATION }));
                         currentDecorations.set(decorations);
@@ -268,7 +265,7 @@ let CodeActionController = CodeActionController_1 = class CodeActionController e
                         currentDecorations.set(decorations);
                         const diagnostic = diagnostics[0];
                         if (diagnostic.startLineNumber && diagnostic.startColumn) {
-                            const selectionText = (_b = (_a = this._editor.getModel()) === null || _a === void 0 ? void 0 : _a.getWordAtPosition({ lineNumber: diagnostic.startLineNumber, column: diagnostic.startColumn })) === null || _b === void 0 ? void 0 : _b.word;
+                            const selectionText = this._editor.getModel()?.getWordAtPosition({ lineNumber: diagnostic.startLineNumber, column: diagnostic.startColumn })?.word;
                             aria.status(localize('editingNewSelection', "Context: {0} at line {1} and column {2}.", selectionText, diagnostic.startLineNumber, diagnostic.startColumn));
                         }
                     }
@@ -294,25 +291,21 @@ let CodeActionController = CodeActionController_1 = class CodeActionController e
         return { x, y };
     }
     _shouldShowHeaders() {
-        var _a;
-        const model = (_a = this._editor) === null || _a === void 0 ? void 0 : _a.getModel();
-        return this._configurationService.getValue('editor.codeActionWidget.showHeaders', { resource: model === null || model === void 0 ? void 0 : model.uri });
+        const model = this._editor?.getModel();
+        return this._configurationService.getValue('editor.codeActionWidget.showHeaders', { resource: model?.uri });
     }
     _getActionBarActions(actions, at, options) {
         if (options.fromLightbulb) {
             return [];
         }
-        const resultActions = actions.documentation.map((command) => {
-            var _a;
-            return ({
-                id: command.id,
-                label: command.title,
-                tooltip: (_a = command.tooltip) !== null && _a !== void 0 ? _a : '',
-                class: undefined,
-                enabled: true,
-                run: () => { var _a; return this._commandService.executeCommand(command.id, ...((_a = command.arguments) !== null && _a !== void 0 ? _a : [])); },
-            });
-        });
+        const resultActions = actions.documentation.map((command) => ({
+            id: command.id,
+            label: command.title,
+            tooltip: command.tooltip ?? '',
+            class: undefined,
+            enabled: true,
+            run: () => this._commandService.executeCommand(command.id, ...(command.arguments ?? [])),
+        }));
         if (options.includeDisabledActions && actions.validActions.length > 0 && actions.allActions.length !== actions.validActions.length) {
             resultActions.push(this._showDisabled ? {
                 id: 'hideMoreActions',
@@ -339,11 +332,6 @@ let CodeActionController = CodeActionController_1 = class CodeActionController e
         return resultActions;
     }
 };
-CodeActionController.ID = 'editor.contrib.codeActionController';
-CodeActionController.DECORATION = ModelDecorationOptions.register({
-    description: 'quickfix-highlight',
-    className: DECORATION_CLASS_NAME
-});
 CodeActionController = CodeActionController_1 = __decorate([
     __param(1, IMarkerService),
     __param(2, IContextKeyService),

@@ -79,8 +79,7 @@ class AsyncDataTreeRenderer {
         }
     }
     disposeElement(node, index, templateData, height) {
-        var _a, _b;
-        (_b = (_a = this.renderer).disposeElement) === null || _b === void 0 ? void 0 : _b.call(_a, this.nodeMapper.map(node), index, templateData.templateData, height);
+        this.renderer.disposeElement?.(this.nodeMapper.map(node), index, templateData.templateData, height);
     }
     disposeTemplate(templateData) {
         this.renderer.disposeTemplate(templateData.templateData);
@@ -128,8 +127,7 @@ class AsyncDataTreeNodeListDragAndDrop {
         return undefined;
     }
     onDragStart(data, originalEvent) {
-        var _a, _b;
-        (_b = (_a = this.dnd).onDragStart) === null || _b === void 0 ? void 0 : _b.call(_a, asAsyncDataTreeDragAndDropData(data), originalEvent);
+        this.dnd.onDragStart?.(asAsyncDataTreeDragAndDropData(data), originalEvent);
     }
     onDragOver(data, targetNode, targetIndex, targetSector, originalEvent, raw = true) {
         return this.dnd.onDragOver(asAsyncDataTreeDragAndDropData(data), targetNode && targetNode.element, targetIndex, targetSector, originalEvent);
@@ -138,8 +136,7 @@ class AsyncDataTreeNodeListDragAndDrop {
         this.dnd.drop(asAsyncDataTreeDragAndDropData(data), targetNode && targetNode.element, targetIndex, targetSector, originalEvent);
     }
     onDragEnd(originalEvent) {
-        var _a, _b;
-        (_b = (_a = this.dnd).onDragEnd) === null || _b === void 0 ? void 0 : _b.call(_a, originalEvent);
+        this.dnd.onDragEnd?.(originalEvent);
     }
     dispose() {
         this.dnd.dispose();
@@ -171,8 +168,7 @@ function asObjectTreeOptions(options) {
                 return options.accessibilityProvider.getRole(el.element);
             } : () => 'treeitem',
             isChecked: options.accessibilityProvider.isChecked ? (e) => {
-                var _a;
-                return !!((_a = options.accessibilityProvider) === null || _a === void 0 ? void 0 : _a.isChecked(e.element));
+                return !!(options.accessibilityProvider?.isChecked(e.element));
             } : undefined,
             getAriaLabel(e) {
                 return options.accessibilityProvider.getAriaLabel(e.element);
@@ -335,7 +331,7 @@ export class AsyncDataTree {
             try {
                 this.tree.rerender(node);
             }
-            catch (_a) {
+            catch {
                 // missing nodes are fine, this could've resulted from
                 // parallel refresh calls, removing `node` altogether
             }
@@ -717,12 +713,10 @@ class CompressibleAsyncDataTreeRenderer {
         }
     }
     disposeElement(node, index, templateData, height) {
-        var _a, _b;
-        (_b = (_a = this.renderer).disposeElement) === null || _b === void 0 ? void 0 : _b.call(_a, this.nodeMapper.map(node), index, templateData.templateData, height);
+        this.renderer.disposeElement?.(this.nodeMapper.map(node), index, templateData.templateData, height);
     }
     disposeCompressedElements(node, index, templateData, height) {
-        var _a, _b;
-        (_b = (_a = this.renderer).disposeCompressedElements) === null || _b === void 0 ? void 0 : _b.call(_a, this.compressibleNodeMapperProvider().map(node), index, templateData.templateData, height);
+        this.renderer.disposeCompressedElements?.(this.compressibleNodeMapperProvider().map(node), index, templateData.templateData, height);
     }
     disposeTemplate(templateData) {
         this.renderer.disposeTemplate(templateData.templateData);

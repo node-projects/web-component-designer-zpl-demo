@@ -40,13 +40,13 @@ export class ViewLineOptions {
         const fontInfo = options.get(50 /* EditorOption.fontInfo */);
         const experimentalWhitespaceRendering = options.get(38 /* EditorOption.experimentalWhitespaceRendering */);
         if (experimentalWhitespaceRendering === 'off') {
-            this.renderWhitespace = options.get(99 /* EditorOption.renderWhitespace */);
+            this.renderWhitespace = options.get(100 /* EditorOption.renderWhitespace */);
         }
         else {
             // whitespace is rendered in a different layer
             this.renderWhitespace = 'none';
         }
-        this.renderControlCharacters = options.get(94 /* EditorOption.renderControlCharacters */);
+        this.renderControlCharacters = options.get(95 /* EditorOption.renderControlCharacters */);
         this.spaceWidth = fontInfo.spaceWidth;
         this.middotWidth = fontInfo.middotWidth;
         this.wsmiddotWidth = fontInfo.wsmiddotWidth;
@@ -54,7 +54,7 @@ export class ViewLineOptions {
             && !options.get(33 /* EditorOption.disableMonospaceOptimizations */));
         this.canUseHalfwidthRightwardsArrow = fontInfo.canUseHalfwidthRightwardsArrow;
         this.lineHeight = options.get(67 /* EditorOption.lineHeight */);
-        this.stopRenderingLineAfter = options.get(117 /* EditorOption.stopRenderingLineAfter */);
+        this.stopRenderingLineAfter = options.get(118 /* EditorOption.stopRenderingLineAfter */);
         this.fontLigatures = options.get(51 /* EditorOption.fontLigatures */);
     }
     equals(other) {
@@ -72,6 +72,7 @@ export class ViewLineOptions {
     }
 }
 export class ViewLine {
+    static { this.CLASS_NAME = 'view-line'; }
     constructor(options) {
         this._options = options;
         this._isMaybeInvalid = true;
@@ -238,7 +239,6 @@ export class ViewLine {
         return this._renderedViewLine.getColumnOfNodeOffset(spanNode, offset);
     }
 }
-ViewLine.CLASS_NAME = 'view-line';
 /**
  * A rendered line which is guaranteed to contain only regular ASCII and is rendered with a monospace font.
  */
@@ -267,7 +267,7 @@ class FastRenderedViewLine {
         }
         if (this._cachedWidth === -1) {
             this._cachedWidth = this._getReadingTarget(this.domNode).offsetWidth;
-            context === null || context === void 0 ? void 0 : context.markDidDomLayout();
+            context?.markDidDomLayout();
         }
         return this._cachedWidth;
     }
@@ -371,7 +371,7 @@ class RenderedViewLine {
         }
         if (this._cachedWidth === -1) {
             this._cachedWidth = this._getReadingTarget(this.domNode).offsetWidth;
-            context === null || context === void 0 ? void 0 : context.markDidDomLayout();
+            context?.markDidDomLayout();
         }
         return this._cachedWidth;
     }

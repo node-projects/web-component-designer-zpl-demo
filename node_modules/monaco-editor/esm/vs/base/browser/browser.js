@@ -8,15 +8,14 @@ class WindowManager {
         // --- Zoom Factor
         this.mapWindowIdToZoomFactor = new Map();
     }
+    static { this.INSTANCE = new WindowManager(); }
     getZoomFactor(targetWindow) {
-        var _a;
-        return (_a = this.mapWindowIdToZoomFactor.get(this.getWindowId(targetWindow))) !== null && _a !== void 0 ? _a : 1;
+        return this.mapWindowIdToZoomFactor.get(this.getWindowId(targetWindow)) ?? 1;
     }
     getWindowId(targetWindow) {
         return targetWindow.vscodeWindowId;
     }
 }
-WindowManager.INSTANCE = new WindowManager();
 export function addMatchMediaChangeListener(targetWindow, query, callback) {
     if (typeof query === 'string') {
         query = targetWindow.matchMedia(query);

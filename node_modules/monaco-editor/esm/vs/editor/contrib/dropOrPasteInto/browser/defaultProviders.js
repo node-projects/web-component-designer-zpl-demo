@@ -30,13 +30,19 @@ class SimplePasteAndDropProvider {
             return undefined;
         }
         return {
+            edits: [{ insertText: edit.insertText, title: edit.title, kind: edit.kind, handledMimeType: edit.handledMimeType, yieldTo: edit.yieldTo }],
             dispose() { },
-            edits: [{ insertText: edit.insertText, title: edit.title, kind: edit.kind, handledMimeType: edit.handledMimeType, yieldTo: edit.yieldTo }]
         };
     }
     async provideDocumentDropEdits(_model, _position, dataTransfer, token) {
         const edit = await this.getEdit(dataTransfer, token);
-        return edit ? [{ insertText: edit.insertText, title: edit.title, kind: edit.kind, handledMimeType: edit.handledMimeType, yieldTo: edit.yieldTo }] : undefined;
+        if (!edit) {
+            return;
+        }
+        return {
+            edits: [{ insertText: edit.insertText, title: edit.title, kind: edit.kind, handledMimeType: edit.handledMimeType, yieldTo: edit.yieldTo }],
+            dispose() { },
+        };
     }
 }
 export class DefaultTextPasteOrDropEditProvider extends SimplePasteAndDropProvider {
@@ -46,6 +52,8 @@ export class DefaultTextPasteOrDropEditProvider extends SimplePasteAndDropProvid
         this.dropMimeTypes = [Mimes.text];
         this.pasteMimeTypes = [Mimes.text];
     }
+    static { this.id = 'text'; }
+    static { this.kind = new HierarchicalKind('text.plain'); }
     async getEdit(dataTransfer, _token) {
         const textEntry = dataTransfer.get(Mimes.text);
         if (!textEntry) {
@@ -65,8 +73,6 @@ export class DefaultTextPasteOrDropEditProvider extends SimplePasteAndDropProvid
         };
     }
 }
-DefaultTextPasteOrDropEditProvider.id = 'text';
-DefaultTextPasteOrDropEditProvider.kind = new HierarchicalKind('text.plain');
 class PathProvider extends SimplePasteAndDropProvider {
     constructor() {
         super(...arguments);
@@ -152,12 +158,11 @@ class PasteHtmlProvider {
         this._yieldTo = [{ mimeType: Mimes.text }];
     }
     async provideDocumentPasteEdits(_model, _ranges, dataTransfer, context, token) {
-        var _a;
-        if (context.triggerKind !== DocumentPasteTriggerKind.PasteAs && !((_a = context.only) === null || _a === void 0 ? void 0 : _a.contains(this.kind))) {
+        if (context.triggerKind !== DocumentPasteTriggerKind.PasteAs && !context.only?.contains(this.kind)) {
             return;
         }
         const entry = dataTransfer.get('text/html');
-        const htmlText = await (entry === null || entry === void 0 ? void 0 : entry.asString());
+        const htmlText = await entry?.asString();
         if (!htmlText || token.isCancellationRequested) {
             return;
         }
@@ -183,7 +188,7 @@ async function extractUriList(dataTransfer) {
         try {
             entries.push({ uri: URI.parse(entry), originalText: entry });
         }
-        catch (_a) {
+        catch {
             // noop
         }
     }

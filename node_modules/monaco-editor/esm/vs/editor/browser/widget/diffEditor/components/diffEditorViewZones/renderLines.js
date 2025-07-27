@@ -59,11 +59,10 @@ export class LineSource {
 }
 export class RenderOptions {
     static fromEditor(editor) {
-        var _a;
         const modifiedEditorOptions = editor.getOptions();
         const fontInfo = modifiedEditorOptions.get(50 /* EditorOption.fontInfo */);
-        const layoutInfo = modifiedEditorOptions.get(145 /* EditorOption.layoutInfo */);
-        return new RenderOptions(((_a = editor.getModel()) === null || _a === void 0 ? void 0 : _a.getOptions().tabSize) || 0, fontInfo, modifiedEditorOptions.get(33 /* EditorOption.disableMonospaceOptimizations */), fontInfo.typicalHalfwidthCharacterWidth, modifiedEditorOptions.get(104 /* EditorOption.scrollBeyondLastColumn */), modifiedEditorOptions.get(67 /* EditorOption.lineHeight */), layoutInfo.decorationsWidth, modifiedEditorOptions.get(117 /* EditorOption.stopRenderingLineAfter */), modifiedEditorOptions.get(99 /* EditorOption.renderWhitespace */), modifiedEditorOptions.get(94 /* EditorOption.renderControlCharacters */), modifiedEditorOptions.get(51 /* EditorOption.fontLigatures */));
+        const layoutInfo = modifiedEditorOptions.get(146 /* EditorOption.layoutInfo */);
+        return new RenderOptions(editor.getModel()?.getOptions().tabSize || 0, fontInfo, modifiedEditorOptions.get(33 /* EditorOption.disableMonospaceOptimizations */), fontInfo.typicalHalfwidthCharacterWidth, modifiedEditorOptions.get(105 /* EditorOption.scrollBeyondLastColumn */), modifiedEditorOptions.get(67 /* EditorOption.lineHeight */), layoutInfo.decorationsWidth, modifiedEditorOptions.get(118 /* EditorOption.stopRenderingLineAfter */), modifiedEditorOptions.get(100 /* EditorOption.renderWhitespace */), modifiedEditorOptions.get(95 /* EditorOption.renderControlCharacters */), modifiedEditorOptions.get(51 /* EditorOption.fontLigatures */));
     }
     constructor(tabSize, fontInfo, disableMonospaceOptimizations, typicalHalfwidthCharacterWidth, scrollBeyondLastColumn, lineHeight, lineDecorationsWidth, stopRenderingLineAfter, renderWhitespace, renderControlCharacters, fontLigatures) {
         this.tabSize = tabSize;

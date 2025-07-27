@@ -5,9 +5,10 @@
 import { Event } from '../event.js';
 import { DisposableStore, toDisposable } from '../lifecycle.js';
 import { BaseObservable, ConvenientObservable, _setKeepObserved, _setRecomputeInitiallyAndOnChange, subtransaction, transaction } from './base.js';
-import { DebugNameData, getFunctionName } from './debugName.js';
+import { DebugNameData } from './debugName.js';
 import { derived, derivedOpts } from './derived.js';
 import { getLogger } from './logging.js';
+import { strictEquals } from '../equals.js';
 /**
  * Represents an efficient observable whose value never changes.
  */
@@ -35,28 +36,41 @@ class ConstObservable extends ConvenientObservable {
         return `Const: ${this.value}`;
     }
 }
-export function observableFromEvent(event, getValue) {
-    return new FromEventObservable(event, getValue);
+export function observableFromEvent(...args) {
+    let owner;
+    let event;
+    let getValue;
+    if (args.length === 3) {
+        [owner, event, getValue] = args;
+    }
+    else {
+        [event, getValue] = args;
+    }
+    return new FromEventObservable(new DebugNameData(owner, undefined, getValue), event, getValue, () => FromEventObservable.globalTransaction, strictEquals);
+}
+export function observableFromEventOpts(options, event, getValue) {
+    return new FromEventObservable(new DebugNameData(options.owner, options.debugName, options.debugReferenceFn ?? getValue), event, getValue, () => FromEventObservable.globalTransaction, options.equalsFn ?? strictEquals);
 }
 export class FromEventObservable extends BaseObservable {
-    constructor(event, _getValue) {
+    constructor(_debugNameData, event, _getValue, _getTransaction, _equalityComparator) {
         super();
+        this._debugNameData = _debugNameData;
         this.event = event;
         this._getValue = _getValue;
+        this._getTransaction = _getTransaction;
+        this._equalityComparator = _equalityComparator;
         this.hasValue = false;
         this.handleEvent = (args) => {
-            var _a;
             const newValue = this._getValue(args);
             const oldValue = this.value;
-            const didChange = !this.hasValue || oldValue !== newValue;
+            const didChange = !this.hasValue || !(this._equalityComparator(oldValue, newValue));
             let didRunTransaction = false;
             if (didChange) {
                 this.value = newValue;
                 if (this.hasValue) {
                     didRunTransaction = true;
-                    subtransaction(FromEventObservable.globalTransaction, (tx) => {
-                        var _a;
-                        (_a = getLogger()) === null || _a === void 0 ? void 0 : _a.handleFromEventObservableTriggered(this, { oldValue, newValue, change: undefined, didChange, hadValue: this.hasValue });
+                    subtransaction(this._getTransaction(), (tx) => {
+                        getLogger()?.handleFromEventObservableTriggered(this, { oldValue, newValue, change: undefined, didChange, hadValue: this.hasValue });
                         for (const o of this.observers) {
                             tx.updateObserver(o, this);
                             o.handleChange(this, undefined);
@@ -69,12 +83,12 @@ export class FromEventObservable extends BaseObservable {
                 this.hasValue = true;
             }
             if (!didRunTransaction) {
-                (_a = getLogger()) === null || _a === void 0 ? void 0 : _a.handleFromEventObservableTriggered(this, { oldValue, newValue, change: undefined, didChange, hadValue: this.hasValue });
+                getLogger()?.handleFromEventObservableTriggered(this, { oldValue, newValue, change: undefined, didChange, hadValue: this.hasValue });
             }
         };
     }
     getDebugName() {
-        return getFunctionName(this._getValue);
+        return this._debugNameData.getDebugName(this);
     }
     get debugName() {
         const name = this.getDebugName();
@@ -160,8 +174,10 @@ export function observableSignal(debugNameOrOwner) {
 }
 class ObservableSignal extends BaseObservable {
     get debugName() {
-        var _a;
-        return (_a = new DebugNameData(this._owner, this._debugName, undefined).getDebugName(this)) !== null && _a !== void 0 ? _a : 'Observable Signal';
+        return new DebugNameData(this._owner, this._debugName, undefined).getDebugName(this) ?? 'Observable Signal';
+    }
+    toString() {
+        return this.debugName;
     }
     constructor(_debugName, _owner) {
         super();
@@ -238,6 +254,14 @@ export class KeepAliveObserver {
     handleChange(observable, change) {
         // NO OP
     }
+}
+export function derivedObservableWithCache(owner, computeFn) {
+    let lastValue = undefined;
+    const observable = derivedOpts({ owner, debugReferenceFn: computeFn }, reader => {
+        lastValue = computeFn(reader, lastValue);
+        return lastValue;
+    });
+    return observable;
 }
 export function derivedObservableWithWritableCache(owner, computeFn) {
     let lastValue = undefined;
@@ -326,9 +350,17 @@ export class ValueWithChangeEventFromObservable {
         return this.observable.get();
     }
 }
-export function observableFromValueWithChangeEvent(_owner, value) {
+export function observableFromValueWithChangeEvent(owner, value) {
     if (value instanceof ValueWithChangeEventFromObservable) {
         return value.observable;
     }
-    return observableFromEvent(value.onDidChange, () => value.value);
+    return observableFromEvent(owner, value.onDidChange, () => value.value);
+}
+/**
+ * Works like a derived.
+ * However, if the value is not undefined, it is cached and will not be recomputed anymore.
+ * In that case, the derived will unsubscribe from its dependencies.
+*/
+export function derivedConstOnceDefined(owner, fn) {
+    return derivedObservableWithCache(owner, (reader, lastValue) => lastValue ?? fn(reader));
 }

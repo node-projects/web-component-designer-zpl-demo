@@ -109,7 +109,6 @@ export class DecorationsOverlay extends DynamicViewOverlay {
         }
     }
     _renderNormalDecorations(ctx, decorations, output) {
-        var _a;
         const visibleStartLineNumber = ctx.visibleRange.startLineNumber;
         let prevClassName = null;
         let prevShowIfCollapsed = false;
@@ -138,7 +137,7 @@ export class DecorationsOverlay extends DynamicViewOverlay {
             prevClassName = className;
             prevShowIfCollapsed = showIfCollapsed;
             prevRange = range;
-            prevShouldFillLineOnLineBreak = (_a = d.options.shouldFillLineOnLineBreak) !== null && _a !== void 0 ? _a : false;
+            prevShouldFillLineOnLineBreak = d.options.shouldFillLineOnLineBreak ?? false;
         }
         if (prevClassName !== null) {
             this._renderNormalDecoration(ctx, prevRange, prevClassName, prevShouldFillLineOnLineBreak, prevShowIfCollapsed, visibleStartLineNumber, output);

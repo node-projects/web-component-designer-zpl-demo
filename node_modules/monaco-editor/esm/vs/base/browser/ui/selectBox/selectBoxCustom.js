@@ -51,6 +51,9 @@ class SelectListRenderer {
     }
 }
 export class SelectBoxList extends Disposable {
+    static { this.DEFAULT_DROPDOWN_MINIMUM_BOTTOM_MARGIN = 32; }
+    static { this.DEFAULT_DROPDOWN_MINIMUM_TOP_MARGIN = 2; }
+    static { this.DEFAULT_MINIMUM_VISIBLE_OPTIONS = 3; }
     constructor(options, selected, contextViewProvider, styles, selectBoxOptions) {
         super();
         this.options = [];
@@ -88,7 +91,7 @@ export class SelectBoxList extends Disposable {
     }
     setTitle(title) {
         if (!this._hover && title) {
-            this._hover = this._register(getBaseLayerHoverDelegate().setupUpdatableHover(getDefaultHoverDelegate('mouse'), this.selectElement, title));
+            this._hover = this._register(getBaseLayerHoverDelegate().setupManagedHover(getDefaultHoverDelegate('mouse'), this.selectElement, title));
         }
         else if (this._hover) {
             this._hover.update(title);
@@ -211,10 +214,9 @@ export class SelectBoxList extends Disposable {
         }
     }
     setOptionsList() {
-        var _a;
         // Mirror options in drop-down
         // Populate select list for non-native select mode
-        (_a = this.selectList) === null || _a === void 0 ? void 0 : _a.splice(0, this.selectList.length, this.options);
+        this.selectList?.splice(0, this.selectList.length, this.options);
     }
     select(index) {
         if (index >= 0 && index < this.options.length) {
@@ -296,21 +298,19 @@ export class SelectBoxList extends Disposable {
         this.styleElement.textContent = content.join('\n');
     }
     styleSelectElement() {
-        var _a, _b, _c;
-        const background = (_a = this.styles.selectBackground) !== null && _a !== void 0 ? _a : '';
-        const foreground = (_b = this.styles.selectForeground) !== null && _b !== void 0 ? _b : '';
-        const border = (_c = this.styles.selectBorder) !== null && _c !== void 0 ? _c : '';
+        const background = this.styles.selectBackground ?? '';
+        const foreground = this.styles.selectForeground ?? '';
+        const border = this.styles.selectBorder ?? '';
         this.selectElement.style.backgroundColor = background;
         this.selectElement.style.color = foreground;
         this.selectElement.style.borderColor = border;
     }
     styleList() {
-        var _a, _b;
-        const background = (_a = this.styles.selectBackground) !== null && _a !== void 0 ? _a : '';
+        const background = this.styles.selectBackground ?? '';
         const listBackground = dom.asCssValueWithDefault(this.styles.selectListBackground, background);
         this.selectDropDownListContainer.style.backgroundColor = listBackground;
         this.selectionDetailsPane.style.backgroundColor = listBackground;
-        const optionsBorder = (_b = this.styles.focusBorder) !== null && _b !== void 0 ? _b : '';
+        const optionsBorder = this.styles.focusBorder ?? '';
         this.selectDropDownContainer.style.outlineColor = optionsBorder;
         this.selectDropDownContainer.style.outlineOffset = '-1px';
         this.selectList.style(this.styles);
@@ -382,12 +382,7 @@ export class SelectBoxList extends Disposable {
         return {
             dispose: () => {
                 // contextView will dispose itself if moving from one View to another
-                try {
-                    container.removeChild(this.selectDropDownContainer); // remove to take out the CSS rules we add
-                }
-                catch (error) {
-                    // Ignore, removed already by change of focus
-                }
+                this.selectDropDownContainer.remove(); // remove to take out the CSS rules we add
             }
         };
     }
@@ -454,8 +449,8 @@ export class SelectBoxList extends Disposable {
                     && maxVisibleOptionsAbove > maxVisibleOptionsBelow
                     && this.options.length > maxVisibleOptionsBelow) {
                     this._dropDownPosition = 1 /* AnchorPosition.ABOVE */;
-                    this.selectDropDownContainer.removeChild(this.selectDropDownListContainer);
-                    this.selectDropDownContainer.removeChild(this.selectionDetailsPane);
+                    this.selectDropDownListContainer.remove();
+                    this.selectionDetailsPane.remove();
                     this.selectDropDownContainer.appendChild(this.selectionDetailsPane);
                     this.selectDropDownContainer.appendChild(this.selectDropDownListContainer);
                     this.selectionDetailsPane.classList.remove('border-top');
@@ -463,8 +458,8 @@ export class SelectBoxList extends Disposable {
                 }
                 else {
                     this._dropDownPosition = 0 /* AnchorPosition.BELOW */;
-                    this.selectDropDownContainer.removeChild(this.selectDropDownListContainer);
-                    this.selectDropDownContainer.removeChild(this.selectionDetailsPane);
+                    this.selectDropDownListContainer.remove();
+                    this.selectionDetailsPane.remove();
                     this.selectDropDownContainer.appendChild(this.selectDropDownListContainer);
                     this.selectDropDownContainer.appendChild(this.selectionDetailsPane);
                     this.selectionDetailsPane.classList.remove('border-bottom');
@@ -556,7 +551,7 @@ export class SelectBoxList extends Disposable {
         // SetUp container for list
         this.selectDropDownListContainer = dom.append(parent, $('.select-box-dropdown-list-container'));
         this.listRenderer = new SelectListRenderer();
-        this.selectList = new List('SelectBoxCustom', this.selectDropDownListContainer, this, [this.listRenderer], {
+        this.selectList = this._register(new List('SelectBoxCustom', this.selectDropDownListContainer, this, [this.listRenderer], {
             useShadows: false,
             verticalScrollMode: 3 /* ScrollbarVisibility.Visible */,
             keyboardSupport: false,
@@ -579,7 +574,7 @@ export class SelectBoxList extends Disposable {
                 getRole: () => isMacintosh ? '' : 'option',
                 getWidgetRole: () => 'listbox'
             }
-        });
+        }));
         if (this.selectBoxOptions.ariaLabel) {
             this.selectList.ariaLabel = this.selectBoxOptions.ariaLabel;
         }
@@ -671,7 +666,7 @@ export class SelectBoxList extends Disposable {
                 const child = element.childNodes.item(i);
                 const tagName = child.tagName && child.tagName.toLowerCase();
                 if (tagName === 'img') {
-                    element.removeChild(child);
+                    child.remove();
                 }
                 else {
                     cleanRenderedMarkdown(child);
@@ -692,11 +687,10 @@ export class SelectBoxList extends Disposable {
         this.updateDetail(e.indexes[0]);
     }
     updateDetail(selectedIndex) {
-        var _a, _b;
         this.selectionDetailsPane.innerText = '';
         const option = this.options[selectedIndex];
-        const description = (_a = option === null || option === void 0 ? void 0 : option.description) !== null && _a !== void 0 ? _a : '';
-        const descriptionIsMarkdown = (_b = option === null || option === void 0 ? void 0 : option.descriptionIsMarkdown) !== null && _b !== void 0 ? _b : false;
+        const description = option?.description ?? '';
+        const descriptionIsMarkdown = option?.descriptionIsMarkdown ?? false;
         if (description) {
             if (descriptionIsMarkdown) {
                 const actionHandler = option.descriptionMarkdownActionHandler;
@@ -853,6 +847,3 @@ export class SelectBoxList extends Disposable {
         super.dispose();
     }
 }
-SelectBoxList.DEFAULT_DROPDOWN_MINIMUM_BOTTOM_MARGIN = 32;
-SelectBoxList.DEFAULT_DROPDOWN_MINIMUM_TOP_MARGIN = 2;
-SelectBoxList.DEFAULT_MINIMUM_VISIBLE_OPTIONS = 3;

@@ -33,6 +33,8 @@ export class HoverAction extends Disposable {
     }
     constructor(parent, actionOptions, keybindingLabel) {
         super();
+        this.actionLabel = actionOptions.label;
+        this.actionKeybindingLabel = keybindingLabel;
         this.actionContainer = dom.append(parent, $('div.action-container'));
         this.actionContainer.setAttribute('tabindex', '0');
         this.action = dom.append(this.actionContainer, $('a.action'));

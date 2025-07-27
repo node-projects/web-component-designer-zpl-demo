@@ -10,6 +10,7 @@ import { Range } from '../../../common/core/range.js';
 import { registerThemingParticipant } from '../../../../platform/theme/common/themeService.js';
 import { editorDimmedLineNumber, editorLineNumbers } from '../../../common/core/editorColorRegistry.js';
 export class LineNumbersOverlay extends DynamicViewOverlay {
+    static { this.CLASS_NAME = 'line-numbers'; }
     constructor(context) {
         super();
         this._context = context;
@@ -25,8 +26,8 @@ export class LineNumbersOverlay extends DynamicViewOverlay {
         const lineNumbers = options.get(68 /* EditorOption.lineNumbers */);
         this._renderLineNumbers = lineNumbers.renderType;
         this._renderCustomLineNumbers = lineNumbers.renderFn;
-        this._renderFinalNewline = options.get(95 /* EditorOption.renderFinalNewline */);
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        this._renderFinalNewline = options.get(96 /* EditorOption.renderFinalNewline */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         this._lineNumbersLeft = layoutInfo.lineNumbersLeft;
         this._lineNumbersWidth = layoutInfo.lineNumbersWidth;
     }
@@ -164,7 +165,6 @@ export class LineNumbersOverlay extends DynamicViewOverlay {
         return this._renderResult[lineIndex];
     }
 }
-LineNumbersOverlay.CLASS_NAME = 'line-numbers';
 registerThemingParticipant((theme, collector) => {
     const editorLineNumbersColor = theme.getColor(editorLineNumbers);
     const editorDimmedLineNumberColor = theme.getColor(editorDimmedLineNumber);

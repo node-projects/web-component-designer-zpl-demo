@@ -98,7 +98,9 @@ class LineSuffix {
         }
     }
 }
-let SuggestController = SuggestController_1 = class SuggestController {
+let SuggestController = class SuggestController {
+    static { SuggestController_1 = this; }
+    static { this.ID = 'editor.contrib.suggestController'; }
     static get(editor) {
         return editor.getContribution(SuggestController_1.ID);
     }
@@ -123,8 +125,8 @@ let SuggestController = SuggestController_1 = class SuggestController {
         });
         // context key: update insert/replace mode
         const ctxInsertMode = SuggestContext.InsertMode.bindTo(_contextKeyService);
-        ctxInsertMode.set(editor.getOption(118 /* EditorOption.suggest */).insertMode);
-        this._toDispose.add(this.model.onDidTrigger(() => ctxInsertMode.set(editor.getOption(118 /* EditorOption.suggest */).insertMode)));
+        ctxInsertMode.set(editor.getOption(119 /* EditorOption.suggest */).insertMode);
+        this._toDispose.add(this.model.onDidTrigger(() => ctxInsertMode.set(editor.getOption(119 /* EditorOption.suggest */).insertMode)));
         this.widget = this._toDispose.add(new WindowIdleValue(getWindow(editor.getDomNode()), () => {
             const widget = this._instantiationService.createInstance(SuggestWidget, this.editor);
             this._toDispose.add(widget);
@@ -214,7 +216,7 @@ let SuggestController = SuggestController_1 = class SuggestController {
             let noFocus = false;
             if (e.triggerOptions.auto) {
                 // don't "focus" item when configured to do
-                const options = this.editor.getOption(118 /* EditorOption.suggest */);
+                const options = this.editor.getOption(119 /* EditorOption.suggest */);
                 if (options.selectionMode === 'never' || options.selectionMode === 'always') {
                     // simple: always or never
                     noFocus = options.selectionMode === 'never';
@@ -419,20 +421,32 @@ let SuggestController = SuggestController_1 = class SuggestController {
         this._alertCompletionItem(item);
         // clear only now - after all tasks are done
         Promise.all(tasks).finally(() => {
-            this._reportSuggestionAcceptedTelemetry(item, model, isResolved, _commandExectionDuration, _additionalEditsAppliedAsync);
+            this._reportSuggestionAcceptedTelemetry(item, model, isResolved, _commandExectionDuration, _additionalEditsAppliedAsync, event.index, event.model.items);
             this.model.clear();
             cts.dispose();
         });
     }
-    _reportSuggestionAcceptedTelemetry(item, model, itemResolved, commandExectionDuration, additionalEditsAppliedAsync) {
-        var _a, _b, _c;
+    _reportSuggestionAcceptedTelemetry(item, model, itemResolved, commandExectionDuration, additionalEditsAppliedAsync, index, completionItems) {
         if (Math.floor(Math.random() * 100) === 0) {
             // throttle telemetry event because accepting completions happens a lot
             return;
         }
+        const labelMap = new Map();
+        for (let i = 0; i < Math.min(30, completionItems.length); i++) {
+            const label = completionItems[i].textLabel;
+            if (labelMap.has(label)) {
+                labelMap.get(label).push(i);
+            }
+            else {
+                labelMap.set(label, [i]);
+            }
+        }
+        const firstIndexArray = labelMap.get(item.textLabel);
+        const hasDuplicates = firstIndexArray && firstIndexArray.length > 1;
+        const firstIndex = hasDuplicates ? firstIndexArray[0] : -1;
         this._telemetryService.publicLog2('suggest.acceptedSuggestion', {
-            extensionId: (_b = (_a = item.extensionId) === null || _a === void 0 ? void 0 : _a.value) !== null && _b !== void 0 ? _b : 'unknown',
-            providerId: (_c = item.provider._debugDisplayName) !== null && _c !== void 0 ? _c : 'unknown',
+            extensionId: item.extensionId?.value ?? 'unknown',
+            providerId: item.provider._debugDisplayName ?? 'unknown',
             kind: item.completion.kind,
             basenameHash: hash(basename(model.uri)).toString(16),
             languageId: model.getLanguageId(),
@@ -440,12 +454,14 @@ let SuggestController = SuggestController_1 = class SuggestController {
             resolveInfo: !item.provider.resolveCompletionItem ? -1 : itemResolved ? 1 : 0,
             resolveDuration: item.resolveDuration,
             commandDuration: commandExectionDuration,
-            additionalEditsAsync: additionalEditsAppliedAsync
+            additionalEditsAsync: additionalEditsAppliedAsync,
+            index,
+            firstIndex,
         });
     }
     getOverwriteInfo(item, toggleMode) {
         assertType(this.editor.hasModel());
-        let replace = this.editor.getOption(118 /* EditorOption.suggest */).insertMode === 'replace';
+        let replace = this.editor.getOption(119 /* EditorOption.suggest */).insertMode === 'replace';
         if (toggleMode) {
             replace = !replace;
         }
@@ -467,7 +483,7 @@ let SuggestController = SuggestController_1 = class SuggestController {
     triggerSuggest(onlyFrom, auto, noFilter) {
         if (this.editor.hasModel()) {
             this.model.trigger({
-                auto: auto !== null && auto !== void 0 ? auto : false,
+                auto: auto ?? false,
                 completionOptions: { providerFilter: onlyFrom, kindFilter: noFilter ? new Set() : undefined }
             });
             this.editor.revealPosition(this.editor.getPosition(), 0 /* ScrollType.Smooth */);
@@ -602,7 +618,6 @@ let SuggestController = SuggestController_1 = class SuggestController {
         return this._selectors.register(selector);
     }
 };
-SuggestController.ID = 'editor.contrib.suggestController';
 SuggestController = SuggestController_1 = __decorate([
     __param(1, ISuggestMemoryService),
     __param(2, ICommandService),
@@ -637,6 +652,7 @@ class PriorityRegistry {
     }
 }
 export class TriggerSuggestAction extends EditorAction {
+    static { this.id = 'editor.action.triggerSuggest'; }
     constructor() {
         super({
             id: TriggerSuggestAction.id,
@@ -666,7 +682,6 @@ export class TriggerSuggestAction extends EditorAction {
         controller.triggerSuggest(undefined, auto, undefined);
     }
 }
-TriggerSuggestAction.id = 'editor.action.triggerSuggest';
 registerEditorContribution(SuggestController.ID, SuggestController, 2 /* EditorContributionInstantiation.BeforeFirstInteraction */);
 registerEditorAction(TriggerSuggestAction);
 const weight = 100 /* KeybindingWeight.EditorContrib */ + 90;
@@ -839,13 +854,13 @@ registerEditorCommand(new SuggestCommand({
             group: 'right',
             order: 1,
             when: ContextKeyExpr.and(SuggestContext.DetailsVisible, SuggestContext.CanResolve),
-            title: nls.localize('detail.more', "show less")
+            title: nls.localize('detail.more', "Show Less")
         }, {
             menuId: suggestWidgetStatusbarMenu,
             group: 'right',
             order: 1,
             when: ContextKeyExpr.and(SuggestContext.DetailsVisible.toNegated(), SuggestContext.CanResolve),
-            title: nls.localize('detail.less', "show more")
+            title: nls.localize('detail.less', "Show More")
         }]
 }));
 registerEditorCommand(new SuggestCommand({
@@ -910,7 +925,6 @@ registerEditorAction(class extends EditorAction {
         });
     }
     run(_accessor, editor) {
-        var _a;
-        (_a = SuggestController.get(editor)) === null || _a === void 0 ? void 0 : _a.resetWidgetSize();
+        SuggestController.get(editor)?.resetWidgetSize();
     }
 });

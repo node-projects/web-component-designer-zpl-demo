@@ -34,7 +34,9 @@ import { StickyRange } from './stickyScrollElement.js';
 import { StandardMouseEvent } from '../../../../base/browser/mouseEvent.js';
 import { FoldingController } from '../../folding/browser/folding.js';
 import { toggleCollapseState } from '../../folding/browser/foldingModel.js';
-let StickyScrollController = StickyScrollController_1 = class StickyScrollController extends Disposable {
+let StickyScrollController = class StickyScrollController extends Disposable {
+    static { StickyScrollController_1 = this; }
+    static { this.ID = 'store.contrib.stickyScrollController'; }
     constructor(_editor, _contextMenuService, _languageFeaturesService, _instaService, _languageConfigurationService, _languageFeatureDebounceService, _contextKeyService) {
         super();
         this._editor = _editor;
@@ -43,7 +45,6 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
         this._instaService = _instaService;
         this._contextKeyService = _contextKeyService;
         this._sessionStore = new DisposableStore();
-        this._foldingModel = null;
         this._maxStickyLines = Number.MAX_SAFE_INTEGER;
         this._candidateDefinitionsLength = -1;
         this._focusedStickyElementIndex = -1;
@@ -52,12 +53,11 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
         this._positionRevealed = false;
         this._onMouseDown = false;
         this._endLineNumbers = [];
-        this._showEndForLine = null;
         this._stickyScrollWidget = new StickyScrollWidget(this._editor);
         this._stickyLineCandidateProvider = new StickyLineCandidateProvider(this._editor, _languageFeaturesService, _languageConfigurationService);
         this._register(this._stickyScrollWidget);
         this._register(this._stickyLineCandidateProvider);
-        this._widgetState = new StickyScrollWidgetState([], [], 0);
+        this._widgetState = StickyScrollWidgetState.Empty;
         this._onDidResize();
         this._readConfiguration();
         const stickyScrollDomNode = this._stickyScrollWidget.getDomNode();
@@ -95,9 +95,8 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
         return editor.getContribution(StickyScrollController_1.ID);
     }
     _disposeFocusStickyScrollStore() {
-        var _a;
         this._stickyScrollFocusedContextKey.set(false);
-        (_a = this._focusDisposableStore) === null || _a === void 0 ? void 0 : _a.dispose();
+        this._focusDisposableStore?.dispose();
         this._focused = false;
         this._positionRevealed = false;
         this._onMouseDown = false;
@@ -241,14 +240,14 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
                 this._renderStickyScroll();
                 return;
             }
-            if (this._showEndForLine !== null) {
-                this._showEndForLine = null;
+            if (this._showEndForLine !== undefined) {
+                this._showEndForLine = undefined;
                 this._renderStickyScroll();
             }
         }));
         this._register(dom.addDisposableListener(stickyScrollWidgetDomNode, dom.EventType.MOUSE_LEAVE, (e) => {
-            if (this._showEndForLine !== null) {
-                this._showEndForLine = null;
+            if (this._showEndForLine !== undefined) {
+                this._showEndForLine = undefined;
                 this._renderStickyScroll();
             }
         }));
@@ -269,7 +268,7 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
             const cancellationToken = new CancellationTokenSource();
             sessionStore.add(toDisposable(() => cancellationToken.dispose(true)));
             let currentHTMLChild;
-            getDefinitionsAtPosition(this._languageFeaturesService.definitionProvider, this._editor.getModel(), new Position(range.startLineNumber, range.startColumn + 1), cancellationToken.token).then((candidateDefinitions => {
+            getDefinitionsAtPosition(this._languageFeaturesService.definitionProvider, this._editor.getModel(), new Position(range.startLineNumber, range.startColumn + 1), false, cancellationToken.token).then((candidateDefinitions => {
                 if (cancellationToken.token.isCancellationRequested) {
                     return;
                 }
@@ -334,7 +333,7 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
             return;
         }
         const stickyLine = this._stickyScrollWidget.getRenderedStickyLine(line);
-        const foldingIcon = stickyLine === null || stickyLine === void 0 ? void 0 : stickyLine.foldingIcon;
+        const foldingIcon = stickyLine?.foldingIcon;
         if (!foldingIcon) {
             return;
         }
@@ -348,7 +347,7 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
         this._renderStickyScroll(line);
     }
     _readConfiguration() {
-        const options = this._editor.getOption(115 /* EditorOption.stickyScroll */);
+        const options = this._editor.getOption(116 /* EditorOption.stickyScroll */);
         if (options.enabled === false) {
             this._editor.removeOverlayWidget(this._stickyScrollWidget);
             this._sessionStore.clear();
@@ -360,14 +359,14 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
             this._editor.addOverlayWidget(this._stickyScrollWidget);
             this._sessionStore.add(this._editor.onDidScrollChange((e) => {
                 if (e.scrollTopChanged) {
-                    this._showEndForLine = null;
+                    this._showEndForLine = undefined;
                     this._renderStickyScroll();
                 }
             }));
             this._sessionStore.add(this._editor.onDidLayoutChange(() => this._onDidResize()));
             this._sessionStore.add(this._editor.onDidChangeModelTokens((e) => this._onTokensChange(e)));
             this._sessionStore.add(this._stickyLineCandidateProvider.onDidChangeStickyScroll(() => {
-                this._showEndForLine = null;
+                this._showEndForLine = undefined;
                 this._renderStickyScroll();
             }));
             this._enabled = true;
@@ -375,16 +374,16 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
         const lineNumberOption = this._editor.getOption(68 /* EditorOption.lineNumbers */);
         if (lineNumberOption.renderType === 2 /* RenderLineNumbersType.Relative */) {
             this._sessionStore.add(this._editor.onDidChangeCursorPosition(() => {
-                this._showEndForLine = null;
+                this._showEndForLine = undefined;
                 this._renderStickyScroll(0);
             }));
         }
     }
     _readConfigurationChange(event) {
-        if (event.hasChanged(115 /* EditorOption.stickyScroll */)
+        if (event.hasChanged(116 /* EditorOption.stickyScroll */)
             || event.hasChanged(73 /* EditorOption.minimap */)
             || event.hasChanged(67 /* EditorOption.lineHeight */)
-            || event.hasChanged(110 /* EditorOption.showFoldingControls */)
+            || event.hasChanged(111 /* EditorOption.showFoldingControls */)
             || event.hasChanged(68 /* EditorOption.lineNumbers */)) {
             this._readConfiguration();
         }
@@ -416,25 +415,22 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
         this._maxStickyLines = Math.round(theoreticalLines * .25);
     }
     async _renderStickyScroll(rebuildFromLine) {
-        var _a, _b;
         const model = this._editor.getModel();
         if (!model || model.isTooLargeForTokenization()) {
-            this._foldingModel = null;
-            this._stickyScrollWidget.setState(undefined, null);
+            this._resetState();
             return;
         }
-        const stickyLineVersion = this._stickyLineCandidateProvider.getVersionId();
-        if (stickyLineVersion === undefined || stickyLineVersion === model.getVersionId()) {
-            this._foldingModel = (_b = await ((_a = FoldingController.get(this._editor)) === null || _a === void 0 ? void 0 : _a.getFoldingModel())) !== null && _b !== void 0 ? _b : null;
-            this._widgetState = this.findScrollWidgetState();
-            this._stickyScrollVisibleContextKey.set(!(this._widgetState.startLineNumbers.length === 0));
+        const nextRebuildFromLine = this._updateAndGetMinRebuildFromLine(rebuildFromLine);
+        const stickyWidgetVersion = this._stickyLineCandidateProvider.getVersionId();
+        const shouldUpdateState = stickyWidgetVersion === undefined || stickyWidgetVersion === model.getVersionId();
+        if (shouldUpdateState) {
             if (!this._focused) {
-                this._stickyScrollWidget.setState(this._widgetState, this._foldingModel, rebuildFromLine);
+                await this._updateState(nextRebuildFromLine);
             }
             else {
                 // Suppose that previously the sticky scroll widget had height 0, then if there are visible lines, set the last line as focused
                 if (this._focusedStickyElementIndex === -1) {
-                    this._stickyScrollWidget.setState(this._widgetState, this._foldingModel, rebuildFromLine);
+                    await this._updateState(nextRebuildFromLine);
                     this._focusedStickyElementIndex = this._stickyScrollWidget.lineNumberCount - 1;
                     if (this._focusedStickyElementIndex !== -1) {
                         this._stickyScrollWidget.focusLineWithIndex(this._focusedStickyElementIndex);
@@ -442,7 +438,7 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
                 }
                 else {
                     const focusedStickyElementLineNumber = this._stickyScrollWidget.lineNumbers[this._focusedStickyElementIndex];
-                    this._stickyScrollWidget.setState(this._widgetState, this._foldingModel, rebuildFromLine);
+                    await this._updateState(nextRebuildFromLine);
                     // Suppose that after setting the state, there are no sticky lines, set the focused index to -1
                     if (this._stickyScrollWidget.lineNumberCount === 0) {
                         this._focusedStickyElementIndex = -1;
@@ -460,9 +456,31 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
             }
         }
     }
+    _updateAndGetMinRebuildFromLine(rebuildFromLine) {
+        if (rebuildFromLine !== undefined) {
+            const minRebuildFromLineOrInfinity = this._minRebuildFromLine !== undefined ? this._minRebuildFromLine : Infinity;
+            this._minRebuildFromLine = Math.min(rebuildFromLine, minRebuildFromLineOrInfinity);
+        }
+        return this._minRebuildFromLine;
+    }
+    async _updateState(rebuildFromLine) {
+        this._minRebuildFromLine = undefined;
+        this._foldingModel = await FoldingController.get(this._editor)?.getFoldingModel() ?? undefined;
+        this._widgetState = this.findScrollWidgetState();
+        const stickyWidgetHasLines = this._widgetState.startLineNumbers.length > 0;
+        this._stickyScrollVisibleContextKey.set(stickyWidgetHasLines);
+        this._stickyScrollWidget.setState(this._widgetState, this._foldingModel, rebuildFromLine);
+    }
+    async _resetState() {
+        this._minRebuildFromLine = undefined;
+        this._foldingModel = undefined;
+        this._widgetState = StickyScrollWidgetState.Empty;
+        this._stickyScrollVisibleContextKey.set(false);
+        this._stickyScrollWidget.setState(undefined, undefined);
+    }
     findScrollWidgetState() {
         const lineHeight = this._editor.getOption(67 /* EditorOption.lineHeight */);
-        const maxNumberStickyLines = Math.min(this._maxStickyLines, this._editor.getOption(115 /* EditorOption.stickyScroll */).maxLineCount);
+        const maxNumberStickyLines = Math.min(this._maxStickyLines, this._editor.getOption(116 /* EditorOption.stickyScroll */).maxLineCount);
         const scrollTop = this._editor.getScrollTop();
         let lastLineRelativePosition = 0;
         const startLineNumbers = [];
@@ -505,7 +523,6 @@ let StickyScrollController = StickyScrollController_1 = class StickyScrollContro
         this._sessionStore.dispose();
     }
 };
-StickyScrollController.ID = 'store.contrib.stickyScrollController';
 StickyScrollController = StickyScrollController_1 = __decorate([
     __param(1, IContextMenuService),
     __param(2, ILanguageFeaturesService),

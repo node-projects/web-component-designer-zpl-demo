@@ -15,7 +15,6 @@ export const unthemedToggleStyles = {
 };
 export class Toggle extends Widget {
     constructor(opts) {
-        var _a;
         super();
         this._onChange = this._register(new Emitter());
         this.onChange = this._onChange.event;
@@ -35,7 +34,7 @@ export class Toggle extends Widget {
             classes.push('checked');
         }
         this.domNode = document.createElement('div');
-        this._hover = this._register(getBaseLayerHoverDelegate().setupUpdatableHover((_a = opts.hoverDelegate) !== null && _a !== void 0 ? _a : getDefaultHoverDelegate('mouse'), this.domNode, this._opts.title));
+        this._hover = this._register(getBaseLayerHoverDelegate().setupManagedHover(opts.hoverDelegate ?? getDefaultHoverDelegate('mouse'), this.domNode, this._opts.title));
         this.domNode.classList.add(...classes);
         if (!this._opts.notFocusable) {
             this.domNode.tabIndex = 0;

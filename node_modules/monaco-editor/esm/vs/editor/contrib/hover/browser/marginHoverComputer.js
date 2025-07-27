@@ -24,7 +24,6 @@ export class MarginHoverComputer {
         this._laneOrLine = GlyphMarginLane.Center;
     }
     computeSync() {
-        var _a, _b;
         const toHoverMessage = (contents) => {
             return {
                 value: contents
@@ -37,7 +36,7 @@ export class MarginHoverComputer {
             return result;
         }
         for (const d of lineDecorations) {
-            const lane = (_b = (_a = d.options.glyphMargin) === null || _a === void 0 ? void 0 : _a.position) !== null && _b !== void 0 ? _b : GlyphMarginLane.Center;
+            const lane = d.options.glyphMargin?.position ?? GlyphMarginLane.Center;
             if (!isLineHover && lane !== this._laneOrLine) {
                 continue;
             }

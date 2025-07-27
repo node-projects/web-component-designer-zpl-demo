@@ -59,8 +59,27 @@ export class ConvenientObservable {
             debugReferenceFn: fn,
         }, (reader) => fn(this.read(reader), reader));
     }
+    /**
+     * @sealed
+     * Converts an observable of an observable value into a direct observable of the value.
+    */
+    flatten() {
+        return _derived({
+            owner: undefined,
+            debugName: () => `${this.debugName} (flattened)`,
+        }, (reader) => this.read(reader).read(reader));
+    }
     recomputeInitiallyAndOnChange(store, handleValue) {
         store.add(_recomputeInitiallyAndOnChange(this, handleValue));
+        return this;
+    }
+    /**
+     * Ensures that this observable is observed. This keeps the cache alive.
+     * However, in case of deriveds, it does not force eager evaluation (only when the value is read/get).
+     * Use `recomputeInitiallyAndOnChange` for eager evaluation.
+     */
+    keepObserved(store) {
+        store.add(_keepObserved(this));
         return this;
     }
 }
@@ -139,11 +158,10 @@ export function subtransaction(tx, fn, getDebugName) {
 }
 export class TransactionImpl {
     constructor(_fn, _getDebugName) {
-        var _a;
         this._fn = _fn;
         this._getDebugName = _getDebugName;
         this.updatingObservers = [];
-        (_a = getLogger()) === null || _a === void 0 ? void 0 : _a.handleBeginTransaction(this);
+        getLogger()?.handleBeginTransaction(this);
     }
     getDebugName() {
         if (this._getDebugName) {
@@ -157,7 +175,6 @@ export class TransactionImpl {
         observer.beginUpdate(observable);
     }
     finish() {
-        var _a;
         const updatingObservers = this.updatingObservers;
         for (let i = 0; i < updatingObservers.length; i++) {
             const { observer, observable } = updatingObservers[i];
@@ -165,7 +182,7 @@ export class TransactionImpl {
         }
         // Prevent anyone from updating observers from now on.
         this.updatingObservers = null;
-        (_a = getLogger()) === null || _a === void 0 ? void 0 : _a.handleEndTransaction();
+        getLogger()?.handleEndTransaction();
     }
 }
 export function observableValue(nameOrOwner, initialValue) {
@@ -178,14 +195,9 @@ export function observableValue(nameOrOwner, initialValue) {
     }
     return new ObservableValue(debugNameData, initialValue, strictEquals);
 }
-export function observableValueOpts(options, initialValue) {
-    var _a;
-    return new ObservableValue(new DebugNameData(options.owner, options.debugName, undefined), initialValue, (_a = options.equalsFn) !== null && _a !== void 0 ? _a : strictEquals);
-}
 export class ObservableValue extends BaseObservable {
     get debugName() {
-        var _a;
-        return (_a = this._debugNameData.getDebugName(this)) !== null && _a !== void 0 ? _a : 'ObservableValue';
+        return this._debugNameData.getDebugName(this) ?? 'ObservableValue';
     }
     constructor(_debugNameData, initialValue, _equalityComparator) {
         super();
@@ -197,8 +209,7 @@ export class ObservableValue extends BaseObservable {
         return this._value;
     }
     set(value, tx, change) {
-        var _a;
-        if (this._equalityComparator(this._value, value)) {
+        if (change === undefined && this._equalityComparator(this._value, value)) {
             return;
         }
         let _tx;
@@ -208,7 +219,7 @@ export class ObservableValue extends BaseObservable {
         try {
             const oldValue = this._value;
             this._setValue(value);
-            (_a = getLogger()) === null || _a === void 0 ? void 0 : _a.handleObservableChanged(this, { oldValue, newValue: value, change, didChange: true, hadValue: true });
+            getLogger()?.handleObservableChanged(this, { oldValue, newValue: value, change, didChange: true, hadValue: true });
             for (const observer of this.observers) {
                 tx.updateObserver(observer, this);
                 observer.handleChange(this, change);
@@ -252,7 +263,6 @@ export class DisposableObservableValue extends ObservableValue {
         this._value = newValue;
     }
     dispose() {
-        var _a;
-        (_a = this._value) === null || _a === void 0 ? void 0 : _a.dispose();
+        this._value?.dispose();
     }
 }

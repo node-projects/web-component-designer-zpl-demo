@@ -40,7 +40,7 @@ let StickyLineCandidateProvider = class StickyLineCandidateProvider extends Disp
         this._sessionStore = this._register(new DisposableStore());
         this._updateSoon = this._register(new RunOnceScheduler(() => this.update(), 50));
         this._register(this._editor.onDidChangeConfiguration(e => {
-            if (e.hasChanged(115 /* EditorOption.stickyScroll */)) {
+            if (e.hasChanged(116 /* EditorOption.stickyScroll */)) {
                 this.readConfiguration();
             }
         }));
@@ -48,7 +48,7 @@ let StickyLineCandidateProvider = class StickyLineCandidateProvider extends Disp
     }
     readConfiguration() {
         this._sessionStore.clear();
-        const options = this._editor.getOption(115 /* EditorOption.stickyScroll */);
+        const options = this._editor.getOption(116 /* EditorOption.stickyScroll */);
         if (!options.enabled) {
             return;
         }
@@ -64,20 +64,17 @@ let StickyLineCandidateProvider = class StickyLineCandidateProvider extends Disp
         this._sessionStore.add(this._editor.onDidChangeModelContent(() => this._updateSoon.schedule()));
         this._sessionStore.add(this._languageFeaturesService.documentSymbolProvider.onDidChange(() => this.update()));
         this._sessionStore.add(toDisposable(() => {
-            var _a;
-            (_a = this._stickyModelProvider) === null || _a === void 0 ? void 0 : _a.dispose();
+            this._stickyModelProvider?.dispose();
             this._stickyModelProvider = null;
         }));
         this.updateStickyModelProvider();
         this.update();
     }
     getVersionId() {
-        var _a;
-        return (_a = this._model) === null || _a === void 0 ? void 0 : _a.version;
+        return this._model?.version;
     }
     updateStickyModelProvider() {
-        var _a;
-        (_a = this._stickyModelProvider) === null || _a === void 0 ? void 0 : _a.dispose();
+        this._stickyModelProvider?.dispose();
         this._stickyModelProvider = null;
         const editor = this._editor;
         if (editor.hasModel()) {
@@ -85,8 +82,7 @@ let StickyLineCandidateProvider = class StickyLineCandidateProvider extends Disp
         }
     }
     async update() {
-        var _a;
-        (_a = this._cts) === null || _a === void 0 ? void 0 : _a.dispose(true);
+        this._cts?.dispose(true);
         this._cts = new CancellationTokenSource();
         await this.updateStickyModel(this._cts.token);
         this._onDidChangeStickyScroll.fire();
@@ -146,13 +142,12 @@ let StickyLineCandidateProvider = class StickyLineCandidateProvider extends Disp
         }
     }
     getCandidateStickyLinesIntersecting(range) {
-        var _a, _b;
-        if (!((_a = this._model) === null || _a === void 0 ? void 0 : _a.element)) {
+        if (!this._model?.element) {
             return [];
         }
         let stickyLineCandidates = [];
         this.getCandidateStickyLinesIntersectingFromStickyModel(range, this._model.element, stickyLineCandidates, 0, -1);
-        const hiddenRanges = (_b = this._editor._getViewModel()) === null || _b === void 0 ? void 0 : _b.getHiddenAreas();
+        const hiddenRanges = this._editor._getViewModel()?.getHiddenAreas();
         if (hiddenRanges) {
             for (const hiddenRange of hiddenRanges) {
                 stickyLineCandidates = stickyLineCandidates.filter(stickyLine => !(stickyLine.startLineNumber >= hiddenRange.startLineNumber && stickyLine.endLineNumber <= hiddenRange.endLineNumber + 1));

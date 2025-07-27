@@ -60,7 +60,6 @@ function createOptions(multiCursorModifier) {
 }
 export class ClickLinkGesture extends Disposable {
     constructor(editor, opts) {
-        var _a;
         super();
         this._onMouseMoveOrRelevantKeyDown = this._register(new Emitter());
         this.onMouseMoveOrRelevantKeyDown = this._onMouseMoveOrRelevantKeyDown.event;
@@ -69,7 +68,7 @@ export class ClickLinkGesture extends Disposable {
         this._onCancel = this._register(new Emitter());
         this.onCancel = this._onCancel.event;
         this._editor = editor;
-        this._extractLineNumberFromMouseEvent = (_a = opts === null || opts === void 0 ? void 0 : opts.extractLineNumberFromMouseEvent) !== null && _a !== void 0 ? _a : ((e) => e.target.position ? e.target.position.lineNumber : 0);
+        this._extractLineNumberFromMouseEvent = opts?.extractLineNumberFromMouseEvent ?? ((e) => e.target.position ? e.target.position.lineNumber : 0);
         this._opts = createOptions(this._editor.getOption(78 /* EditorOption.multiCursorModifier */));
         this._lastMouseMoveEvent = null;
         this._hasTriggerKeyOnMouseDown = false;

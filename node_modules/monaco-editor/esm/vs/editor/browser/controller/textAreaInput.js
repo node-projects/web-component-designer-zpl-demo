@@ -38,6 +38,7 @@ export const CopyOptions = {
  * we can fetch the previous metadata.
  */
 export class InMemoryClipboardMetadataManager {
+    static { this.INSTANCE = new InMemoryClipboardMetadataManager(); }
     constructor() {
         this._lastState = null;
     }
@@ -53,7 +54,6 @@ export class InMemoryClipboardMetadataManager {
         return null;
     }
 }
-InMemoryClipboardMetadataManager.INSTANCE = new InMemoryClipboardMetadataManager();
 class CompositionContext {
     constructor() {
         this._lastTypeTextLength = 0;

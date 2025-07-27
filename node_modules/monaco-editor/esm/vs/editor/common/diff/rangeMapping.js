@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import { BugIndicatingError } from '../../../base/common/errors.js';
 import { LineRange } from '../core/lineRange.js';
+import { Position } from '../core/position.js';
 import { Range } from '../core/range.js';
 import { SingleTextEdit } from '../core/textEdit.js';
 /**
@@ -77,6 +78,42 @@ export class LineRangeMapping {
             return new RangeMapping(new Range(this.original.startLineNumber - 1, Number.MAX_SAFE_INTEGER, this.original.endLineNumberExclusive - 1, Number.MAX_SAFE_INTEGER), new Range(this.modified.startLineNumber - 1, Number.MAX_SAFE_INTEGER, this.modified.endLineNumberExclusive - 1, Number.MAX_SAFE_INTEGER));
         }
     }
+    /**
+     * This method assumes that the LineRangeMapping describes a valid diff!
+     * I.e. if one range is empty, the other range cannot be the entire document.
+     * It avoids various problems when the line range points to non-existing line-numbers.
+    */
+    toRangeMapping2(original, modified) {
+        if (isValidLineNumber(this.original.endLineNumberExclusive, original)
+            && isValidLineNumber(this.modified.endLineNumberExclusive, modified)) {
+            return new RangeMapping(new Range(this.original.startLineNumber, 1, this.original.endLineNumberExclusive, 1), new Range(this.modified.startLineNumber, 1, this.modified.endLineNumberExclusive, 1));
+        }
+        if (!this.original.isEmpty && !this.modified.isEmpty) {
+            return new RangeMapping(Range.fromPositions(new Position(this.original.startLineNumber, 1), normalizePosition(new Position(this.original.endLineNumberExclusive - 1, Number.MAX_SAFE_INTEGER), original)), Range.fromPositions(new Position(this.modified.startLineNumber, 1), normalizePosition(new Position(this.modified.endLineNumberExclusive - 1, Number.MAX_SAFE_INTEGER), modified)));
+        }
+        if (this.original.startLineNumber > 1 && this.modified.startLineNumber > 1) {
+            return new RangeMapping(Range.fromPositions(normalizePosition(new Position(this.original.startLineNumber - 1, Number.MAX_SAFE_INTEGER), original), normalizePosition(new Position(this.original.endLineNumberExclusive - 1, Number.MAX_SAFE_INTEGER), original)), Range.fromPositions(normalizePosition(new Position(this.modified.startLineNumber - 1, Number.MAX_SAFE_INTEGER), modified), normalizePosition(new Position(this.modified.endLineNumberExclusive - 1, Number.MAX_SAFE_INTEGER), modified)));
+        }
+        // Situation now: one range is empty and one range touches the last line and one range starts at line 1.
+        // I don't think this can happen.
+        throw new BugIndicatingError();
+    }
+}
+function normalizePosition(position, content) {
+    if (position.lineNumber < 1) {
+        return new Position(1, 1);
+    }
+    if (position.lineNumber > content.length) {
+        return new Position(content.length, content[content.length - 1].length + 1);
+    }
+    const line = content[position.lineNumber - 1];
+    if (position.column > line.length + 1) {
+        return new Position(position.lineNumber, line.length + 1);
+    }
+    return position;
+}
+function isValidLineNumber(lineNumber, lines) {
+    return lineNumber >= 1 && lineNumber <= lines.length;
 }
 /**
  * Maps a line range in the original text model to a line range in the modified text model.
@@ -93,8 +130,7 @@ export class DetailedLineRangeMapping extends LineRangeMapping {
         this.innerChanges = innerChanges;
     }
     flip() {
-        var _a;
-        return new DetailedLineRangeMapping(this.modified, this.original, (_a = this.innerChanges) === null || _a === void 0 ? void 0 : _a.map(c => c.flip()));
+        return new DetailedLineRangeMapping(this.modified, this.original, this.innerChanges?.map(c => c.flip()));
     }
     withInnerChangesFromLineRanges() {
         return new DetailedLineRangeMapping(this.original, this.modified, [this.toRangeMapping()]);
@@ -104,6 +140,16 @@ export class DetailedLineRangeMapping extends LineRangeMapping {
  * Maps a range in the original text model to a range in the modified text model.
  */
 export class RangeMapping {
+    static assertSorted(rangeMappings) {
+        for (let i = 1; i < rangeMappings.length; i++) {
+            const previous = rangeMappings[i - 1];
+            const current = rangeMappings[i];
+            if (!(previous.originalRange.getEndPosition().isBeforeOrEqual(current.originalRange.getStartPosition())
+                && previous.modifiedRange.getEndPosition().isBeforeOrEqual(current.modifiedRange.getStartPosition()))) {
+                throw new BugIndicatingError('Range mappings must be sorted');
+            }
+        }
+    }
     constructor(originalRange, modifiedRange) {
         this.originalRange = originalRange;
         this.modifiedRange = modifiedRange;

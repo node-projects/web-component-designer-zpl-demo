@@ -24,7 +24,6 @@ function isCollapsibleStateUpdate(update) {
 }
 export class IndexTreeModel {
     constructor(user, list, rootElement, options = {}) {
-        var _a;
         this.user = user;
         this.list = list;
         this.rootRef = [];
@@ -37,7 +36,7 @@ export class IndexTreeModel {
         this.onDidSplice = this._onDidSplice.event;
         this.refilterDelayer = new Delayer(MicrotaskDelay);
         this.collapseByDefault = typeof options.collapseByDefault === 'undefined' ? false : options.collapseByDefault;
-        this.allowNonCollapsibleParents = (_a = options.allowNonCollapsibleParents) !== null && _a !== void 0 ? _a : false;
+        this.allowNonCollapsibleParents = options.allowNonCollapsibleParents ?? false;
         this.filter = options.filter;
         this.autoExpandSingleChildren = typeof options.autoExpandSingleChildren === 'undefined' ? false : options.autoExpandSingleChildren;
         this.root = {
@@ -66,10 +65,7 @@ export class IndexTreeModel {
             this.spliceSimple(location, deleteCount, toInsert, options);
         }
     }
-    spliceSmart(identity, location, deleteCount, toInsertIterable, options, recurseLevels) {
-        var _a;
-        if (toInsertIterable === void 0) { toInsertIterable = Iterable.empty(); }
-        if (recurseLevels === void 0) { recurseLevels = (_a = options.diffDepth) !== null && _a !== void 0 ? _a : 0; }
+    spliceSmart(identity, location, deleteCount, toInsertIterable = Iterable.empty(), options, recurseLevels = options.diffDepth ?? 0) {
         const { parentNode } = this.getParentNodeWithListIndex(location);
         if (!parentNode.lastDiffIds) {
             return this.spliceSimple(location, deleteCount, toInsertIterable, options);
@@ -352,7 +348,7 @@ export class IndexTreeModel {
         else if (!node.collapsed) {
             node.renderNodeCount = renderNodeCount;
         }
-        onDidCreateNode === null || onDidCreateNode === void 0 ? void 0 : onDidCreateNode(node);
+        onDidCreateNode?.(node);
         return node;
     }
     updateNodeAfterCollapseChange(node) {

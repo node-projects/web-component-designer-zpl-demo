@@ -22,14 +22,13 @@ const codeActionGroups = Object.freeze([
 export function toMenuItems(inputCodeActions, showHeaders, keybindingResolver) {
     if (!showHeaders) {
         return inputCodeActions.map((action) => {
-            var _a;
             return {
                 kind: "action" /* ActionListItemKind.Action */,
                 item: action,
                 group: uncategorizedCodeActionGroup,
                 disabled: !!action.action.disabled,
                 label: action.action.disabled || action.action.title,
-                canPreview: !!((_a = action.action.edit) === null || _a === void 0 ? void 0 : _a.edits.length),
+                canPreview: !!action.action.edit?.edits.length,
             };
         });
     }

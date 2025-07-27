@@ -14,14 +14,12 @@ import { LinkedList } from '../../../base/common/linkedList.js';
 const _enableAllTracing = false;
 class CyclicDependencyError extends Error {
     constructor(graph) {
-        var _a;
         super('cyclic dependency between services');
-        this.message = (_a = graph.findCycleSlow()) !== null && _a !== void 0 ? _a : `UNABLE to detect cycle, dumping graph: \n${graph.toString()}`;
+        this.message = graph.findCycleSlow() ?? `UNABLE to detect cycle, dumping graph: \n${graph.toString()}`;
     }
 }
 export class InstantiationService {
     constructor(_services = new ServiceCollection(), _strict = false, _parent, _enableTracing = _enableAllTracing) {
-        var _a;
         this._services = _services;
         this._strict = _strict;
         this._parent = _parent;
@@ -31,7 +29,7 @@ export class InstantiationService {
         this._children = new Set();
         this._activeInstantiations = new Set();
         this._services.set(IInstantiationService, this);
-        this._globalGraph = _enableTracing ? (_a = _parent === null || _parent === void 0 ? void 0 : _parent._globalGraph) !== null && _a !== void 0 ? _a : new Graph(e => e) : undefined;
+        this._globalGraph = _enableTracing ? _parent?._globalGraph ?? new Graph(e => e) : undefined;
     }
     dispose() {
         if (!this._isDisposed) {
@@ -53,15 +51,17 @@ export class InstantiationService {
             throw new Error('InstantiationService has been disposed');
         }
     }
-    createChild(services) {
+    createChild(services, store) {
         this._throwIfDisposed();
+        const that = this;
         const result = new class extends InstantiationService {
             dispose() {
-                this._children.delete(result);
+                that._children.delete(result);
                 super.dispose();
             }
         }(services, this._strict, this, this._enableTracing);
         this._children.add(result);
+        store?.add(result);
         return result;
     }
     invokeFunction(fn, ...args) {
@@ -175,12 +175,16 @@ export class InstantiationService {
         }
     }
     _createAndCacheServiceInstance(id, desc, _trace) {
-        var _a;
         const graph = new Graph(data => data.id.toString());
         let cycleCount = 0;
         const stack = [{ id, desc, _trace }];
+        const seen = new Set();
         while (stack.length) {
             const item = stack.pop();
+            if (seen.has(String(item.id))) {
+                continue;
+            }
+            seen.add(String(item.id));
             graph.lookupOrInsertNode(item);
             // a weak but working heuristic for cycle checks
             if (cycleCount++ > 1000) {
@@ -193,7 +197,7 @@ export class InstantiationService {
                     this._throwIfStrict(`[createInstance] ${id} depends on ${dependency.id} which is NOT registered.`, true);
                 }
                 // take note of all service dependencies
-                (_a = this._globalGraph) === null || _a === void 0 ? void 0 : _a.insertEdge(String(item.id), String(dependency.id));
+                this._globalGraph?.insertEdge(String(item.id), String(dependency.id));
                 if (instanceOrDesc instanceof SyncDescriptor) {
                     const d = { id: dependency.id, desc: instanceOrDesc, _trace: item._trace.branch(dependency.id, true) };
                     graph.insertEdge(item, d);
@@ -286,9 +290,8 @@ export class InstantiationService {
                                     const entry = { listener: [callback, thisArg, disposables], disposable: undefined };
                                     const rm = list.push(entry);
                                     const result = toDisposable(() => {
-                                        var _a;
                                         rm();
-                                        (_a = entry.disposable) === null || _a === void 0 ? void 0 : _a.dispose();
+                                        entry.disposable?.dispose();
                                     });
                                     return result;
                                 }
@@ -330,12 +333,19 @@ export class InstantiationService {
     }
 }
 export class Trace {
+    static { this.all = new Set(); }
+    static { this._None = new class extends Trace {
+        constructor() { super(0 /* TraceType.None */, null); }
+        stop() { }
+        branch() { return this; }
+    }; }
     static traceInvocation(_enableTracing, ctor) {
         return !_enableTracing ? Trace._None : new Trace(2 /* TraceType.Invocation */, ctor.name || new Error().stack.split('\n').slice(3, 4).join('\n'));
     }
     static traceCreation(_enableTracing, ctor) {
         return !_enableTracing ? Trace._None : new Trace(1 /* TraceType.Creation */, ctor.name);
     }
+    static { this._totals = 0; }
     constructor(type, name) {
         this.type = type;
         this.name = name;
@@ -379,11 +389,4 @@ export class Trace {
         }
     }
 }
-Trace.all = new Set();
-Trace._None = new class extends Trace {
-    constructor() { super(0 /* TraceType.None */, null); }
-    stop() { }
-    branch() { return this; }
-};
-Trace._totals = 0;
 //#endregion

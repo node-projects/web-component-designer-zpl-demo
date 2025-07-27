@@ -32,7 +32,6 @@ import { Position } from '../../../common/core/position.js';
 import { Range } from '../../../common/core/range.js';
 import { NewSymbolNameTag, NewSymbolNameTriggerKind } from '../../../common/languages.js';
 import * as nls from '../../../../nls.js';
-import { localize } from '../../../../nls.js';
 import { IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
@@ -41,8 +40,8 @@ import { editorWidgetBackground, inputBackground, inputBorder, inputForeground, 
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 /** for debugging */
 const _sticky = false;
-export const CONTEXT_RENAME_INPUT_VISIBLE = new RawContextKey('renameInputVisible', false, localize('renameInputVisible', "Whether the rename input widget is visible"));
-export const CONTEXT_RENAME_INPUT_FOCUSED = new RawContextKey('renameInputFocused', false, localize('renameInputFocused', "Whether the rename input widget is focused"));
+export const CONTEXT_RENAME_INPUT_VISIBLE = new RawContextKey('renameInputVisible', false, nls.localize('renameInputVisible', "Whether the rename input widget is visible"));
+export const CONTEXT_RENAME_INPUT_FOCUSED = new RawContextKey('renameInputFocused', false, nls.localize('renameInputFocused', "Whether the rename input widget is focused"));
 let RenameWidget = class RenameWidget {
     constructor(_editor, _acceptKeybindings, _themeService, _keybindingService, contextKeyService, _logService) {
         this._editor = _editor;
@@ -93,15 +92,14 @@ let RenameWidget = class RenameWidget {
                 }
             }));
             this._disposables.add(this._inputWithButton.onDidInputChange(() => {
-                var _a, _b, _c, _d;
-                if (((_a = this._renameCandidateListView) === null || _a === void 0 ? void 0 : _a.focusedCandidate) !== undefined) {
+                if (this._renameCandidateListView?.focusedCandidate !== undefined) {
                     this._isEditingRenameCandidate = true;
                 }
-                (_b = this._timeBeforeFirstInputFieldEdit) !== null && _b !== void 0 ? _b : (this._timeBeforeFirstInputFieldEdit = this._beforeFirstInputFieldEditSW.elapsed());
-                if (((_c = this._renameCandidateProvidersCts) === null || _c === void 0 ? void 0 : _c.token.isCancellationRequested) === false) {
+                this._timeBeforeFirstInputFieldEdit ??= this._beforeFirstInputFieldEditSW.elapsed();
+                if (this._renameCandidateProvidersCts?.token.isCancellationRequested === false) {
                     this._renameCandidateProvidersCts.cancel();
                 }
-                (_d = this._renameCandidateListView) === null || _d === void 0 ? void 0 : _d.clearFocus();
+                this._renameCandidateListView?.clearFocus();
             }));
             this._label = document.createElement('div');
             this._label.className = 'rename-label';
@@ -112,22 +110,21 @@ let RenameWidget = class RenameWidget {
         return this._domNode;
     }
     _updateStyles(theme) {
-        var _a, _b, _c, _d, _e;
         if (!this._domNode) {
             return;
         }
         const widgetShadowColor = theme.getColor(widgetShadow);
         const widgetBorderColor = theme.getColor(widgetBorder);
-        this._domNode.style.backgroundColor = String((_a = theme.getColor(editorWidgetBackground)) !== null && _a !== void 0 ? _a : '');
+        this._domNode.style.backgroundColor = String(theme.getColor(editorWidgetBackground) ?? '');
         this._domNode.style.boxShadow = widgetShadowColor ? ` 0 0 8px 2px ${widgetShadowColor}` : '';
         this._domNode.style.border = widgetBorderColor ? `1px solid ${widgetBorderColor}` : '';
-        this._domNode.style.color = String((_b = theme.getColor(inputForeground)) !== null && _b !== void 0 ? _b : '');
+        this._domNode.style.color = String(theme.getColor(inputForeground) ?? '');
         const border = theme.getColor(inputBorder);
-        this._inputWithButton.domNode.style.backgroundColor = String((_c = theme.getColor(inputBackground)) !== null && _c !== void 0 ? _c : '');
-        this._inputWithButton.input.style.backgroundColor = String((_d = theme.getColor(inputBackground)) !== null && _d !== void 0 ? _d : '');
+        this._inputWithButton.domNode.style.backgroundColor = String(theme.getColor(inputBackground) ?? '');
+        this._inputWithButton.input.style.backgroundColor = String(theme.getColor(inputBackground) ?? '');
         this._inputWithButton.domNode.style.borderWidth = border ? '1px' : '0px';
         this._inputWithButton.domNode.style.borderStyle = border ? 'solid' : 'none';
-        this._inputWithButton.domNode.style.borderColor = (_e = border === null || border === void 0 ? void 0 : border.toString()) !== null && _e !== void 0 ? _e : 'none';
+        this._inputWithButton.domNode.style.borderColor = border?.toString() ?? 'none';
     }
     _updateFont() {
         if (this._domNode === undefined) {
@@ -166,14 +163,14 @@ let RenameWidget = class RenameWidget {
         };
     }
     beforeRender() {
-        var _a, _b;
         const [accept, preview] = this._acceptKeybindings;
-        this._label.innerText = localize({ key: 'label', comment: ['placeholders are keybindings, e.g "F2 to Rename, Shift+F2 to Preview"'] }, "{0} to Rename, {1} to Preview", (_a = this._keybindingService.lookupKeybinding(accept)) === null || _a === void 0 ? void 0 : _a.getLabel(), (_b = this._keybindingService.lookupKeybinding(preview)) === null || _b === void 0 ? void 0 : _b.getLabel());
+        this._label.innerText = nls.localize({ key: 'label', comment: ['placeholders are keybindings, e.g "F2 to Rename, Shift+F2 to Preview"'] }, "{0} to Rename, {1} to Preview", this._keybindingService.lookupKeybinding(accept)?.getLabel(), this._keybindingService.lookupKeybinding(preview)?.getLabel());
         this._domNode.style.minWidth = `200px`; // to prevent from widening when candidates come in
         return null;
     }
     afterRender(position) {
-        this._trace('invoking afterRender, position: ', position ? 'not null' : 'null');
+        // FIXME@ulugbekna: commenting trace log out until we start unmounting the widget from editor properly - https://github.com/microsoft/vscode/issues/226975
+        // this._trace('invoking afterRender, position: ', position ? 'not null' : 'null');
         if (position === null) {
             // cancel rename when input widget isn't rendered anymore
             this.cancelInput(true, 'afterRender (because position is null)');
@@ -202,24 +199,20 @@ let RenameWidget = class RenameWidget {
         });
     }
     acceptInput(wantsPreview) {
-        var _a;
         this._trace(`invoking acceptInput`);
-        (_a = this._currentAcceptInput) === null || _a === void 0 ? void 0 : _a.call(this, wantsPreview);
+        this._currentAcceptInput?.(wantsPreview);
     }
     cancelInput(focusEditor, caller) {
-        var _a;
-        this._trace(`invoking cancelInput, caller: ${caller}, _currentCancelInput: ${this._currentAcceptInput ? 'not undefined' : 'undefined'}`);
-        (_a = this._currentCancelInput) === null || _a === void 0 ? void 0 : _a.call(this, focusEditor);
+        // this._trace(`invoking cancelInput, caller: ${caller}, _currentCancelInput: ${this._currentAcceptInput ? 'not undefined' : 'undefined'}`);
+        this._currentCancelInput?.(focusEditor);
     }
     focusNextRenameSuggestion() {
-        var _a;
-        if (!((_a = this._renameCandidateListView) === null || _a === void 0 ? void 0 : _a.focusNext())) {
+        if (!this._renameCandidateListView?.focusNext()) {
             this._inputWithButton.input.value = this._currentName;
         }
     }
     focusPreviousRenameSuggestion() {
-        var _a;
-        if (!((_a = this._renameCandidateListView) === null || _a === void 0 ? void 0 : _a.focusPrevious())) {
+        if (!this._renameCandidateListView?.focusPrevious()) {
             this._inputWithButton.input.value = this._currentName;
         }
     }
@@ -275,12 +268,11 @@ let RenameWidget = class RenameWidget {
             this._hide();
         });
         this._currentCancelInput = (focusEditor) => {
-            var _a;
             this._trace('invoking _currentCancelInput');
             this._currentAcceptInput = undefined;
             this._currentCancelInput = undefined;
             // fixme session cleanup
-            (_a = this._renameCandidateListView) === null || _a === void 0 ? void 0 : _a.clearCandidates();
+            this._renameCandidateListView?.clearCandidates();
             inputResult.complete(focusEditor);
             return true;
         };
@@ -323,7 +315,7 @@ let RenameWidget = class RenameWidget {
         };
         disposeOnDone.add(cts.token.onCancellationRequested(() => this.cancelInput(true, 'cts.token.onCancellationRequested')));
         if (!_sticky) {
-            disposeOnDone.add(this._editor.onDidBlurEditorWidget(() => { var _a; return this.cancelInput(!((_a = this._domNode) === null || _a === void 0 ? void 0 : _a.ownerDocument.hasFocus()), 'editor.onDidBlurEditorWidget'); }));
+            disposeOnDone.add(this._editor.onDidBlurEditorWidget(() => this.cancelInput(!this._domNode?.ownerDocument.hasFocus(), 'editor.onDidBlurEditorWidget')));
         }
         this._show();
         return inputResult.p;
@@ -486,7 +478,7 @@ class RenameCandidateListView {
         // adjust list container layout
         this._listContainer.style.height = `${height}px`;
         this._listContainer.style.width = `${width}px`;
-        aria.status(localize('renameSuggestionsReceivedAria', "Received {0} rename suggestions", candidates.length));
+        aria.status(nls.localize('renameSuggestionsReceivedAria', "Received {0} rename suggestions", candidates.length));
     }
     clearCandidates() {
         this._listContainer.style.height = '0px';
@@ -627,14 +619,14 @@ class InputWithButton {
             this._inputNode.className = 'rename-input';
             this._inputNode.type = 'text';
             this._inputNode.style.border = 'none';
-            this._inputNode.setAttribute('aria-label', localize('renameAriaLabel', "Rename input. Type new name and press Enter to commit."));
+            this._inputNode.setAttribute('aria-label', nls.localize('renameAriaLabel', "Rename input. Type new name and press Enter to commit."));
             this._domNode.appendChild(this._inputNode);
             this._buttonNode = document.createElement('div');
             this._buttonNode.className = 'rename-suggestions-button';
             this._buttonNode.setAttribute('tabindex', '0');
             this._buttonGenHoverText = nls.localize('generateRenameSuggestionsButton', "Generate new name suggestions");
             this._buttonCancelHoverText = nls.localize('cancelRenameSuggestionsButton', "Cancel");
-            this._buttonHover = getBaseLayerHoverDelegate().setupUpdatableHover(getDefaultHoverDelegate('element'), this._buttonNode, this._buttonGenHoverText);
+            this._buttonHover = getBaseLayerHoverDelegate().setupManagedHover(getDefaultHoverDelegate('element'), this._buttonNode, this._buttonGenHoverText);
             this._disposables.add(this._buttonHover);
             this._domNode.appendChild(this._buttonNode);
             // notify if selection changes to cancel request to rename-suggestion providers
@@ -671,23 +663,21 @@ class InputWithButton {
         return this._buttonState;
     }
     setSparkleButton() {
-        var _a, _b;
         this._buttonState = 'sparkle';
-        (_a = this._sparkleIcon) !== null && _a !== void 0 ? _a : (this._sparkleIcon = renderIcon(Codicon.sparkle));
+        this._sparkleIcon ??= renderIcon(Codicon.sparkle);
         dom.clearNode(this.button);
         this.button.appendChild(this._sparkleIcon);
         this.button.setAttribute('aria-label', 'Generating new name suggestions');
-        (_b = this._buttonHover) === null || _b === void 0 ? void 0 : _b.update(this._buttonGenHoverText);
+        this._buttonHover?.update(this._buttonGenHoverText);
         this.input.focus();
     }
     setStopButton() {
-        var _a, _b;
         this._buttonState = 'stop';
-        (_a = this._stopIcon) !== null && _a !== void 0 ? _a : (this._stopIcon = renderIcon(Codicon.primitiveSquare));
+        this._stopIcon ??= renderIcon(Codicon.primitiveSquare);
         dom.clearNode(this.button);
         this.button.appendChild(this._stopIcon);
         this.button.setAttribute('aria-label', 'Cancel generating new name suggestions');
-        (_b = this._buttonHover) === null || _b === void 0 ? void 0 : _b.update(this._buttonCancelHoverText);
+        this._buttonHover?.update(this._buttonCancelHoverText);
         this.input.focus();
     }
     dispose() {
@@ -695,6 +685,7 @@ class InputWithButton {
     }
 }
 class RenameCandidateView {
+    static { this._PADDING = 2; }
     constructor(parent, fontInfo) {
         this._domNode = document.createElement('div');
         this._domNode.className = 'rename-box rename-candidate';
@@ -722,8 +713,7 @@ class RenameCandidateView {
         this._updateLabel(value);
     }
     _updateIcon(value) {
-        var _a;
-        const isAIGenerated = !!((_a = value.tags) === null || _a === void 0 ? void 0 : _a.includes(NewSymbolNameTag.AIGenerated));
+        const isAIGenerated = !!value.tags?.includes(NewSymbolNameTag.AIGenerated);
         this._icon.style.display = isAIGenerated ? 'inherit' : 'none';
     }
     _updateLabel(value) {
@@ -736,4 +726,3 @@ class RenameCandidateView {
     dispose() {
     }
 }
-RenameCandidateView._PADDING = 2;

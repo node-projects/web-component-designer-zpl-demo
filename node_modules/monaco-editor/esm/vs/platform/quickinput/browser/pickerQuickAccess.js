@@ -40,32 +40,29 @@ export class PickerQuickAccessProvider extends Disposable {
         this.options = options;
     }
     provide(picker, token, runOptions) {
-        var _a;
         const disposables = new DisposableStore();
         // Apply options if any
-        picker.canAcceptInBackground = !!((_a = this.options) === null || _a === void 0 ? void 0 : _a.canAcceptInBackground);
+        picker.canAcceptInBackground = !!this.options?.canAcceptInBackground;
         // Disable filtering & sorting, we control the results
         picker.matchOnLabel = picker.matchOnDescription = picker.matchOnDetail = picker.sortByLabel = false;
         // Set initial picks and update on type
         let picksCts = undefined;
         const picksDisposable = disposables.add(new MutableDisposable());
         const updatePickerItems = async () => {
-            var _a;
             const picksDisposables = picksDisposable.value = new DisposableStore();
             // Cancel any previous ask for picks and busy
-            picksCts === null || picksCts === void 0 ? void 0 : picksCts.dispose(true);
+            picksCts?.dispose(true);
             picker.busy = false;
             // Create new cancellation source for this run
             picksCts = new CancellationTokenSource(token);
             // Collect picks and support both long running and short or combined
             const picksToken = picksCts.token;
             let picksFilter = picker.value.substring(this.prefix.length);
-            if (!((_a = this.options) === null || _a === void 0 ? void 0 : _a.shouldSkipTrimPickFilter)) {
+            if (!this.options?.shouldSkipTrimPickFilter) {
                 picksFilter = picksFilter.trim();
             }
             const providedPicks = this._getPicks(picksFilter, picksDisposables, picksToken, runOptions);
             const applyPicks = (picks, skipEmpty) => {
-                var _a;
                 let items;
                 let activeItem = undefined;
                 if (isPicksWithActive(picks)) {
@@ -80,7 +77,7 @@ export class PickerQuickAccessProvider extends Disposable {
                         return false;
                     }
                     // We show the no results pick if we have no input to prevent completely empty pickers #172613
-                    if ((picksFilter.length > 0 || picker.hideInput) && ((_a = this.options) === null || _a === void 0 ? void 0 : _a.noResultsPick)) {
+                    if ((picksFilter.length > 0 || picker.hideInput) && this.options?.noResultsPick) {
                         if (isFunction(this.options.noResultsPick)) {
                             items = [this.options.noResultsPick(picksFilter)];
                         }
@@ -210,8 +207,15 @@ export class PickerQuickAccessProvider extends Disposable {
         updatePickerItems();
         // Accept the pick on accept and hide picker
         disposables.add(picker.onDidAccept(event => {
+            if (runOptions?.handleAccept) {
+                if (!event.inBackground) {
+                    picker.hide(); // hide picker unless we accept in background
+                }
+                runOptions.handleAccept?.(picker.activeItems[0]);
+                return;
+            }
             const [item] = picker.selectedItems;
-            if (typeof (item === null || item === void 0 ? void 0 : item.accept) === 'function') {
+            if (typeof item?.accept === 'function') {
                 if (!event.inBackground) {
                     picker.hide(); // hide picker unless we accept in background
                 }
@@ -219,11 +223,10 @@ export class PickerQuickAccessProvider extends Disposable {
             }
         }));
         const buttonTrigger = async (button, item) => {
-            var _a, _b;
             if (typeof item.trigger !== 'function') {
                 return;
             }
-            const buttonIndex = (_b = (_a = item.buttons) === null || _a === void 0 ? void 0 : _a.indexOf(button)) !== null && _b !== void 0 ? _b : -1;
+            const buttonIndex = item.buttons?.indexOf(button) ?? -1;
             if (buttonIndex >= 0) {
                 const result = item.trigger(buttonIndex, picker.keyMods);
                 const action = (typeof result === 'number') ? result : await result;

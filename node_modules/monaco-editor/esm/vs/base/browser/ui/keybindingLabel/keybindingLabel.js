@@ -29,7 +29,7 @@ export class KeybindingLabel extends Disposable {
         if (labelForeground) {
             this.domNode.style.color = labelForeground;
         }
-        this.hover = this._register(getBaseLayerHoverDelegate().setupUpdatableHover(getDefaultHoverDelegate('mouse'), this.domNode, ''));
+        this.hover = this._register(getBaseLayerHoverDelegate().setupManagedHover(getDefaultHoverDelegate('mouse'), this.domNode, ''));
         this.didEverRender = false;
         container.appendChild(this.domNode);
     }
@@ -45,7 +45,6 @@ export class KeybindingLabel extends Disposable {
         this.render();
     }
     render() {
-        var _a;
         this.clear();
         if (this.keybinding) {
             const chords = this.keybinding.getChords();
@@ -56,7 +55,7 @@ export class KeybindingLabel extends Disposable {
                 dom.append(this.domNode, $('span.monaco-keybinding-key-chord-separator', undefined, ' '));
                 this.renderChord(this.domNode, chords[i], this.matches ? this.matches.chordPart : null);
             }
-            const title = ((_a = this.options.disableTitle) !== null && _a !== void 0 ? _a : false) ? undefined : this.keybinding.getAriaLabel() || undefined;
+            const title = (this.options.disableTitle ?? false) ? undefined : this.keybinding.getAriaLabel() || undefined;
             this.hover.update(title);
             this.domNode.setAttribute('aria-label', title || '');
         }
@@ -72,20 +71,20 @@ export class KeybindingLabel extends Disposable {
     renderChord(parent, chord, match) {
         const modifierLabels = UILabelProvider.modifierLabels[this.os];
         if (chord.ctrlKey) {
-            this.renderKey(parent, modifierLabels.ctrlKey, Boolean(match === null || match === void 0 ? void 0 : match.ctrlKey), modifierLabels.separator);
+            this.renderKey(parent, modifierLabels.ctrlKey, Boolean(match?.ctrlKey), modifierLabels.separator);
         }
         if (chord.shiftKey) {
-            this.renderKey(parent, modifierLabels.shiftKey, Boolean(match === null || match === void 0 ? void 0 : match.shiftKey), modifierLabels.separator);
+            this.renderKey(parent, modifierLabels.shiftKey, Boolean(match?.shiftKey), modifierLabels.separator);
         }
         if (chord.altKey) {
-            this.renderKey(parent, modifierLabels.altKey, Boolean(match === null || match === void 0 ? void 0 : match.altKey), modifierLabels.separator);
+            this.renderKey(parent, modifierLabels.altKey, Boolean(match?.altKey), modifierLabels.separator);
         }
         if (chord.metaKey) {
-            this.renderKey(parent, modifierLabels.metaKey, Boolean(match === null || match === void 0 ? void 0 : match.metaKey), modifierLabels.separator);
+            this.renderKey(parent, modifierLabels.metaKey, Boolean(match?.metaKey), modifierLabels.separator);
         }
         const keyLabel = chord.keyLabel;
         if (keyLabel) {
-            this.renderKey(parent, keyLabel, Boolean(match === null || match === void 0 ? void 0 : match.keyCode), '');
+            this.renderKey(parent, keyLabel, Boolean(match?.keyCode), '');
         }
     }
     renderKey(parent, label, highlight, separator) {

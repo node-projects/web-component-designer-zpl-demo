@@ -15,7 +15,7 @@ import { extendDiffsToEntireWordIfAppropriate, optimizeSequenceDiffs, removeShor
 import { LineSequence } from './lineSequence.js';
 import { LinesSliceCharSequence } from './linesSliceCharSequence.js';
 import { LinesDiff, MovedText } from '../linesDiffComputer.js';
-import { DetailedLineRangeMapping, RangeMapping } from '../rangeMapping.js';
+import { DetailedLineRangeMapping, LineRangeMapping, RangeMapping } from '../rangeMapping.js';
 export class DefaultLinesDiffComputer {
     constructor() {
         this.dynamicProgrammingDiffing = new DynamicProgrammingDiffing();
@@ -56,7 +56,7 @@ export class DefaultLinesDiffComputer {
                         : 1 + Math.log(1 + modifiedLines[offset2].length)
                     : 0.99);
             }
-            return this.myersDiffingAlgorithm.compute(sequence1, sequence2);
+            return this.myersDiffingAlgorithm.compute(sequence1, sequence2, timeout);
         })();
         let lineAlignments = lineAlignmentResult.diffs;
         let hitTimeout = lineAlignmentResult.hitTimeout;
@@ -154,17 +154,38 @@ export class DefaultLinesDiffComputer {
         return movesWithDiffs;
     }
     refineDiff(originalLines, modifiedLines, diff, timeout, considerWhitespaceChanges) {
-        const slice1 = new LinesSliceCharSequence(originalLines, diff.seq1Range, considerWhitespaceChanges);
-        const slice2 = new LinesSliceCharSequence(modifiedLines, diff.seq2Range, considerWhitespaceChanges);
+        const lineRangeMapping = toLineRangeMapping(diff);
+        const rangeMapping = lineRangeMapping.toRangeMapping2(originalLines, modifiedLines);
+        const slice1 = new LinesSliceCharSequence(originalLines, rangeMapping.originalRange, considerWhitespaceChanges);
+        const slice2 = new LinesSliceCharSequence(modifiedLines, rangeMapping.modifiedRange, considerWhitespaceChanges);
         const diffResult = slice1.length + slice2.length < 500
             ? this.dynamicProgrammingDiffing.compute(slice1, slice2, timeout)
             : this.myersDiffingAlgorithm.compute(slice1, slice2, timeout);
+        const check = false;
         let diffs = diffResult.diffs;
+        if (check) {
+            SequenceDiff.assertSorted(diffs);
+        }
         diffs = optimizeSequenceDiffs(slice1, slice2, diffs);
+        if (check) {
+            SequenceDiff.assertSorted(diffs);
+        }
         diffs = extendDiffsToEntireWordIfAppropriate(slice1, slice2, diffs);
+        if (check) {
+            SequenceDiff.assertSorted(diffs);
+        }
         diffs = removeShortMatches(slice1, slice2, diffs);
+        if (check) {
+            SequenceDiff.assertSorted(diffs);
+        }
         diffs = removeVeryShortMatchingTextBetweenLongDiffs(slice1, slice2, diffs);
+        if (check) {
+            SequenceDiff.assertSorted(diffs);
+        }
         const result = diffs.map((d) => new RangeMapping(slice1.translateRange(d.seq1Range), slice2.translateRange(d.seq2Range)));
+        if (check) {
+            RangeMapping.assertSorted(result);
+        }
         // Assert: result applied on original should be the same as diff applied to original
         return {
             mappings: result,
@@ -220,4 +241,7 @@ export function getLineRangeMapping(rangeMapping, originalLines, modifiedLines) 
     const originalLineRange = new LineRange(rangeMapping.originalRange.startLineNumber + lineStartDelta, rangeMapping.originalRange.endLineNumber + 1 + lineEndDelta);
     const modifiedLineRange = new LineRange(rangeMapping.modifiedRange.startLineNumber + lineStartDelta, rangeMapping.modifiedRange.endLineNumber + 1 + lineEndDelta);
     return new DetailedLineRangeMapping(originalLineRange, modifiedLineRange, [rangeMapping]);
+}
+function toLineRangeMapping(sequenceDiff) {
+    return new LineRangeMapping(new LineRange(sequenceDiff.seq1Range.start + 1, sequenceDiff.seq1Range.endExclusive + 1), new LineRange(sequenceDiff.seq2Range.start + 1, sequenceDiff.seq2Range.endExclusive + 1));
 }

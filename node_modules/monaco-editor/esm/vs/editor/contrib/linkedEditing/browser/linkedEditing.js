@@ -37,7 +37,14 @@ import { StopWatch } from '../../../../base/common/stopwatch.js';
 import './linkedEditing.css';
 export const CONTEXT_ONTYPE_RENAME_INPUT_VISIBLE = new RawContextKey('LinkedEditingInputVisible', false);
 const DECORATION_CLASS_NAME = 'linked-editing-decoration';
-let LinkedEditingContribution = LinkedEditingContribution_1 = class LinkedEditingContribution extends Disposable {
+let LinkedEditingContribution = class LinkedEditingContribution extends Disposable {
+    static { LinkedEditingContribution_1 = this; }
+    static { this.ID = 'editor.contrib.linkedEditing'; }
+    static { this.DECORATION = ModelDecorationOptions.register({
+        description: 'linked-editing',
+        stickiness: 0 /* TrackedRangeStickiness.AlwaysGrowsWhenTypingAtEdges */,
+        className: DECORATION_CLASS_NAME
+    }); }
     static get(editor) {
         return editor.getContribution(LinkedEditingContribution_1.ID);
     }
@@ -63,7 +70,7 @@ let LinkedEditingContribution = LinkedEditingContribution_1 = class LinkedEditin
         this._currentRequestModelVersion = null;
         this._register(this._editor.onDidChangeModel(() => this.reinitialize(true)));
         this._register(this._editor.onDidChangeConfiguration(e => {
-            if (e.hasChanged(70 /* EditorOption.linkedEditing */) || e.hasChanged(93 /* EditorOption.renameOnType */)) {
+            if (e.hasChanged(70 /* EditorOption.linkedEditing */) || e.hasChanged(94 /* EditorOption.renameOnType */)) {
                 this.reinitialize(false);
             }
         }));
@@ -73,7 +80,7 @@ let LinkedEditingContribution = LinkedEditingContribution_1 = class LinkedEditin
     }
     reinitialize(forceRefresh) {
         const model = this._editor.getModel();
-        const isEnabled = model !== null && (this._editor.getOption(70 /* EditorOption.linkedEditing */) || this._editor.getOption(93 /* EditorOption.renameOnType */)) && this._providers.has(model);
+        const isEnabled = model !== null && (this._editor.getOption(70 /* EditorOption.linkedEditing */) || this._editor.getOption(94 /* EditorOption.renameOnType */)) && this._providers.has(model);
         if (isEnabled === this._enabled && !forceRefresh) {
             return;
         }
@@ -88,8 +95,7 @@ let LinkedEditingContribution = LinkedEditingContribution_1 = class LinkedEditin
         }));
         const rangeUpdateScheduler = new Delayer(this._debounceInformation.get(model));
         const triggerRangeUpdate = () => {
-            var _a;
-            this._rangeUpdateTriggerPromise = rangeUpdateScheduler.trigger(() => this.updateRanges(), (_a = this._debounceDuration) !== null && _a !== void 0 ? _a : this._debounceInformation.get(model));
+            this._rangeUpdateTriggerPromise = rangeUpdateScheduler.trigger(() => this.updateRanges(), this._debounceDuration ?? this._debounceInformation.get(model));
         };
         const rangeSyncScheduler = new Delayer(0);
         const triggerRangeSync = (token) => {
@@ -238,10 +244,10 @@ let LinkedEditingContribution = LinkedEditingContribution_1 = class LinkedEditin
                 return;
             }
             let ranges = [];
-            if (response === null || response === void 0 ? void 0 : response.ranges) {
+            if (response?.ranges) {
                 ranges = response.ranges;
             }
-            this._currentWordPattern = (response === null || response === void 0 ? void 0 : response.wordPattern) || this._languageWordPattern;
+            this._currentWordPattern = response?.wordPattern || this._languageWordPattern;
             let foundReferenceRange = false;
             for (let i = 0, len = ranges.length; i < len; i++) {
                 if (Range.containsPosition(ranges[i], position)) {
@@ -275,12 +281,6 @@ let LinkedEditingContribution = LinkedEditingContribution_1 = class LinkedEditin
         }
     }
 };
-LinkedEditingContribution.ID = 'editor.contrib.linkedEditing';
-LinkedEditingContribution.DECORATION = ModelDecorationOptions.register({
-    description: 'linked-editing',
-    stickiness: 0 /* TrackedRangeStickiness.AlwaysGrowsWhenTypingAtEdges */,
-    className: DECORATION_CLASS_NAME
-});
 LinkedEditingContribution = LinkedEditingContribution_1 = __decorate([
     __param(1, IContextKeyService),
     __param(2, ILanguageFeaturesService),
@@ -352,7 +352,7 @@ function getLinkedEditingRanges(providers, model, position, token) {
             onUnexpectedExternalError(e);
             return undefined;
         }
-    }), result => !!result && arrays.isNonEmptyArray(result === null || result === void 0 ? void 0 : result.ranges));
+    }), result => !!result && arrays.isNonEmptyArray(result?.ranges));
 }
 export const editorLinkedEditingBackground = registerColor('editor.linkedEditingBackground', { dark: Color.fromHex('#f00').transparent(0.3), light: Color.fromHex('#f00').transparent(0.3), hcDark: Color.fromHex('#f00').transparent(0.3), hcLight: Color.white }, nls.localize('editorLinkedEditingBackground', 'Background color when the editor auto renames on type.'));
 registerModelAndPositionCommand('_executeLinkedEditingProvider', (_accessor, model, position) => {

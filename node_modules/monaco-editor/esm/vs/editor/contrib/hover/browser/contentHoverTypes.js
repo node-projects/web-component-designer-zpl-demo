@@ -3,17 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 export class HoverResult {
-    constructor(anchor, messages, isComplete) {
+    constructor(anchor, hoverParts, isComplete) {
         this.anchor = anchor;
-        this.messages = messages;
+        this.hoverParts = hoverParts;
         this.isComplete = isComplete;
     }
     filter(anchor) {
-        const filteredMessages = this.messages.filter((m) => m.isValidForHoverAnchor(anchor));
-        if (filteredMessages.length === this.messages.length) {
+        const filteredHoverParts = this.hoverParts.filter((m) => m.isValidForHoverAnchor(anchor));
+        if (filteredHoverParts.length === this.hoverParts.length) {
             return this;
         }
-        return new FilteredHoverResult(this, this.anchor, filteredMessages, this.isComplete);
+        return new FilteredHoverResult(this, this.anchor, filteredHoverParts, this.isComplete);
     }
 }
 export class FilteredHoverResult extends HoverResult {
@@ -23,20 +23,5 @@ export class FilteredHoverResult extends HoverResult {
     }
     filter(anchor) {
         return this.original.filter(anchor);
-    }
-}
-export class ContentHoverVisibleData {
-    constructor(initialMousePosX, initialMousePosY, colorPicker, showAtPosition, showAtSecondaryPosition, preferAbove, stoleFocus, source, isBeforeContent, disposables) {
-        this.initialMousePosX = initialMousePosX;
-        this.initialMousePosY = initialMousePosY;
-        this.colorPicker = colorPicker;
-        this.showAtPosition = showAtPosition;
-        this.showAtSecondaryPosition = showAtSecondaryPosition;
-        this.preferAbove = preferAbove;
-        this.stoleFocus = stoleFocus;
-        this.source = source;
-        this.isBeforeContent = isBeforeContent;
-        this.disposables = disposables;
-        this.closestMouseDistance = undefined;
     }
 }

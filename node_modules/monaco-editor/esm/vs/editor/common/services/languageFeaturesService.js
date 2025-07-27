@@ -39,8 +39,7 @@ export class LanguageFeaturesService {
         this.documentPasteEditProvider = new LanguageFeatureRegistry(this._score.bind(this));
     }
     _score(uri) {
-        var _a;
-        return (_a = this._notebookTypeResolver) === null || _a === void 0 ? void 0 : _a.call(this, uri);
+        return this._notebookTypeResolver?.(uri);
     }
 }
 registerSingleton(ILanguageFeaturesService, LanguageFeaturesService, 1 /* InstantiationType.Delayed */);

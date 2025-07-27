@@ -15,6 +15,7 @@ import { PlaceholderViewZone, ViewZoneOverlayWidget, applyStyle, applyViewZones 
 import { OffsetRange, OffsetRangeSet } from '../../../../common/core/offsetRange.js';
 import { localize } from '../../../../../nls.js';
 export class MovedBlocksLinesFeature extends Disposable {
+    static { this.movedCodeBlockPadding = 4; }
     constructor(_rootElement, _diffModel, _originalEditorLayoutInfo, _modifiedEditorLayoutInfo, _editors) {
         super();
         this._rootElement = _rootElement;
@@ -22,18 +23,17 @@ export class MovedBlocksLinesFeature extends Disposable {
         this._originalEditorLayoutInfo = _originalEditorLayoutInfo;
         this._modifiedEditorLayoutInfo = _modifiedEditorLayoutInfo;
         this._editors = _editors;
-        this._originalScrollTop = observableFromEvent(this._editors.original.onDidScrollChange, () => this._editors.original.getScrollTop());
-        this._modifiedScrollTop = observableFromEvent(this._editors.modified.onDidScrollChange, () => this._editors.modified.getScrollTop());
+        this._originalScrollTop = observableFromEvent(this, this._editors.original.onDidScrollChange, () => this._editors.original.getScrollTop());
+        this._modifiedScrollTop = observableFromEvent(this, this._editors.modified.onDidScrollChange, () => this._editors.modified.getScrollTop());
         this._viewZonesChanged = observableSignalFromEvent('onDidChangeViewZones', this._editors.modified.onDidChangeViewZones);
         this.width = observableValue(this, 0);
         this._modifiedViewZonesChangedSignal = observableSignalFromEvent('modified.onDidChangeViewZones', this._editors.modified.onDidChangeViewZones);
         this._originalViewZonesChangedSignal = observableSignalFromEvent('original.onDidChangeViewZones', this._editors.original.onDidChangeViewZones);
         this._state = derivedWithStore(this, (reader, store) => {
             /** @description state */
-            var _a;
             this._element.replaceChildren();
             const model = this._diffModel.read(reader);
-            const moves = (_a = model === null || model === void 0 ? void 0 : model.diff.read(reader)) === null || _a === void 0 ? void 0 : _a.movedTexts;
+            const moves = model?.diff.read(reader)?.movedTexts;
             if (!moves || moves.length === 0) {
                 this.width.set(0, undefined);
                 return;
@@ -129,7 +129,7 @@ export class MovedBlocksLinesFeature extends Disposable {
         this._register(recomputeInitiallyAndOnChange(this._state));
         const movedBlockViewZones = derived(reader => {
             const model = this._diffModel.read(reader);
-            const d = model === null || model === void 0 ? void 0 : model.diff.read(reader);
+            const d = model?.diff.read(reader);
             if (!d) {
                 return [];
             }
@@ -191,7 +191,6 @@ export class MovedBlocksLinesFeature extends Disposable {
         }));
     }
 }
-MovedBlocksLinesFeature.movedCodeBlockPadding = 4;
 class LinesLayout {
     static compute(lines) {
         const setsPerTrack = [];

@@ -14,12 +14,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 import { AsyncIterableObject } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { Color, RGBA } from '../../../../base/common/color.js';
-import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { Range } from '../../../common/core/range.js';
 import { getColorPresentations, getColors } from './color.js';
 import { ColorDetector } from './colorDetector.js';
 import { ColorPickerModel } from './colorPickerModel.js';
 import { ColorPickerWidget } from './colorPickerWidget.js';
+import { RenderedHoverParts } from '../../hover/browser/hoverTypes.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { Dimension } from '../../../../base/browser/dom.js';
 export class ColorHover {
@@ -73,7 +74,23 @@ let ColorHoverParticipant = class ColorHoverParticipant {
         return [];
     }
     renderHoverParts(context, hoverParts) {
-        return renderHoverParts(this, this._editor, this._themeService, hoverParts, context);
+        const renderedPart = renderHoverParts(this, this._editor, this._themeService, hoverParts, context);
+        if (!renderedPart) {
+            return new RenderedHoverParts([]);
+        }
+        this._colorPicker = renderedPart.colorPicker;
+        const renderedHoverPart = {
+            hoverPart: renderedPart.hoverPart,
+            hoverElement: this._colorPicker.domNode,
+            dispose() { renderedPart.disposables.dispose(); }
+        };
+        return new RenderedHoverParts([renderedHoverPart]);
+    }
+    handleResize() {
+        this._colorPicker?.layout();
+    }
+    isColorPickerVisible() {
+        return !!this._colorPicker;
     }
 };
 ColorHoverParticipant = __decorate([
@@ -112,8 +129,8 @@ let StandaloneColorPickerParticipant = class StandaloneColorPickerParticipant {
                 foundColorProvider = colorData.provider;
             }
         }
-        const colorInfo = foundColorInfo !== null && foundColorInfo !== void 0 ? foundColorInfo : defaultColorInfo;
-        const colorProvider = foundColorProvider !== null && foundColorProvider !== void 0 ? foundColorProvider : defaultColorProvider;
+        const colorInfo = foundColorInfo ?? defaultColorInfo;
+        const colorProvider = foundColorProvider ?? defaultColorProvider;
         const foundInEditor = !!foundColorInfo;
         return { colorHover: await _createColorHover(this, this._editor.getModel(), colorInfo, colorProvider), foundInEditor: foundInEditor };
     }
@@ -160,7 +177,7 @@ async function _createColorHover(participant, editorModel, colorInfo, provider) 
 }
 function renderHoverParts(participant, editor, themeService, hoverParts, context) {
     if (hoverParts.length === 0 || !editor.hasModel()) {
-        return Disposable.None;
+        return undefined;
     }
     if (context.setMinimumDimensions) {
         const minimumHeight = editor.getOption(67 /* EditorOption.lineHeight */) + 8;
@@ -170,12 +187,11 @@ function renderHoverParts(participant, editor, themeService, hoverParts, context
     const colorHover = hoverParts[0];
     const editorModel = editor.getModel();
     const model = colorHover.model;
-    const widget = disposables.add(new ColorPickerWidget(context.fragment, model, editor.getOption(143 /* EditorOption.pixelRatio */), themeService, participant instanceof StandaloneColorPickerParticipant));
-    context.setColorPicker(widget);
+    const colorPicker = disposables.add(new ColorPickerWidget(context.fragment, model, editor.getOption(144 /* EditorOption.pixelRatio */), themeService, participant instanceof StandaloneColorPickerParticipant));
     let editorUpdatedByColorPicker = false;
     let range = new Range(colorHover.range.startLineNumber, colorHover.range.startColumn, colorHover.range.endLineNumber, colorHover.range.endColumn);
     if (participant instanceof StandaloneColorPickerParticipant) {
-        const color = hoverParts[0].model.color;
+        const color = colorHover.model.color;
         participant.color = color;
         _updateColorPresentations(editorModel, model, color, range, colorHover);
         disposables.add(model.onColorFlushed((color) => {
@@ -201,12 +217,11 @@ function renderHoverParts(participant, editor, themeService, hoverParts, context
             editor.focus();
         }
     }));
-    return disposables;
+    return { hoverPart: colorHover, colorPicker, disposables };
 }
 function _updateEditorModel(editor, range, model) {
-    var _a, _b;
     const textEdits = [];
-    const edit = (_a = model.presentation.textEdit) !== null && _a !== void 0 ? _a : { range, text: model.presentation.label, forceMoveMarkers: false };
+    const edit = model.presentation.textEdit ?? { range, text: model.presentation.label, forceMoveMarkers: false };
     textEdits.push(edit);
     if (model.presentation.additionalTextEdits) {
         textEdits.push(...model.presentation.additionalTextEdits);
@@ -215,7 +230,7 @@ function _updateEditorModel(editor, range, model) {
     const trackedRange = editor.getModel()._setTrackedRange(null, replaceRange, 3 /* TrackedRangeStickiness.GrowsOnlyWhenTypingAfter */);
     editor.executeEdits('colorpicker', textEdits);
     editor.pushUndoStop();
-    return (_b = editor.getModel()._getTrackedRange(trackedRange)) !== null && _b !== void 0 ? _b : replaceRange;
+    return editor.getModel()._getTrackedRange(trackedRange) ?? replaceRange;
 }
 async function _updateColorPresentations(editorModel, colorPickerModel, color, range, colorHover) {
     const colorPresentations = await getColorPresentations(editorModel, {

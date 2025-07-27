@@ -86,12 +86,12 @@ const editorConfiguration = {
         },
         'editor.maxTokenizationLineLength': {
             type: 'integer',
-            default: 20000,
+            default: 20_000,
             description: nls.localize('maxTokenizationLineLength', "Lines above this length will not be tokenized for performance reasons")
         },
         'editor.experimental.asyncTokenization': {
             type: 'boolean',
-            default: false,
+            default: true,
             description: nls.localize('editor.experimental.asyncTokenization', "Controls whether the tokenization should happen asynchronously on a web worker."),
             tags: ['experimental'],
         },
@@ -105,6 +105,12 @@ const editorConfiguration = {
             default: false,
             description: nls.localize('editor.experimental.asyncTokenizationVerification', "Controls whether async tokenization should be verified against legacy background tokenization. Might slow down tokenization. For debugging only."),
             tags: ['experimental'],
+        },
+        'editor.experimental.treeSitterTelemetry': {
+            type: 'boolean',
+            default: false,
+            markdownDescription: nls.localize('editor.experimental.treeSitterTelemetry', "Controls whether tree sitter parsing should be turned on and telemetry collected. Setting `editor.experimental.preferTreeSitter` for specific languages will take precedence."),
+            tags: ['experimental']
         },
         'editor.language.brackets': {
             type: ['array', 'null'],
@@ -244,7 +250,12 @@ const editorConfiguration = {
             type: 'boolean',
             default: diffEditorDefaultOptions.experimental.showEmptyDecorations,
             description: nls.localize('showEmptyDecorations', "Controls whether the diff editor shows empty decorations to see where characters got inserted or deleted."),
-        }
+        },
+        'diffEditor.experimental.useTrueInlineView': {
+            type: 'boolean',
+            default: diffEditorDefaultOptions.experimental.useTrueInlineView,
+            description: nls.localize('useTrueInlineView', "If enabled and the editor uses the inline view, word changes are rendered inline."),
+        },
     }
 };
 function isConfigurationPropertySchema(x) {

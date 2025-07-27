@@ -9,22 +9,20 @@ import { SnippetParser } from '../../snippet/browser/snippetParser.js';
  * the {@link DropOrPasteEdit} at each range plus any additional edits.
  */
 export function createCombinedWorkspaceEdit(uri, ranges, edit) {
-    var _a, _b, _c, _d;
     // If the edit insert text is empty, skip applying at each range
     if (typeof edit.insertText === 'string' ? edit.insertText === '' : edit.insertText.snippet === '') {
         return {
-            edits: (_b = (_a = edit.additionalEdit) === null || _a === void 0 ? void 0 : _a.edits) !== null && _b !== void 0 ? _b : []
+            edits: edit.additionalEdit?.edits ?? []
         };
     }
     return {
         edits: [
             ...ranges.map(range => new ResourceTextEdit(uri, { range, text: typeof edit.insertText === 'string' ? SnippetParser.escape(edit.insertText) + '$0' : edit.insertText.snippet, insertAsSnippet: true })),
-            ...((_d = (_c = edit.additionalEdit) === null || _c === void 0 ? void 0 : _c.edits) !== null && _d !== void 0 ? _d : [])
+            ...(edit.additionalEdit?.edits ?? [])
         ]
     };
 }
 export function sortEditsByYieldTo(edits) {
-    var _a;
     function yieldsTo(yTo, other) {
         if ('mimeType' in yTo) {
             return yTo.mimeType === other.handledMimeType;
@@ -34,7 +32,7 @@ export function sortEditsByYieldTo(edits) {
     // Build list of nodes each node yields to
     const yieldsToMap = new Map();
     for (const edit of edits) {
-        for (const yTo of (_a = edit.yieldTo) !== null && _a !== void 0 ? _a : []) {
+        for (const yTo of edit.yieldTo ?? []) {
             for (const other of edits) {
                 if (other === edit) {
                     continue;

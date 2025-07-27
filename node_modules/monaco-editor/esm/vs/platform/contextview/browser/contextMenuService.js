@@ -52,8 +52,7 @@ let ContextMenuService = class ContextMenuService extends Disposable {
         this.contextMenuHandler.showContextMenu({
             ...delegate,
             onHide: (didCancel) => {
-                var _a;
-                (_a = delegate.onHide) === null || _a === void 0 ? void 0 : _a.call(delegate, didCancel);
+                delegate.onHide?.(didCancel);
                 this._onDidHideContextMenu.fire();
             }
         });
@@ -85,9 +84,8 @@ export var ContextMenuMenuDelegate;
             getActions: () => {
                 const target = [];
                 if (menuId) {
-                    const menu = menuService.createMenu(menuId, contextKeyService !== null && contextKeyService !== void 0 ? contextKeyService : globalContextKeyService);
-                    createAndFillInContextMenuActions(menu, menuActionOptions, target);
-                    menu.dispose();
+                    const menu = menuService.getMenuActions(menuId, contextKeyService ?? globalContextKeyService, menuActionOptions);
+                    createAndFillInContextMenuActions(menu, target);
                 }
                 if (!delegate.getActions) {
                     return target;

@@ -24,6 +24,9 @@ export var EventType;
     EventType.Contextmenu = '-monaco-gesturecontextmenu';
 })(EventType || (EventType = {}));
 export class Gesture extends Disposable {
+    static { this.SCROLL_FRICTION = -0.005; }
+    static { this.HOLD_DELAY = 700; }
+    static { this.CLEAR_TAP_COUNT_TIME = 400; } // ms
     constructor() {
         super();
         this.dispatched = false;
@@ -260,9 +263,6 @@ export class Gesture extends Disposable {
         }
     }
 }
-Gesture.SCROLL_FRICTION = -0.005;
-Gesture.HOLD_DELAY = 700;
-Gesture.CLEAR_TAP_COUNT_TIME = 400; // ms
 __decorate([
     memoize
 ], Gesture, "isTouchDevice", null);

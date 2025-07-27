@@ -101,7 +101,7 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
         this._scrollLeft = 0;
         this._scrollTop = 0;
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         this._setAccessibilityOptions(options);
         this._contentLeft = layoutInfo.contentLeft;
         this._contentWidth = layoutInfo.contentWidth;
@@ -127,11 +127,11 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
         this.textArea.setAttribute('spellcheck', 'false');
         this.textArea.setAttribute('aria-label', this._getAriaLabel(options));
         this.textArea.setAttribute('aria-required', options.get(5 /* EditorOption.ariaRequired */) ? 'true' : 'false');
-        this.textArea.setAttribute('tabindex', String(options.get(124 /* EditorOption.tabIndex */)));
+        this.textArea.setAttribute('tabindex', String(options.get(125 /* EditorOption.tabIndex */)));
         this.textArea.setAttribute('role', 'textbox');
         this.textArea.setAttribute('aria-roledescription', nls.localize('editor', "editor"));
         this.textArea.setAttribute('aria-multiline', 'true');
-        this.textArea.setAttribute('aria-autocomplete', options.get(91 /* EditorOption.readOnly */) ? 'none' : 'both');
+        this.textArea.setAttribute('aria-autocomplete', options.get(92 /* EditorOption.readOnly */) ? 'none' : 'both');
         this._ensureReadOnlyAttribute();
         this.textAreaCover = createFastDomNode(document.createElement('div'));
         this.textAreaCover.setPosition('absolute');
@@ -411,7 +411,7 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
     }
     _getWordBeforePosition(position) {
         const lineContent = this._context.viewModel.getLineContent(position.lineNumber);
-        const wordSeparators = getMapForWordSeparators(this._context.configuration.options.get(131 /* EditorOption.wordSeparators */), []);
+        const wordSeparators = getMapForWordSeparators(this._context.configuration.options.get(132 /* EditorOption.wordSeparators */), []);
         let column = position.column;
         let distance = 0;
         while (column > 1) {
@@ -436,12 +436,11 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
         return '';
     }
     _getAriaLabel(options) {
-        var _a, _b, _c;
         const accessibilitySupport = options.get(2 /* EditorOption.accessibilitySupport */);
         if (accessibilitySupport === 1 /* AccessibilitySupport.Disabled */) {
-            const toggleKeybindingLabel = (_a = this._keybindingService.lookupKeybinding('editor.action.toggleScreenReaderAccessibilityMode')) === null || _a === void 0 ? void 0 : _a.getAriaLabel();
-            const runCommandKeybindingLabel = (_b = this._keybindingService.lookupKeybinding('workbench.action.showCommands')) === null || _b === void 0 ? void 0 : _b.getAriaLabel();
-            const keybindingEditorKeybindingLabel = (_c = this._keybindingService.lookupKeybinding('workbench.action.openGlobalKeybindings')) === null || _c === void 0 ? void 0 : _c.getAriaLabel();
+            const toggleKeybindingLabel = this._keybindingService.lookupKeybinding('editor.action.toggleScreenReaderAccessibilityMode')?.getAriaLabel();
+            const runCommandKeybindingLabel = this._keybindingService.lookupKeybinding('workbench.action.showCommands')?.getAriaLabel();
+            const keybindingEditorKeybindingLabel = this._keybindingService.lookupKeybinding('workbench.action.openGlobalKeybindings')?.getAriaLabel();
             const editorNotAccessibleMessage = nls.localize('accessibilityModeOff', "The editor is not accessible at this time.");
             if (toggleKeybindingLabel) {
                 return nls.localize('accessibilityOffAriaLabel', "{0} To enable screen reader optimized mode, use {1}", editorNotAccessibleMessage, toggleKeybindingLabel);
@@ -473,7 +472,7 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
         // we will size the textarea to match the width used for wrapping points computation (see `domLineBreaksComputer.ts`).
         // This is because screen readers will read the text in the textarea and we'd like that the
         // wrapping points in the textarea match the wrapping points in the editor.
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         const wrappingColumn = layoutInfo.wrappingColumn;
         if (wrappingColumn !== -1 && this._accessibilitySupport !== 1 /* AccessibilitySupport.Disabled */) {
             const fontInfo = options.get(50 /* EditorOption.fontInfo */);
@@ -488,7 +487,7 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
     // --- begin event handlers
     onConfigurationChanged(e) {
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         this._setAccessibilityOptions(options);
         this._contentLeft = layoutInfo.contentLeft;
         this._contentWidth = layoutInfo.contentWidth;
@@ -502,8 +501,8 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
         this.textArea.domNode.style.tabSize = `${tabSize * this._fontInfo.spaceWidth}px`;
         this.textArea.setAttribute('aria-label', this._getAriaLabel(options));
         this.textArea.setAttribute('aria-required', options.get(5 /* EditorOption.ariaRequired */) ? 'true' : 'false');
-        this.textArea.setAttribute('tabindex', String(options.get(124 /* EditorOption.tabIndex */)));
-        if (e.hasChanged(34 /* EditorOption.domReadOnly */) || e.hasChanged(91 /* EditorOption.readOnly */)) {
+        this.textArea.setAttribute('tabindex', String(options.get(125 /* EditorOption.tabIndex */)));
+        if (e.hasChanged(34 /* EditorOption.domReadOnly */) || e.hasChanged(92 /* EditorOption.readOnly */)) {
             this._ensureReadOnlyAttribute();
         }
         if (e.hasChanged(2 /* EditorOption.accessibilitySupport */)) {
@@ -574,7 +573,7 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
         const options = this._context.configuration.options;
         // When someone requests to disable IME, we set the "readonly" attribute on the <textarea>.
         // This will prevent composition.
-        const useReadOnly = !IME.enabled || (options.get(34 /* EditorOption.domReadOnly */) && options.get(91 /* EditorOption.readOnly */));
+        const useReadOnly = !IME.enabled || (options.get(34 /* EditorOption.domReadOnly */) && options.get(92 /* EditorOption.readOnly */));
         if (useReadOnly) {
             this.textArea.setAttribute('readonly', 'true');
         }
@@ -583,17 +582,15 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
         }
     }
     prepareRender(ctx) {
-        var _a;
         this._primaryCursorPosition = new Position(this._selections[0].positionLineNumber, this._selections[0].positionColumn);
         this._primaryCursorVisibleRange = ctx.visibleRangeForPosition(this._primaryCursorPosition);
-        (_a = this._visibleTextArea) === null || _a === void 0 ? void 0 : _a.prepareRender(ctx);
+        this._visibleTextArea?.prepareRender(ctx);
     }
     render(ctx) {
         this._textAreaInput.writeNativeTextAreaContent('render');
         this._render();
     }
     _render() {
-        var _a;
         if (this._visibleTextArea) {
             // The text area is visible for composition reasons
             const visibleStart = this._visibleTextArea.visibleTextareaStart;
@@ -683,7 +680,7 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
             // In case the textarea contains a word, we're going to try to align the textarea's cursor
             // with our cursor by scrolling the textarea as much as possible
             this.textArea.domNode.scrollLeft = this._primaryCursorVisibleRange.left;
-            const lineCount = (_a = this._textAreaInput.textAreaState.newlineCountBeforeSelection) !== null && _a !== void 0 ? _a : this._newlinecount(this.textArea.domNode.value.substr(0, this.textArea.domNode.selectionStart));
+            const lineCount = this._textAreaInput.textAreaState.newlineCountBeforeSelection ?? this._newlinecount(this.textArea.domNode.value.substr(0, this.textArea.domNode.selectionStart));
             this.textArea.domNode.scrollTop = lineCount * this._lineHeight;
             return;
         }
@@ -775,6 +772,6 @@ function measureText(targetDocument, text, fontInfo, tabSize) {
     container.appendChild(regularDomNode);
     targetDocument.body.appendChild(container);
     const res = regularDomNode.offsetWidth;
-    targetDocument.body.removeChild(container);
+    container.remove();
     return res;
 }

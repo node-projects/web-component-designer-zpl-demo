@@ -300,6 +300,19 @@ export class TextEdit {
 }
 export class FoldingRangeKind {
     /**
+     * Kind for folding range representing a comment. The value of the kind is 'comment'.
+     */
+    static { this.Comment = new FoldingRangeKind('comment'); }
+    /**
+     * Kind for folding range representing a import. The value of the kind is 'imports'.
+     */
+    static { this.Imports = new FoldingRangeKind('imports'); }
+    /**
+     * Kind for folding range representing regions (for example marked by `#region`, `#endregion`).
+     * The value of the kind is 'region'.
+     */
+    static { this.Region = new FoldingRangeKind('region'); }
+    /**
      * Returns a {@link FoldingRangeKind} for the given value.
      *
      * @param value of the kind.
@@ -321,19 +334,6 @@ export class FoldingRangeKind {
         this.value = value;
     }
 }
-/**
- * Kind for folding range representing a comment. The value of the kind is 'comment'.
- */
-FoldingRangeKind.Comment = new FoldingRangeKind('comment');
-/**
- * Kind for folding range representing a import. The value of the kind is 'imports'.
- */
-FoldingRangeKind.Imports = new FoldingRangeKind('imports');
-/**
- * Kind for folding range representing regions (for example marked by `#region`, `#endregion`).
- * The value of the kind is 'region'.
- */
-FoldingRangeKind.Region = new FoldingRangeKind('region');
 export var NewSymbolNameTag;
 (function (NewSymbolNameTag) {
     NewSymbolNameTag[NewSymbolNameTag["AIGenerated"] = 1] = "AIGenerated";
@@ -393,6 +393,10 @@ export class LazyTokenizationSupport {
  * @internal
  */
 export const TokenizationRegistry = new TokenizationRegistryImpl();
+/**
+ * @internal
+ */
+export const TreeSitterTokenizationRegistry = new TokenizationRegistryImpl();
 export var InlineEditTriggerKind;
 (function (InlineEditTriggerKind) {
     InlineEditTriggerKind[InlineEditTriggerKind["Invoke"] = 0] = "Invoke";

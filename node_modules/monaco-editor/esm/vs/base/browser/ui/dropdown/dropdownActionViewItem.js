@@ -21,7 +21,6 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
     render(container) {
         this.actionItem = container;
         const labelRenderer = (el) => {
-            var _a;
             this.element = append(el, $('a.action-label'));
             let classNames = [];
             if (typeof this.options.classNames === 'string') {
@@ -39,7 +38,7 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
             this.element.setAttribute('aria-haspopup', 'true');
             this.element.setAttribute('aria-expanded', 'false');
             if (this._action.label) {
-                this._register(getBaseLayerHoverDelegate().setupUpdatableHover((_a = this.options.hoverDelegate) !== null && _a !== void 0 ? _a : getDefaultHoverDelegate('mouse'), this.element, this._action.label));
+                this._register(getBaseLayerHoverDelegate().setupManagedHover(this.options.hoverDelegate ?? getDefaultHoverDelegate('mouse'), this.element, this._action.label));
             }
             this.element.ariaLabel = this._action.label || '';
             return null;
@@ -55,8 +54,7 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
         };
         this.dropdownMenu = this._register(new DropdownMenu(container, options));
         this._register(this.dropdownMenu.onDidChangeVisibility(visible => {
-            var _a;
-            (_a = this.element) === null || _a === void 0 ? void 0 : _a.setAttribute('aria-expanded', `${visible}`);
+            this.element?.setAttribute('aria-expanded', `${visible}`);
             this._onDidChangeVisibility.fire(visible);
         }));
         this.dropdownMenu.menuOptions = {
@@ -85,7 +83,7 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
         else if (this.action.label) {
             title = this.action.label;
         }
-        return title !== null && title !== void 0 ? title : undefined;
+        return title ?? undefined;
     }
     setActionContext(newContext) {
         super.setActionContext(newContext);
@@ -99,13 +97,11 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
         }
     }
     show() {
-        var _a;
-        (_a = this.dropdownMenu) === null || _a === void 0 ? void 0 : _a.show();
+        this.dropdownMenu?.show();
     }
     updateEnabled() {
-        var _a, _b;
         const disabled = !this.action.enabled;
-        (_a = this.actionItem) === null || _a === void 0 ? void 0 : _a.classList.toggle('disabled', disabled);
-        (_b = this.element) === null || _b === void 0 ? void 0 : _b.classList.toggle('disabled', disabled);
+        this.actionItem?.classList.toggle('disabled', disabled);
+        this.element?.classList.toggle('disabled', disabled);
     }
 }

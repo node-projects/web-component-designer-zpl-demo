@@ -19,8 +19,8 @@ import { Range } from '../../../common/core/range.js';
 import { ILanguageService } from '../../../common/languages/language.js';
 import { InjectedTextCursorStops } from '../../../common/model.js';
 import { LineDecoration } from '../../../common/viewLayout/lineDecorations.js';
-import { AdditionalLinesWidget } from '../../inlineCompletions/browser/ghostTextWidget.js';
 import { ColumnRange, applyObservableDecorations } from '../../inlineCompletions/browser/utils.js';
+import { diffDeleteDecoration, diffLineDeleteDecorationBackgroundWithIndicator } from '../../../browser/widget/diffEditor/registrations.contribution.js';
 export const INLINE_EDIT_DESCRIPTION = 'inline-edit';
 let GhostTextWidget = class GhostTextWidget extends Disposable {
     constructor(editor, model, languageService) {
@@ -29,9 +29,8 @@ let GhostTextWidget = class GhostTextWidget extends Disposable {
         this.model = model;
         this.languageService = languageService;
         this.isDisposed = observableValue(this, false);
-        this.currentTextModel = observableFromEvent(this.editor.onDidChangeModel, () => /** @description editor.model */ this.editor.getModel());
+        this.currentTextModel = observableFromEvent(this, this.editor.onDidChangeModel, () => /** @description editor.model */ this.editor.getModel());
         this.uiState = derived(this, reader => {
-            var _a;
             if (this.isDisposed.read(reader)) {
                 return undefined;
             }
@@ -43,7 +42,7 @@ let GhostTextWidget = class GhostTextWidget extends Disposable {
             if (!ghostText) {
                 return undefined;
             }
-            let range = (_a = this.model.range) === null || _a === void 0 ? void 0 : _a.read(reader);
+            let range = this.model.range?.read(reader);
             //if range is empty, we want to remove it
             if (range && range.startLineNumber === range.endLineNumber && range.startColumn === range.endColumn) {
                 range = undefined;
@@ -74,7 +73,7 @@ let GhostTextWidget = class GhostTextWidget extends Disposable {
             const textBufferLine = textModel.getLineContent(ghostText.lineNumber);
             let hiddenTextStartColumn = undefined;
             let lastIdx = 0;
-            if (!isPureRemove) {
+            if (!isPureRemove && (isSingleLine || !range)) {
                 for (const part of ghostText.parts) {
                     let lines = part.lines;
                     //If remove range is set, we want to push all new liens to virtual area
@@ -117,7 +116,6 @@ let GhostTextWidget = class GhostTextWidget extends Disposable {
                 range,
                 isSingleLine,
                 isPureRemove,
-                backgroundColoring: this.model.backgroundColoring.read(reader)
             };
         });
         this.decorations = derived(this, reader => {
@@ -137,7 +135,7 @@ let GhostTextWidget = class GhostTextWidget extends Disposable {
                 if (uiState.isSingleLine) {
                     ranges.push(uiState.range);
                 }
-                else if (uiState.isPureRemove) {
+                else if (!uiState.isPureRemove) {
                     const lines = uiState.range.endLineNumber - uiState.range.startLineNumber;
                     for (let i = 0; i < lines; i++) {
                         const line = uiState.range.startLineNumber + i;
@@ -147,23 +145,19 @@ let GhostTextWidget = class GhostTextWidget extends Disposable {
                         ranges.push(range);
                     }
                 }
-                else {
-                    const lines = uiState.range.endLineNumber - uiState.range.startLineNumber;
-                    for (let i = 0; i < lines; i++) {
-                        const line = uiState.range.startLineNumber + i;
-                        const firstNonWhitespace = uiState.targetTextModel.getLineFirstNonWhitespaceColumn(line);
-                        const lastNonWhitespace = uiState.targetTextModel.getLineLastNonWhitespaceColumn(line);
-                        const range = new Range(line, firstNonWhitespace, line, lastNonWhitespace);
-                        ranges.push(range);
-                    }
-                }
-                const className = uiState.backgroundColoring ? 'inline-edit-remove backgroundColoring' : 'inline-edit-remove';
                 for (const range of ranges) {
                     decorations.push({
                         range,
-                        options: { inlineClassName: className, description: 'inline-edit-remove', }
+                        options: diffDeleteDecoration
                     });
                 }
+            }
+            if (uiState.range && !uiState.isSingleLine && uiState.isPureRemove) {
+                const r = new Range(uiState.range.startLineNumber, 1, uiState.range.endLineNumber - 1, 1);
+                decorations.push({
+                    range: r,
+                    options: diffLineDeleteDecorationBackgroundWithIndicator
+                });
             }
             for (const p of uiState.inlineTexts) {
                 decorations.push({
@@ -177,21 +171,8 @@ let GhostTextWidget = class GhostTextWidget extends Disposable {
             }
             return decorations;
         });
-        this.additionalLinesWidget = this._register(new AdditionalLinesWidget(this.editor, this.languageService.languageIdCodec, derived(reader => {
-            /** @description lines */
-            const uiState = this.uiState.read(reader);
-            return uiState && !uiState.isPureRemove ? {
-                lineNumber: uiState.lineNumber,
-                additionalLines: uiState.additionalLines,
-                minReservedLineCount: uiState.additionalReservedLineCount,
-                targetTextModel: uiState.targetTextModel,
-            } : undefined;
-        })));
         this._register(toDisposable(() => { this.isDisposed.set(true, undefined); }));
         this._register(applyObservableDecorations(this.editor, this.decorations));
-    }
-    ownsViewZone(viewZoneId) {
-        return this.additionalLinesWidget.viewZoneId === viewZoneId;
     }
 };
 GhostTextWidget = __decorate([

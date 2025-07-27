@@ -27,6 +27,7 @@ class MouseWheelClassifierItem {
     }
 }
 export class MouseWheelClassifier {
+    static { this.INSTANCE = new MouseWheelClassifier(); }
     constructor() {
         this._capacity = 5;
         this._memory = [];
@@ -125,7 +126,6 @@ export class MouseWheelClassifier {
         return (delta < 0.01);
     }
 }
-MouseWheelClassifier.INSTANCE = new MouseWheelClassifier();
 export class AbstractScrollableElement extends Widget {
     get options() {
         return this._options;
@@ -284,8 +284,7 @@ export class AbstractScrollableElement extends Widget {
         }
     }
     _onMouseWheel(e) {
-        var _a;
-        if ((_a = e.browserEvent) === null || _a === void 0 ? void 0 : _a.defaultPrevented) {
+        if (e.browserEvent?.defaultPrevented) {
             return;
         }
         const classifier = MouseWheelClassifier.INSTANCE;

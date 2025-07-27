@@ -11,6 +11,7 @@ import { FIND_IDS } from './findModel.js';
 import { asCssVariable, inputActiveOptionBackground, inputActiveOptionBorder, inputActiveOptionForeground } from '../../../../platform/theme/common/colorRegistry.js';
 import { createInstantHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 export class FindOptionsWidget extends Widget {
+    static { this.ID = 'editor.contrib.findOptionsWidget'; }
     constructor(editor, state, keybindingService) {
         super();
         this._hideSoon = this._register(new RunOnceScheduler(() => this._hide(), 2000));
@@ -140,4 +141,3 @@ export class FindOptionsWidget extends Widget {
         this._domNode.style.display = 'none';
     }
 }
-FindOptionsWidget.ID = 'editor.contrib.findOptionsWidget';

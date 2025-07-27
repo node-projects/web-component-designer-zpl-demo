@@ -8,6 +8,7 @@ import { EditorAction, registerEditorAction } from '../../../browser/editorExten
 import { ReplaceCommand, ReplaceCommandThatPreservesSelection, ReplaceCommandThatSelectsText } from '../../../common/commands/replaceCommand.js';
 import { TrimTrailingWhitespaceCommand } from '../../../common/commands/trimTrailingWhitespaceCommand.js';
 import { TypeOperations } from '../../../common/cursor/cursorTypeOperations.js';
+import { EnterOperation } from '../../../common/cursor/cursorTypeEditOperations.js';
 import { EditOperation } from '../../../common/core/editOperation.js';
 import { Position } from '../../../common/core/position.js';
 import { Range } from '../../../common/core/range.js';
@@ -301,6 +302,7 @@ export class DeleteDuplicateLinesAction extends EditorAction {
     }
 }
 export class TrimTrailingWhitespaceAction extends EditorAction {
+    static { this.ID = 'editor.action.trimTrailingWhitespace'; }
     constructor() {
         super({
             id: TrimTrailingWhitespaceAction.ID,
@@ -328,14 +330,13 @@ export class TrimTrailingWhitespaceAction extends EditorAction {
         }
         const config = _accessor.get(IConfigurationService);
         const model = editor.getModel();
-        const trimInRegexAndStrings = config.getValue('files.trimTrailingWhitespaceInRegexAndStrings', { overrideIdentifier: model === null || model === void 0 ? void 0 : model.getLanguageId(), resource: model === null || model === void 0 ? void 0 : model.uri });
+        const trimInRegexAndStrings = config.getValue('files.trimTrailingWhitespaceInRegexAndStrings', { overrideIdentifier: model?.getLanguageId(), resource: model?.uri });
         const command = new TrimTrailingWhitespaceCommand(selection, cursors, trimInRegexAndStrings);
         editor.pushUndoStop();
         editor.executeCommands(this.id, [command]);
         editor.pushUndoStop();
     }
 }
-TrimTrailingWhitespaceAction.ID = 'editor.action.trimTrailingWhitespace';
 export class DeleteLinesAction extends EditorAction {
     constructor() {
         super({
@@ -487,7 +488,7 @@ export class InsertLineBeforeAction extends EditorAction {
             return;
         }
         editor.pushUndoStop();
-        editor.executeCommands(this.id, TypeOperations.lineInsertBefore(viewModel.cursorConfig, editor.getModel(), editor.getSelections()));
+        editor.executeCommands(this.id, EnterOperation.lineInsertBefore(viewModel.cursorConfig, editor.getModel(), editor.getSelections()));
     }
 }
 export class InsertLineAfterAction extends EditorAction {
@@ -510,7 +511,7 @@ export class InsertLineAfterAction extends EditorAction {
             return;
         }
         editor.pushUndoStop();
-        editor.executeCommands(this.id, TypeOperations.lineInsertAfter(viewModel.cursorConfig, editor.getModel(), editor.getSelections()));
+        editor.executeCommands(this.id, EnterOperation.lineInsertAfter(viewModel.cursorConfig, editor.getModel(), editor.getSelections()));
     }
 }
 export class AbstractDeleteAllToBoundaryAction extends EditorAction {
@@ -869,7 +870,7 @@ export class AbstractCaseAction extends EditorAction {
         if (model === null) {
             return;
         }
-        const wordSeparators = editor.getOption(131 /* EditorOption.wordSeparators */);
+        const wordSeparators = editor.getOption(132 /* EditorOption.wordSeparators */);
         const textEdits = [];
         for (const selection of selections) {
             if (selection.isEmpty()) {
@@ -942,6 +943,7 @@ class BackwardsCompatibleRegExp {
     }
 }
 export class TitleCaseAction extends AbstractCaseAction {
+    static { this.titleBoundary = new BackwardsCompatibleRegExp('(^|[^\\p{L}\\p{N}\']|((^|\\P{L})\'))\\p{L}', 'gmu'); }
     constructor() {
         super({
             id: 'editor.action.transformToTitlecase',
@@ -961,8 +963,9 @@ export class TitleCaseAction extends AbstractCaseAction {
             .replace(titleBoundary, (b) => b.toLocaleUpperCase());
     }
 }
-TitleCaseAction.titleBoundary = new BackwardsCompatibleRegExp('(^|[^\\p{L}\\p{N}\']|((^|\\P{L})\'))\\p{L}', 'gmu');
 export class SnakeCaseAction extends AbstractCaseAction {
+    static { this.caseBoundary = new BackwardsCompatibleRegExp('(\\p{Ll})(\\p{Lu})', 'gmu'); }
+    static { this.singleLetters = new BackwardsCompatibleRegExp('(\\p{Lu}|\\p{N})(\\p{Lu})(\\p{Ll})', 'gmu'); }
     constructor() {
         super({
             id: 'editor.action.transformToSnakecase',
@@ -984,9 +987,8 @@ export class SnakeCaseAction extends AbstractCaseAction {
             .toLocaleLowerCase());
     }
 }
-SnakeCaseAction.caseBoundary = new BackwardsCompatibleRegExp('(\\p{Ll})(\\p{Lu})', 'gmu');
-SnakeCaseAction.singleLetters = new BackwardsCompatibleRegExp('(\\p{Lu}|\\p{N})(\\p{Lu})(\\p{Ll})', 'gmu');
 export class CamelCaseAction extends AbstractCaseAction {
+    static { this.wordBoundary = new BackwardsCompatibleRegExp('[_\\s-]', 'gm'); }
     constructor() {
         super({
             id: 'editor.action.transformToCamelcase',
@@ -1007,8 +1009,9 @@ export class CamelCaseAction extends AbstractCaseAction {
             .join('');
     }
 }
-CamelCaseAction.wordBoundary = new BackwardsCompatibleRegExp('[_\\s-]', 'gm');
 export class PascalCaseAction extends AbstractCaseAction {
+    static { this.wordBoundary = new BackwardsCompatibleRegExp('[_\\s-]', 'gm'); }
+    static { this.wordBoundaryToMaintain = new BackwardsCompatibleRegExp('(?<=\\.)', 'gm'); }
     constructor() {
         super({
             id: 'editor.action.transformToPascalcase',
@@ -1030,8 +1033,6 @@ export class PascalCaseAction extends AbstractCaseAction {
             .join('');
     }
 }
-PascalCaseAction.wordBoundary = new BackwardsCompatibleRegExp('[_\\s-]', 'gm');
-PascalCaseAction.wordBoundaryToMaintain = new BackwardsCompatibleRegExp('(?<=\\.)', 'gm');
 export class KebabCaseAction extends AbstractCaseAction {
     static isSupported() {
         const areAllRegexpsSupported = [
@@ -1041,6 +1042,9 @@ export class KebabCaseAction extends AbstractCaseAction {
         ].every((regexp) => regexp.isSupported());
         return areAllRegexpsSupported;
     }
+    static { this.caseBoundary = new BackwardsCompatibleRegExp('(\\p{Ll})(\\p{Lu})', 'gmu'); }
+    static { this.singleLetters = new BackwardsCompatibleRegExp('(\\p{Lu}|\\p{N})(\\p{Lu}\\p{Ll})', 'gmu'); }
+    static { this.underscoreBoundary = new BackwardsCompatibleRegExp('(\\S)(_)(\\S)', 'gm'); }
     constructor() {
         super({
             id: 'editor.action.transformToKebabcase',
@@ -1064,9 +1068,6 @@ export class KebabCaseAction extends AbstractCaseAction {
             .toLocaleLowerCase();
     }
 }
-KebabCaseAction.caseBoundary = new BackwardsCompatibleRegExp('(\\p{Ll})(\\p{Lu})', 'gmu');
-KebabCaseAction.singleLetters = new BackwardsCompatibleRegExp('(\\p{Lu}|\\p{N})(\\p{Lu}\\p{Ll})', 'gmu');
-KebabCaseAction.underscoreBoundary = new BackwardsCompatibleRegExp('(\\S)(_)(\\S)', 'gm');
 registerEditorAction(CopyLinesUpAction);
 registerEditorAction(CopyLinesDownAction);
 registerEditorAction(DuplicateSelectionAction);

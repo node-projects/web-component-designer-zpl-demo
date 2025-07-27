@@ -14,9 +14,11 @@ export function derived(computeFnOrOwner, computeFn) {
     }
     return new Derived(new DebugNameData(undefined, undefined, computeFnOrOwner), computeFnOrOwner, undefined, undefined, undefined, strictEquals);
 }
+export function derivedWithSetter(owner, computeFn, setter) {
+    return new DerivedWithSetter(new DebugNameData(owner, undefined, computeFn), computeFn, undefined, undefined, undefined, strictEquals, setter);
+}
 export function derivedOpts(options, computeFn) {
-    var _a;
-    return new Derived(new DebugNameData(options.owner, options.debugName, options.debugReferenceFn), computeFn, undefined, undefined, options.onLastObserverRemoved, (_a = options.equalsFn) !== null && _a !== void 0 ? _a : strictEquals);
+    return new Derived(new DebugNameData(options.owner, options.debugName, options.debugReferenceFn), computeFn, undefined, undefined, options.onLastObserverRemoved, options.equalsFn ?? strictEquals);
 }
 _setDerivedOpts(derivedOpts);
 /**
@@ -33,8 +35,7 @@ _setDerivedOpts(derivedOpts);
  * @see derived
  */
 export function derivedHandleChanges(options, computeFn) {
-    var _a;
-    return new Derived(new DebugNameData(options.owner, options.debugName, undefined), computeFn, options.createEmptyChangeSummary, options.handleChange, undefined, (_a = options.equalityComparer) !== null && _a !== void 0 ? _a : strictEquals);
+    return new Derived(new DebugNameData(options.owner, options.debugName, undefined), computeFn, options.createEmptyChangeSummary, options.handleChange, undefined, options.equalityComparer ?? strictEquals);
 }
 export function derivedWithStore(computeFnOrOwner, computeFnOrUndefined) {
     let computeFn;
@@ -64,23 +65,31 @@ export function derivedDisposable(computeFnOrOwner, computeFnOrUndefined) {
         owner = computeFnOrOwner;
         computeFn = computeFnOrUndefined;
     }
-    const store = new DisposableStore();
+    let store = undefined;
     return new Derived(new DebugNameData(owner, undefined, computeFn), r => {
-        store.clear();
+        if (!store) {
+            store = new DisposableStore();
+        }
+        else {
+            store.clear();
+        }
         const result = computeFn(r);
         if (result) {
             store.add(result);
         }
         return result;
-    }, undefined, undefined, () => store.dispose(), strictEquals);
+    }, undefined, undefined, () => {
+        if (store) {
+            store.dispose();
+            store = undefined;
+        }
+    }, strictEquals);
 }
 export class Derived extends BaseObservable {
     get debugName() {
-        var _a;
-        return (_a = this._debugNameData.getDebugName(this)) !== null && _a !== void 0 ? _a : '(anonymous)';
+        return this._debugNameData.getDebugName(this) ?? '(anonymous)';
     }
     constructor(_debugNameData, _computeFn, createChangeSummary, _handleChange, _handleLastObserverRemoved = undefined, _equalityComparator) {
-        var _a, _b;
         super();
         this._debugNameData = _debugNameData;
         this._computeFn = _computeFn;
@@ -94,11 +103,10 @@ export class Derived extends BaseObservable {
         this.dependencies = new Set();
         this.dependenciesToBeRemoved = new Set();
         this.changeSummary = undefined;
-        this.changeSummary = (_a = this.createChangeSummary) === null || _a === void 0 ? void 0 : _a.call(this);
-        (_b = getLogger()) === null || _b === void 0 ? void 0 : _b.handleDerivedCreated(this);
+        this.changeSummary = this.createChangeSummary?.();
+        getLogger()?.handleDerivedCreated(this);
     }
     onLastObserverRemoved() {
-        var _a;
         /**
          * We are not tracking changes anymore, thus we have to assume
          * that our cache is invalid.
@@ -109,14 +117,13 @@ export class Derived extends BaseObservable {
             d.removeObserver(this);
         }
         this.dependencies.clear();
-        (_a = this._handleLastObserverRemoved) === null || _a === void 0 ? void 0 : _a.call(this);
+        this._handleLastObserverRemoved?.();
     }
     get() {
-        var _a;
         if (this.observers.size === 0) {
             // Without observers, we don't know when to clean up stuff.
             // Thus, we don't cache anything to prevent memory leaks.
-            const result = this._computeFn(this, (_a = this.createChangeSummary) === null || _a === void 0 ? void 0 : _a.call(this));
+            const result = this._computeFn(this, this.createChangeSummary?.());
             // Clear new dependencies
             this.onLastObserverRemoved();
             return result;
@@ -147,7 +154,6 @@ export class Derived extends BaseObservable {
         }
     }
     _recomputeIfNeeded() {
-        var _a, _b;
         if (this.state === 3 /* DerivedState.upToDate */) {
             return;
         }
@@ -158,7 +164,7 @@ export class Derived extends BaseObservable {
         const oldValue = this.value;
         this.state = 3 /* DerivedState.upToDate */;
         const changeSummary = this.changeSummary;
-        this.changeSummary = (_a = this.createChangeSummary) === null || _a === void 0 ? void 0 : _a.call(this);
+        this.changeSummary = this.createChangeSummary?.();
         try {
             /** might call {@link handleChange} indirectly, which could invalidate us */
             this.value = this._computeFn(this, changeSummary);
@@ -172,7 +178,7 @@ export class Derived extends BaseObservable {
             this.dependenciesToBeRemoved.clear();
         }
         const didChange = hadValue && !(this._equalityComparator(oldValue, this.value));
-        (_b = getLogger()) === null || _b === void 0 ? void 0 : _b.handleDerivedRecomputed(this, {
+        getLogger()?.handleDerivedRecomputed(this, {
             oldValue,
             newValue: this.value,
             change: undefined,
@@ -232,7 +238,7 @@ export class Derived extends BaseObservable {
             const shouldReact = this._handleChange ? this._handleChange({
                 changedObservable: observable,
                 change,
-                didChange: o => o === observable,
+                didChange: (o) => o === observable,
             }, this.changeSummary) : true;
             const wasUpToDate = this.state === 3 /* DerivedState.upToDate */;
             if (shouldReact && (this.state === 1 /* DerivedState.dependenciesMightHaveChanged */ || wasUpToDate)) {
@@ -270,5 +276,11 @@ export class Derived extends BaseObservable {
             // Calling end update after removing the observer makes sure endUpdate cannot be called twice here.
             observer.endUpdate(this);
         }
+    }
+}
+export class DerivedWithSetter extends Derived {
+    constructor(debugNameData, computeFn, createChangeSummary, handleChange, handleLastObserverRemoved = undefined, equalityComparator, set) {
+        super(debugNameData, computeFn, createChangeSummary, handleChange, handleLastObserverRemoved, equalityComparator);
+        this.set = set;
     }
 }

@@ -400,8 +400,8 @@ export function registerCodeLensProvider(languageSelector, provider) {
 export function registerCodeActionProvider(languageSelector, provider, metadata) {
     const languageFeaturesService = StandaloneServices.get(ILanguageFeaturesService);
     return languageFeaturesService.codeActionProvider.register(languageSelector, {
-        providedCodeActionKinds: metadata === null || metadata === void 0 ? void 0 : metadata.providedCodeActionKinds,
-        documentation: metadata === null || metadata === void 0 ? void 0 : metadata.documentation,
+        providedCodeActionKinds: metadata?.providedCodeActionKinds,
+        documentation: metadata?.documentation,
         provideCodeActions: (model, range, context, token) => {
             const markerService = StandaloneServices.get(IMarkerService);
             const markers = markerService.read({ resource: model.uri }).filter(m => {

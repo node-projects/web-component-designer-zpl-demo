@@ -26,6 +26,7 @@ const CACHE_STACK_DEPTH = 5;
  * Reuse the same stack elements up to a certain depth.
  */
 class MonarchStackElementFactory {
+    static { this._INSTANCE = new MonarchStackElementFactory(CACHE_STACK_DEPTH); }
     static create(parent, state) {
         return this._INSTANCE.create(parent, state);
     }
@@ -52,7 +53,6 @@ class MonarchStackElementFactory {
         return result;
     }
 }
-MonarchStackElementFactory._INSTANCE = new MonarchStackElementFactory(CACHE_STACK_DEPTH);
 class MonarchStackElement {
     constructor(parent, state) {
         this.parent = parent;
@@ -128,6 +128,7 @@ class EmbeddedLanguageData {
  * Reuse the same line states up to a certain depth.
  */
 class MonarchLineStateFactory {
+    static { this._INSTANCE = new MonarchLineStateFactory(CACHE_STACK_DEPTH); }
     static create(stack, embeddedLanguageData) {
         return this._INSTANCE.create(stack, embeddedLanguageData);
     }
@@ -154,7 +155,6 @@ class MonarchLineStateFactory {
         return result;
     }
 }
-MonarchLineStateFactory._INSTANCE = new MonarchLineStateFactory(CACHE_STACK_DEPTH);
 class MonarchLineState {
     constructor(stack, embeddedLanguageData) {
         this.stack = stack;

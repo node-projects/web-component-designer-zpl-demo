@@ -14,7 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
 import { IConfigurationService } from '../../configuration/common/configuration.js';
-import { addStandardDisposableListener } from '../../../base/browser/dom.js';
+import { addStandardDisposableListener, isHTMLElement } from '../../../base/browser/dom.js';
 export const IHoverService = createDecorator('hoverService');
 let WorkbenchHoverDelegate = class WorkbenchHoverDelegate extends Disposable {
     get delay() {
@@ -44,7 +44,7 @@ let WorkbenchHoverDelegate = class WorkbenchHoverDelegate extends Disposable {
         const overrideOptions = typeof this.overrideOptions === 'function' ? this.overrideOptions(options, focus) : this.overrideOptions;
         // close hover on escape
         this.hoverDisposables.clear();
-        const targets = options.target instanceof HTMLElement ? [options.target] : options.target.targetElements;
+        const targets = isHTMLElement(options.target) ? [options.target] : options.target.targetElements;
         for (const target of targets) {
             this.hoverDisposables.add(addStandardDisposableListener(target, 'keydown', (e) => {
                 if (e.equals(9 /* KeyCode.Escape */)) {
@@ -52,7 +52,7 @@ let WorkbenchHoverDelegate = class WorkbenchHoverDelegate extends Disposable {
                 }
             }));
         }
-        const id = options.content instanceof HTMLElement ? undefined : options.content.toString();
+        const id = isHTMLElement(options.content) ? undefined : options.content.toString();
         return this.hoverService.showHover({
             ...options,
             ...overrideOptions,

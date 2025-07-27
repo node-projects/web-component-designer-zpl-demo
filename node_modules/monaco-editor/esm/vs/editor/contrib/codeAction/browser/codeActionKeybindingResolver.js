@@ -17,7 +17,15 @@ import { Lazy } from '../../../../base/common/lazy.js';
 import { codeActionCommandId, fixAllCommandId, organizeImportsCommandId, refactorCommandId, sourceActionCommandId } from './codeAction.js';
 import { CodeActionCommandArgs, CodeActionKind } from '../common/types.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
-let CodeActionKeybindingResolver = CodeActionKeybindingResolver_1 = class CodeActionKeybindingResolver {
+let CodeActionKeybindingResolver = class CodeActionKeybindingResolver {
+    static { CodeActionKeybindingResolver_1 = this; }
+    static { this.codeActionCommands = [
+        refactorCommandId,
+        codeActionCommandId,
+        sourceActionCommandId,
+        organizeImportsCommandId,
+        fixAllCommandId
+    ]; }
     constructor(keybindingService) {
         this.keybindingService = keybindingService;
     }
@@ -46,7 +54,7 @@ let CodeActionKeybindingResolver = CodeActionKeybindingResolver_1 = class CodeAc
         return (action) => {
             if (action.kind) {
                 const binding = this.bestKeybindingForCodeAction(action, allCodeActionBindings.value);
-                return binding === null || binding === void 0 ? void 0 : binding.resolvedKeybinding;
+                return binding?.resolvedKeybinding;
             }
             return undefined;
         };
@@ -74,13 +82,6 @@ let CodeActionKeybindingResolver = CodeActionKeybindingResolver_1 = class CodeAc
         }, undefined);
     }
 };
-CodeActionKeybindingResolver.codeActionCommands = [
-    refactorCommandId,
-    codeActionCommandId,
-    sourceActionCommandId,
-    organizeImportsCommandId,
-    fixAllCommandId
-];
 CodeActionKeybindingResolver = CodeActionKeybindingResolver_1 = __decorate([
     __param(0, IKeybindingService)
 ], CodeActionKeybindingResolver);

@@ -29,6 +29,9 @@ export class StickyScrollWidgetState {
             && equals(this.startLineNumbers, other.startLineNumbers)
             && equals(this.endLineNumbers, other.endLineNumbers);
     }
+    static get Empty() {
+        return new StickyScrollWidgetState([], [], 0);
+    }
 }
 const _ttPolicy = createTrustedTypesPolicy('stickyScrollViewLayer', { createHTML: value => value });
 const STICKY_INDEX_ATTR = 'data-sticky-line-index';
@@ -61,10 +64,10 @@ export class StickyScrollWidget extends Disposable {
         this._rootDomNode.appendChild(this._lineNumbersDomNode);
         this._rootDomNode.appendChild(this._linesDomNodeScrollable);
         const updateScrollLeftPosition = () => {
-            this._linesDomNode.style.left = this._editor.getOption(115 /* EditorOption.stickyScroll */).scrollWithEditor ? `-${this._editor.getScrollLeft()}px` : '0px';
+            this._linesDomNode.style.left = this._editor.getOption(116 /* EditorOption.stickyScroll */).scrollWithEditor ? `-${this._editor.getScrollLeft()}px` : '0px';
         };
         this._register(this._editor.onDidChangeConfiguration((e) => {
-            if (e.hasChanged(115 /* EditorOption.stickyScroll */)) {
+            if (e.hasChanged(116 /* EditorOption.stickyScroll */)) {
                 updateScrollLeftPosition();
             }
             if (e.hasChanged(67 /* EditorOption.lineHeight */)) {
@@ -209,7 +212,7 @@ export class StickyScrollWidget extends Disposable {
         this._editor.layoutOverlayWidget(this);
     }
     _setFoldingHoverListeners() {
-        const showFoldingControls = this._editor.getOption(110 /* EditorOption.showFoldingControls */);
+        const showFoldingControls = this._editor.getOption(111 /* EditorOption.showFoldingControls */);
         if (showFoldingControls !== 'mouseover') {
             return;
         }
@@ -290,7 +293,6 @@ export class StickyScrollWidget extends Disposable {
         return this._updateTopAndZIndexOfStickyLine(renderedLine);
     }
     _updateTopAndZIndexOfStickyLine(stickyLine) {
-        var _a;
         const index = stickyLine.index;
         const lineHTMLNode = stickyLine.lineDomNode;
         const lineNumberHTMLNode = stickyLine.lineNumberDomNode;
@@ -299,14 +301,14 @@ export class StickyScrollWidget extends Disposable {
         const intermediateLineZIndex = '1';
         lineHTMLNode.style.zIndex = isLastLine ? lastLineZIndex : intermediateLineZIndex;
         lineNumberHTMLNode.style.zIndex = isLastLine ? lastLineZIndex : intermediateLineZIndex;
-        const lastLineTop = `${index * this._lineHeight + this._lastLineRelativePosition + (((_a = stickyLine.foldingIcon) === null || _a === void 0 ? void 0 : _a.isCollapsed) ? 1 : 0)}px`;
+        const lastLineTop = `${index * this._lineHeight + this._lastLineRelativePosition + (stickyLine.foldingIcon?.isCollapsed ? 1 : 0)}px`;
         const intermediateLineTop = `${index * this._lineHeight}px`;
         lineHTMLNode.style.top = isLastLine ? lastLineTop : intermediateLineTop;
         lineNumberHTMLNode.style.top = isLastLine ? lastLineTop : intermediateLineTop;
         return stickyLine;
     }
     _renderFoldingIconForLine(foldingModel, line) {
-        const showFoldingControls = this._editor.getOption(110 /* EditorOption.showFoldingControls */);
+        const showFoldingControls = this._editor.getOption(111 /* EditorOption.showFoldingControls */);
         if (!foldingModel || showFoldingControls === 'never') {
             return;
         }
@@ -331,7 +333,8 @@ export class StickyScrollWidget extends Disposable {
     }
     getPosition() {
         return {
-            preference: null
+            preference: 2 /* OverlayWidgetPositionPreference.TOP_CENTER */,
+            stackOridinal: 10,
         };
     }
     getMinContentWidthInPx() {
@@ -358,8 +361,7 @@ export class StickyScrollWidget extends Disposable {
         return new Position(renderedStickyLine.lineNumber, column);
     }
     getLineNumberFromChildDomNode(domNode) {
-        var _a, _b;
-        return (_b = (_a = this._getRenderedStickyLineFromChildDomNode(domNode)) === null || _a === void 0 ? void 0 : _a.lineNumber) !== null && _b !== void 0 ? _b : null;
+        return this._getRenderedStickyLineFromChildDomNode(domNode)?.lineNumber ?? null;
     }
     _getRenderedStickyLineFromChildDomNode(domNode) {
         const index = this.getLineIndexFromChildDomNode(domNode);

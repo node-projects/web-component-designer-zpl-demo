@@ -32,7 +32,9 @@ import { getLinks } from './getLinks.js';
 import * as nls from '../../../../nls.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
-let LinkDetector = LinkDetector_1 = class LinkDetector extends Disposable {
+let LinkDetector = class LinkDetector extends Disposable {
+    static { LinkDetector_1 = this; }
+    static { this.ID = 'editor.linkDetector'; }
     static get(editor) {
         return editor.getContribution(LinkDetector_1.ID);
     }
@@ -251,10 +253,9 @@ let LinkDetector = LinkDetector_1 = class LinkDetector extends Disposable {
             && (mouseEvent.hasTriggerModifier || (withKey && withKey.keyCodeIsTriggerKey)));
     }
     stop() {
-        var _a;
         this.computeLinks.cancel();
         if (this.activeLinksList) {
-            (_a = this.activeLinksList) === null || _a === void 0 ? void 0 : _a.dispose();
+            this.activeLinksList?.dispose();
             this.activeLinksList = null;
         }
         if (this.computePromise) {
@@ -267,7 +268,6 @@ let LinkDetector = LinkDetector_1 = class LinkDetector extends Disposable {
         this.stop();
     }
 };
-LinkDetector.ID = 'editor.linkDetector';
 LinkDetector = LinkDetector_1 = __decorate([
     __param(1, IOpenerService),
     __param(2, INotificationService),

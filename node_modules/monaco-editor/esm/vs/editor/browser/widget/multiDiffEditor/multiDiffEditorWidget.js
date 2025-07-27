@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { derivedWithStore, observableValue, recomputeInitiallyAndOnChange } from '../../../../base/common/observable.js';
-import { readHotReloadableExport } from '../diffEditor/utils.js';
+import { readHotReloadableExport } from '../../../../base/common/hotReloadHelpers.js';
 import { MultiDiffEditorWidgetImpl } from './multiDiffEditorWidgetImpl.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import './colors.js';

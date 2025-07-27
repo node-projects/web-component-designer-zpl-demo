@@ -9,7 +9,7 @@ export class LinesDecorationsOverlay extends DedupOverlay {
         super();
         this._context = context;
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         this._decorationsLeft = layoutInfo.decorationsLeft;
         this._decorationsWidth = layoutInfo.decorationsWidth;
         this._renderResult = null;
@@ -23,7 +23,7 @@ export class LinesDecorationsOverlay extends DedupOverlay {
     // --- begin event handlers
     onConfigurationChanged(e) {
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         this._decorationsLeft = layoutInfo.decorationsLeft;
         this._decorationsWidth = layoutInfo.decorationsWidth;
         return true;
@@ -51,7 +51,6 @@ export class LinesDecorationsOverlay extends DedupOverlay {
     }
     // --- end event handlers
     _getDecorations(ctx) {
-        var _a, _b;
         const decorations = ctx.getDecorationsInViewport();
         const r = [];
         let rLen = 0;
@@ -60,11 +59,11 @@ export class LinesDecorationsOverlay extends DedupOverlay {
             const linesDecorationsClassName = d.options.linesDecorationsClassName;
             const zIndex = d.options.zIndex;
             if (linesDecorationsClassName) {
-                r[rLen++] = new DecorationToRender(d.range.startLineNumber, d.range.endLineNumber, linesDecorationsClassName, (_a = d.options.linesDecorationsTooltip) !== null && _a !== void 0 ? _a : null, zIndex);
+                r[rLen++] = new DecorationToRender(d.range.startLineNumber, d.range.endLineNumber, linesDecorationsClassName, d.options.linesDecorationsTooltip ?? null, zIndex);
             }
             const firstLineDecorationClassName = d.options.firstLineDecorationClassName;
             if (firstLineDecorationClassName) {
-                r[rLen++] = new DecorationToRender(d.range.startLineNumber, d.range.startLineNumber, firstLineDecorationClassName, (_b = d.options.linesDecorationsTooltip) !== null && _b !== void 0 ? _b : null, zIndex);
+                r[rLen++] = new DecorationToRender(d.range.startLineNumber, d.range.startLineNumber, firstLineDecorationClassName, d.options.linesDecorationsTooltip ?? null, zIndex);
             }
         }
         return r;

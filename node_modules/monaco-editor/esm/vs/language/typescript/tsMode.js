@@ -1,6 +1,6 @@
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.49.0(383fdf3fc0e1e1a024068b8d0fd4f3dcbae74d04)
+ * Version: 0.52.2(404545bded1df6ffa41ea0af4e8ddb219018c6c1)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
@@ -105,6 +105,7 @@ var libFileSet = {};
 libFileSet["lib.d.ts"] = true;
 libFileSet["lib.decorators.d.ts"] = true;
 libFileSet["lib.decorators.legacy.d.ts"] = true;
+libFileSet["lib.dom.asynciterable.d.ts"] = true;
 libFileSet["lib.dom.d.ts"] = true;
 libFileSet["lib.dom.iterable.d.ts"] = true;
 libFileSet["lib.es2015.collection.d.ts"] = true;
@@ -120,7 +121,9 @@ libFileSet["lib.es2015.symbol.wellknown.d.ts"] = true;
 libFileSet["lib.es2016.array.include.d.ts"] = true;
 libFileSet["lib.es2016.d.ts"] = true;
 libFileSet["lib.es2016.full.d.ts"] = true;
+libFileSet["lib.es2016.intl.d.ts"] = true;
 libFileSet["lib.es2017.d.ts"] = true;
+libFileSet["lib.es2017.date.d.ts"] = true;
 libFileSet["lib.es2017.full.d.ts"] = true;
 libFileSet["lib.es2017.intl.d.ts"] = true;
 libFileSet["lib.es2017.object.d.ts"] = true;
@@ -167,14 +170,21 @@ libFileSet["lib.es2022.regexp.d.ts"] = true;
 libFileSet["lib.es2022.sharedmemory.d.ts"] = true;
 libFileSet["lib.es2022.string.d.ts"] = true;
 libFileSet["lib.es2023.array.d.ts"] = true;
+libFileSet["lib.es2023.collection.d.ts"] = true;
 libFileSet["lib.es2023.d.ts"] = true;
 libFileSet["lib.es2023.full.d.ts"] = true;
 libFileSet["lib.es5.d.ts"] = true;
 libFileSet["lib.es6.d.ts"] = true;
+libFileSet["lib.esnext.collection.d.ts"] = true;
 libFileSet["lib.esnext.d.ts"] = true;
+libFileSet["lib.esnext.decorators.d.ts"] = true;
+libFileSet["lib.esnext.disposable.d.ts"] = true;
 libFileSet["lib.esnext.full.d.ts"] = true;
 libFileSet["lib.esnext.intl.d.ts"] = true;
+libFileSet["lib.esnext.object.d.ts"] = true;
+libFileSet["lib.esnext.promise.d.ts"] = true;
 libFileSet["lib.scripthost.d.ts"] = true;
+libFileSet["lib.webworker.asynciterable.d.ts"] = true;
 libFileSet["lib.webworker.d.ts"] = true;
 libFileSet["lib.webworker.importscripts.d.ts"] = true;
 libFileSet["lib.webworker.iterable.d.ts"] = true;

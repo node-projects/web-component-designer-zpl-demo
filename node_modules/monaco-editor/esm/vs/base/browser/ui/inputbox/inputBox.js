@@ -33,7 +33,6 @@ export const unthemedInboxStyles = {
 };
 export class InputBox extends Widget {
     constructor(container, contextViewProvider, options) {
-        var _a;
         super();
         this.state = 'idle';
         this.maxHeight = Number.POSITIVE_INFINITY;
@@ -45,7 +44,7 @@ export class InputBox extends Widget {
         this.options = options;
         this.message = null;
         this.placeholder = this.options.placeholder || '';
-        this.tooltip = (_a = this.options.tooltip) !== null && _a !== void 0 ? _a : (this.placeholder || '');
+        this.tooltip = this.options.tooltip ?? (this.placeholder || '');
         this.ariaLabel = this.options.ariaLabel || '';
         if (this.options.validationOptions) {
             this.validation = this.options.validationOptions.validation;
@@ -76,7 +75,7 @@ export class InputBox extends Widget {
             const onSelectionChange = this._register(new DomEmitter(container.ownerDocument, 'selectionchange'));
             const onAnchoredSelectionChange = Event.filter(onSelectionChange.event, () => {
                 const selection = container.ownerDocument.getSelection();
-                return (selection === null || selection === void 0 ? void 0 : selection.anchorNode) === wrapper;
+                return selection?.anchorNode === wrapper;
             });
             // from DOM to ScrollableElement
             this._register(onAnchoredSelectionChange(this.updateScrollDimensions, this));
@@ -126,7 +125,7 @@ export class InputBox extends Widget {
     setTooltip(tooltip) {
         this.tooltip = tooltip;
         if (!this.hover) {
-            this.hover = this._register(getBaseLayerHoverDelegate().setupUpdatableHover(getDefaultHoverDelegate('mouse'), this.input, tooltip));
+            this.hover = this._register(getBaseLayerHoverDelegate().setupManagedHover(getDefaultHoverDelegate('mouse'), this.input, tooltip));
         }
         else {
             this.hover.update(tooltip);
@@ -169,12 +168,11 @@ export class InputBox extends Widget {
         return this.input.selectionEnd === this.input.value.length && this.input.selectionStart === this.input.selectionEnd;
     }
     getSelection() {
-        var _a;
         const selectionStart = this.input.selectionStart;
         if (selectionStart === null) {
             return null;
         }
-        const selectionEnd = (_a = this.input.selectionEnd) !== null && _a !== void 0 ? _a : selectionStart;
+        const selectionEnd = this.input.selectionEnd ?? selectionStart;
         return {
             start: selectionStart,
             end: selectionEnd,
@@ -244,7 +242,7 @@ export class InputBox extends Widget {
                 this.hideMessage();
             }
         }
-        return errorMsg === null || errorMsg === void 0 ? void 0 : errorMsg.type;
+        return errorMsg?.type;
     }
     stylesForType(type) {
         const styles = this.options.inputBoxStyles;
@@ -271,7 +269,6 @@ export class InputBox extends Widget {
             getAnchor: () => this.element,
             anchorAlignment: 1 /* AnchorAlignment.RIGHT */,
             render: (container) => {
-                var _a, _b;
                 if (!this.message) {
                     return null;
                 }
@@ -286,8 +283,8 @@ export class InputBox extends Widget {
                     : renderText(this.message.content, renderOptions));
                 spanElement.classList.add(this.classForType(this.message.type));
                 const styles = this.stylesForType(this.message.type);
-                spanElement.style.backgroundColor = (_a = styles.background) !== null && _a !== void 0 ? _a : '';
-                spanElement.style.color = (_b = styles.foreground) !== null && _b !== void 0 ? _b : '';
+                spanElement.style.backgroundColor = styles.background ?? '';
+                spanElement.style.color = styles.foreground ?? '';
                 spanElement.style.border = styles.border ? `1px solid ${styles.border}` : '';
                 dom.append(div, spanElement);
                 return null;
@@ -347,11 +344,10 @@ export class InputBox extends Widget {
         this.layout();
     }
     applyStyles() {
-        var _a, _b, _c;
         const styles = this.options.inputBoxStyles;
-        const background = (_a = styles.inputBackground) !== null && _a !== void 0 ? _a : '';
-        const foreground = (_b = styles.inputForeground) !== null && _b !== void 0 ? _b : '';
-        const border = (_c = styles.inputBorder) !== null && _c !== void 0 ? _c : '';
+        const background = styles.inputBackground ?? '';
+        const foreground = styles.inputForeground ?? '';
+        const border = styles.inputBorder ?? '';
         this.element.style.backgroundColor = background;
         this.element.style.color = foreground;
         this.input.style.backgroundColor = 'inherit';
@@ -383,10 +379,9 @@ export class InputBox extends Widget {
         }
     }
     dispose() {
-        var _a;
         this._hideMessage();
         this.message = null;
-        (_a = this.actionbar) === null || _a === void 0 ? void 0 : _a.dispose();
+        this.actionbar?.dispose();
         super.dispose();
     }
 }
@@ -477,7 +472,7 @@ export class HistoryInputBox extends InputBox {
         if (next) {
             next = next === this.value ? this.getNextValue() : next;
         }
-        this.value = next !== null && next !== void 0 ? next : '';
+        this.value = next ?? '';
         aria.status(this.value ? this.value : nls.localize('clearedInput', "Cleared Input"));
     }
     showPreviousValue() {

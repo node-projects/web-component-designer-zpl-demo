@@ -124,8 +124,7 @@ export class CodeActionItem {
         this.highlightRange = highlightRange;
     }
     async resolve(token) {
-        var _a;
-        if (((_a = this.provider) === null || _a === void 0 ? void 0 : _a.resolveCodeAction) && !this.action.edit) {
+        if (this.provider?.resolveCodeAction && !this.action.edit) {
             let action;
             try {
                 action = await this.provider.resolveCodeAction(this.action, token);

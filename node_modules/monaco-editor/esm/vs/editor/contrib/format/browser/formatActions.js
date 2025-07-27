@@ -32,6 +32,7 @@ import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextke
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IEditorProgressService, Progress } from '../../../../platform/progress/common/progress.js';
 let FormatOnType = class FormatOnType {
+    static { this.ID = 'editor.contrib.autoFormat'; }
     constructor(_editor, _languageFeaturesService, _workerService, _accessibilitySignalService) {
         this._editor = _editor;
         this._languageFeaturesService = _languageFeaturesService;
@@ -126,7 +127,6 @@ let FormatOnType = class FormatOnType {
         });
     }
 };
-FormatOnType.ID = 'editor.contrib.autoFormat';
 FormatOnType = __decorate([
     __param(1, ILanguageFeaturesService),
     __param(2, IEditorWorkerService),
@@ -134,6 +134,7 @@ FormatOnType = __decorate([
 ], FormatOnType);
 export { FormatOnType };
 let FormatOnPaste = class FormatOnPaste {
+    static { this.ID = 'editor.contrib.formatOnPaste'; }
     constructor(editor, _languageFeaturesService, _instantiationService) {
         this.editor = editor;
         this._languageFeaturesService = _languageFeaturesService;
@@ -176,7 +177,6 @@ let FormatOnPaste = class FormatOnPaste {
         this._instantiationService.invokeFunction(formatDocumentRangesWithSelectedProvider, this.editor, range, 2 /* FormattingMode.Silent */, Progress.None, CancellationToken.None, false).catch(onUnexpectedError);
     }
 };
-FormatOnPaste.ID = 'editor.contrib.formatOnPaste';
 FormatOnPaste = __decorate([
     __param(1, ILanguageFeaturesService),
     __param(2, IInstantiationService)

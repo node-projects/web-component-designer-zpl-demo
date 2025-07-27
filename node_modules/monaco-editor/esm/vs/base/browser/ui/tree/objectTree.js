@@ -68,12 +68,11 @@ class CompressibleRenderer {
         }
     }
     disposeElement(node, index, templateData, height) {
-        var _a, _b, _c, _d;
         if (templateData.compressedTreeNode) {
-            (_b = (_a = this.renderer).disposeCompressedElements) === null || _b === void 0 ? void 0 : _b.call(_a, templateData.compressedTreeNode, index, templateData.data, height);
+            this.renderer.disposeCompressedElements?.(templateData.compressedTreeNode, index, templateData.data, height);
         }
         else {
-            (_d = (_c = this.renderer).disposeElement) === null || _d === void 0 ? void 0 : _d.call(_c, node, index, templateData.data, height);
+            this.renderer.disposeElement?.(node, index, templateData.data, height);
         }
     }
     disposeTemplate(templateData) {
@@ -164,7 +163,7 @@ function asObjectTreeOptions(compressedTreeNodeProvider, options) {
                 try {
                     compressedTreeNode = compressedTreeNodeProvider().getCompressedTreeNode(e);
                 }
-                catch (_a) {
+                catch {
                     return options.keyboardNavigationLabelProvider.getKeyboardNavigationLabel(e);
                 }
                 if (compressedTreeNode.element.elements.length === 1) {

@@ -29,6 +29,7 @@ var ParameterHintState;
     ParameterHintState.Active = Active;
 })(ParameterHintState || (ParameterHintState = {}));
 export class ParameterHintsModel extends Disposable {
+    static { this.DEFAULT_DELAY = 120; } // ms
     constructor(editor, providers, delay = ParameterHintsModel.DEFAULT_DELAY) {
         super();
         this._onChangedHints = this._register(new Emitter());
@@ -142,11 +143,11 @@ export class ParameterHintsModel extends Disposable {
             const result = await this.state.request;
             // Check that we are still resolving the correct signature help
             if (triggerId !== this.triggerId) {
-                result === null || result === void 0 ? void 0 : result.dispose();
+                result?.dispose();
                 return false;
             }
             if (!result || !result.value.signatures || result.value.signatures.length === 0) {
-                result === null || result === void 0 ? void 0 : result.dispose();
+                result?.dispose();
                 this._lastSignatureHelpResult.clear();
                 this.cancel();
                 return false;
@@ -239,7 +240,6 @@ export class ParameterHintsModel extends Disposable {
         super.dispose();
     }
 }
-ParameterHintsModel.DEFAULT_DELAY = 120; // ms
 function mergeTriggerContexts(previous, current) {
     switch (current.triggerKind) {
         case languages.SignatureHelpTriggerKind.Invoke:

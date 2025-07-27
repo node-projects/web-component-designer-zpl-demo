@@ -17,17 +17,15 @@ import { createInstantHoverDelegate } from '../hover/hoverDelegateFactory.js';
  */
 export class ToolBar extends Disposable {
     constructor(container, contextMenuProvider, options = { orientation: 0 /* ActionsOrientation.HORIZONTAL */ }) {
-        var _a;
         super();
         this.submenuActionViewItems = [];
         this.hasSecondaryActions = false;
         this._onDidChangeDropdownVisibility = this._register(new EventMultiplexer());
         this.onDidChangeDropdownVisibility = this._onDidChangeDropdownVisibility.event;
         this.disposables = this._register(new DisposableStore());
-        options.hoverDelegate = (_a = options.hoverDelegate) !== null && _a !== void 0 ? _a : this._register(createInstantHoverDelegate());
+        options.hoverDelegate = options.hoverDelegate ?? this._register(createInstantHoverDelegate());
         this.options = options;
-        this.lookupKeybindings = typeof this.options.getKeyBinding === 'function';
-        this.toggleMenuAction = this._register(new ToggleMenuAction(() => { var _a; return (_a = this.toggleMenuActionViewItem) === null || _a === void 0 ? void 0 : _a.show(); }, options.toggleMenuTitle));
+        this.toggleMenuAction = this._register(new ToggleMenuAction(() => this.toggleMenuActionViewItem?.show(), options.toggleMenuTitle));
         this.element = document.createElement('div');
         this.element.className = 'monaco-toolbar';
         container.appendChild(this.element);
@@ -39,13 +37,12 @@ export class ToolBar extends Disposable {
             highlightToggledItems: options.highlightToggledItems,
             hoverDelegate: options.hoverDelegate,
             actionViewItemProvider: (action, viewItemOptions) => {
-                var _a;
                 if (action.id === ToggleMenuAction.ID) {
                     this.toggleMenuActionViewItem = new DropdownMenuActionViewItem(action, action.menuActions, contextMenuProvider, {
                         actionViewItemProvider: this.options.actionViewItemProvider,
                         actionRunner: this.actionRunner,
                         keybindingProvider: this.options.getKeyBinding,
-                        classNames: ThemeIcon.asClassNameArray((_a = options.moreIcon) !== null && _a !== void 0 ? _a : Codicon.toolBarMore),
+                        classNames: ThemeIcon.asClassNameArray(options.moreIcon ?? Codicon.toolBarMore),
                         anchorAlignmentProvider: this.options.anchorAlignmentProvider,
                         menuAsChild: !!this.options.renderDropdownAsChildElement,
                         skipTelemetry: this.options.skipTelemetry,
@@ -104,13 +101,12 @@ export class ToolBar extends Disposable {
             primaryActionsToSet.push(this.toggleMenuAction);
         }
         primaryActionsToSet.forEach(action => {
-            this.actionBar.push(action, { icon: true, label: false, keybinding: this.getKeybindingLabel(action) });
+            this.actionBar.push(action, { icon: this.options.icon ?? true, label: this.options.label ?? false, keybinding: this.getKeybindingLabel(action) });
         });
     }
     getKeybindingLabel(action) {
-        var _a, _b, _c;
-        const key = this.lookupKeybindings ? (_b = (_a = this.options).getKeyBinding) === null || _b === void 0 ? void 0 : _b.call(_a, action) : undefined;
-        return (_c = key === null || key === void 0 ? void 0 : key.getLabel()) !== null && _c !== void 0 ? _c : undefined;
+        const key = this.options.getKeyBinding?.(action);
+        return key?.getLabel() ?? undefined;
     }
     clear() {
         this.submenuActionViewItems = [];
@@ -124,6 +120,7 @@ export class ToolBar extends Disposable {
     }
 }
 export class ToggleMenuAction extends Action {
+    static { this.ID = 'toolbar.toggle.more'; }
     constructor(toggleDropdownMenu, title) {
         title = title || nls.localize('moreActions', "More Actions...");
         super(ToggleMenuAction.ID, title, undefined, true);
@@ -140,4 +137,3 @@ export class ToggleMenuAction extends Action {
         this._menuActions = actions;
     }
 }
-ToggleMenuAction.ID = 'toolbar.toggle.more';

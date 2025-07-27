@@ -14,7 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 import { Emitter } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { autorunHandleChanges, derivedOpts, observableFromEvent } from '../../../../../base/common/observable.js';
-import { obsCodeEditor } from '../../../observableUtilities.js';
+import { observableCodeEditor } from '../../../observableCodeEditor.js';
 import { OverviewRulerFeature } from '../features/overviewRulerFeature.js';
 import { EditorOptions } from '../../../../common/config/editorOptions.js';
 import { Position } from '../../../../common/core/position.js';
@@ -35,12 +35,14 @@ let DiffEditorEditors = class DiffEditorEditors extends Disposable {
         this.original = this._register(this._createLeftHandSideEditor(this._options.editorOptions.get(), this._argCodeEditorWidgetOptions.originalEditor || {}));
         this.modified = this._register(this._createRightHandSideEditor(this._options.editorOptions.get(), this._argCodeEditorWidgetOptions.modifiedEditor || {}));
         this._onDidContentSizeChange = this._register(new Emitter());
-        this.modifiedScrollTop = observableFromEvent(this.modified.onDidScrollChange, () => /** @description modified.getScrollTop */ this.modified.getScrollTop());
-        this.modifiedScrollHeight = observableFromEvent(this.modified.onDidScrollChange, () => /** @description modified.getScrollHeight */ this.modified.getScrollHeight());
-        this.modifiedModel = obsCodeEditor(this.modified).model;
-        this.modifiedSelections = observableFromEvent(this.modified.onDidChangeCursorSelection, () => { var _a; return (_a = this.modified.getSelections()) !== null && _a !== void 0 ? _a : []; });
-        this.modifiedCursor = derivedOpts({ owner: this, equalsFn: Position.equals }, reader => { var _a, _b; return (_b = (_a = this.modifiedSelections.read(reader)[0]) === null || _a === void 0 ? void 0 : _a.getPosition()) !== null && _b !== void 0 ? _b : new Position(1, 1); });
-        this.originalCursor = observableFromEvent(this.original.onDidChangeCursorPosition, () => { var _a; return (_a = this.original.getPosition()) !== null && _a !== void 0 ? _a : new Position(1, 1); });
+        this.modifiedScrollTop = observableFromEvent(this, this.modified.onDidScrollChange, () => /** @description modified.getScrollTop */ this.modified.getScrollTop());
+        this.modifiedScrollHeight = observableFromEvent(this, this.modified.onDidScrollChange, () => /** @description modified.getScrollHeight */ this.modified.getScrollHeight());
+        this.modifiedObs = observableCodeEditor(this.modified);
+        this.originalObs = observableCodeEditor(this.original);
+        this.modifiedModel = this.modifiedObs.model;
+        this.modifiedSelections = observableFromEvent(this, this.modified.onDidChangeCursorSelection, () => this.modified.getSelections() ?? []);
+        this.modifiedCursor = derivedOpts({ owner: this, equalsFn: Position.equals }, reader => this.modifiedSelections.read(reader)[0]?.getPosition() ?? new Position(1, 1));
+        this.originalCursor = observableFromEvent(this, this.original.onDidChangeCursorPosition, () => this.original.getPosition() ?? new Position(1, 1));
         this._argCodeEditorWidgetOptions = null;
         this._register(autorunHandleChanges({
             createEmptyChangeSummary: () => ({}),
@@ -147,11 +149,10 @@ let DiffEditorEditors = class DiffEditorEditors extends Disposable {
         return clonedOptions;
     }
     _updateAriaLabel(ariaLabel) {
-        var _a;
         if (!ariaLabel) {
             ariaLabel = '';
         }
-        const ariaNavigationTip = localize('diff-aria-navigation-tip', ' use {0} to open the accessibility help.', (_a = this._keybindingService.lookupKeybinding('editor.action.accessibilityHelp')) === null || _a === void 0 ? void 0 : _a.getAriaLabel());
+        const ariaNavigationTip = localize('diff-aria-navigation-tip', ' use {0} to open the accessibility help.', this._keybindingService.lookupKeybinding('editor.action.accessibilityHelp')?.getAriaLabel());
         if (this._options.accessibilityVerbose.get()) {
             return ariaLabel + ariaNavigationTip;
         }

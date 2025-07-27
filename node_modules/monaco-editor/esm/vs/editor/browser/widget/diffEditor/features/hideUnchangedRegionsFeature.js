@@ -17,10 +17,11 @@ import { renderIcon, renderLabelWithIcons } from '../../../../../base/browser/ui
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { MarkdownString } from '../../../../../base/common/htmlContent.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
-import { autorun, derived, derivedWithStore, observableFromEvent, observableValue, transaction } from '../../../../../base/common/observable.js';
+import { autorun, derived, derivedWithStore, observableValue, transaction } from '../../../../../base/common/observable.js';
 import { derivedDisposable } from '../../../../../base/common/observableInternal/derived.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { isDefined } from '../../../../../base/common/types.js';
+import { observableCodeEditor } from '../../../observableCodeEditor.js';
 import { PlaceholderViewZone, ViewZoneOverlayWidget, applyObservableDecorations, applyStyle } from '../utils.js';
 import { LineRange } from '../../../../common/core/lineRange.js';
 import { Position } from '../../../../common/core/position.js';
@@ -31,7 +32,15 @@ import { IInstantiationService } from '../../../../../platform/instantiation/com
 /**
  * Make sure to add the view zones to the editor!
  */
-let HideUnchangedRegionsFeature = HideUnchangedRegionsFeature_1 = class HideUnchangedRegionsFeature extends Disposable {
+let HideUnchangedRegionsFeature = class HideUnchangedRegionsFeature extends Disposable {
+    static { HideUnchangedRegionsFeature_1 = this; }
+    static { this._breadcrumbsSourceFactory = observableValue(HideUnchangedRegionsFeature_1, () => ({
+        dispose() {
+        },
+        getBreadcrumbItems(startRange, reader) {
+            return [];
+        },
+    })); }
     static setBreadcrumbsSourceFactory(factory) {
         this._breadcrumbsSourceFactory.set(factory, undefined);
     }
@@ -55,8 +64,8 @@ let HideUnchangedRegionsFeature = HideUnchangedRegionsFeature_1 = class HideUnch
             const m = this._diffModel.get();
             transaction(tx => {
                 for (const s of this._editors.original.getSelections() || []) {
-                    m === null || m === void 0 ? void 0 : m.ensureOriginalLineIsVisible(s.getStartPosition().lineNumber, 0 /* RevealPreference.FromCloserSide */, tx);
-                    m === null || m === void 0 ? void 0 : m.ensureOriginalLineIsVisible(s.getEndPosition().lineNumber, 0 /* RevealPreference.FromCloserSide */, tx);
+                    m?.ensureOriginalLineIsVisible(s.getStartPosition().lineNumber, 0 /* RevealPreference.FromCloserSide */, tx);
+                    m?.ensureOriginalLineIsVisible(s.getEndPosition().lineNumber, 0 /* RevealPreference.FromCloserSide */, tx);
                 }
             });
         }));
@@ -67,15 +76,14 @@ let HideUnchangedRegionsFeature = HideUnchangedRegionsFeature_1 = class HideUnch
             const m = this._diffModel.get();
             transaction(tx => {
                 for (const s of this._editors.modified.getSelections() || []) {
-                    m === null || m === void 0 ? void 0 : m.ensureModifiedLineIsVisible(s.getStartPosition().lineNumber, 0 /* RevealPreference.FromCloserSide */, tx);
-                    m === null || m === void 0 ? void 0 : m.ensureModifiedLineIsVisible(s.getEndPosition().lineNumber, 0 /* RevealPreference.FromCloserSide */, tx);
+                    m?.ensureModifiedLineIsVisible(s.getStartPosition().lineNumber, 0 /* RevealPreference.FromCloserSide */, tx);
+                    m?.ensureModifiedLineIsVisible(s.getEndPosition().lineNumber, 0 /* RevealPreference.FromCloserSide */, tx);
                 }
             });
         }));
         const unchangedRegions = this._diffModel.map((m, reader) => {
-            var _a, _b;
-            const regions = (_a = m === null || m === void 0 ? void 0 : m.unchangedRegions.read(reader)) !== null && _a !== void 0 ? _a : [];
-            if (regions.length === 1 && regions[0].modifiedLineNumber === 1 && regions[0].lineCount === ((_b = this._editors.modifiedModel.read(reader)) === null || _b === void 0 ? void 0 : _b.getLineCount())) {
+            const regions = m?.unchangedRegions.read(reader) ?? [];
+            if (regions.length === 1 && regions[0].modifiedLineNumber === 1 && regions[0].lineCount === this._editors.modifiedModel.read(reader)?.getLineCount()) {
                 return [];
             }
             return regions;
@@ -89,22 +97,43 @@ let HideUnchangedRegionsFeature = HideUnchangedRegionsFeature_1 = class HideUnch
             const origViewZones = [];
             const modViewZones = [];
             const sideBySide = this._options.renderSideBySide.read(reader);
+            const compactMode = this._options.compactMode.read(reader);
             const curUnchangedRegions = unchangedRegions.read(reader);
-            for (const r of curUnchangedRegions) {
+            for (let i = 0; i < curUnchangedRegions.length; i++) {
+                const r = curUnchangedRegions[i];
                 if (r.shouldHideControls(reader)) {
                     continue;
                 }
-                {
-                    const d = derived(this, reader => /** @description hiddenOriginalRangeStart */ r.getHiddenOriginalRange(reader).startLineNumber - 1);
-                    const origVz = new PlaceholderViewZone(d, 24);
-                    origViewZones.push(origVz);
-                    store.add(new CollapsedCodeOverlayWidget(this._editors.original, origVz, r, r.originalUnchangedRange, !sideBySide, modifiedOutlineSource, l => this._diffModel.get().ensureModifiedLineIsVisible(l, 2 /* RevealPreference.FromBottom */, undefined), this._options));
+                if (compactMode && (i === 0 || i === curUnchangedRegions.length - 1)) {
+                    continue;
                 }
-                {
-                    const d = derived(this, reader => /** @description hiddenModifiedRangeStart */ r.getHiddenModifiedRange(reader).startLineNumber - 1);
-                    const modViewZone = new PlaceholderViewZone(d, 24);
-                    modViewZones.push(modViewZone);
-                    store.add(new CollapsedCodeOverlayWidget(this._editors.modified, modViewZone, r, r.modifiedUnchangedRange, false, modifiedOutlineSource, l => this._diffModel.get().ensureModifiedLineIsVisible(l, 2 /* RevealPreference.FromBottom */, undefined), this._options));
+                if (compactMode) {
+                    {
+                        const d = derived(this, reader => /** @description hiddenOriginalRangeStart */ r.getHiddenOriginalRange(reader).startLineNumber - 1);
+                        const origVz = new PlaceholderViewZone(d, 12);
+                        origViewZones.push(origVz);
+                        store.add(new CompactCollapsedCodeOverlayWidget(this._editors.original, origVz, r, !sideBySide));
+                    }
+                    {
+                        const d = derived(this, reader => /** @description hiddenModifiedRangeStart */ r.getHiddenModifiedRange(reader).startLineNumber - 1);
+                        const modViewZone = new PlaceholderViewZone(d, 12);
+                        modViewZones.push(modViewZone);
+                        store.add(new CompactCollapsedCodeOverlayWidget(this._editors.modified, modViewZone, r));
+                    }
+                }
+                else {
+                    {
+                        const d = derived(this, reader => /** @description hiddenOriginalRangeStart */ r.getHiddenOriginalRange(reader).startLineNumber - 1);
+                        const origVz = new PlaceholderViewZone(d, 24);
+                        origViewZones.push(origVz);
+                        store.add(new CollapsedCodeOverlayWidget(this._editors.original, origVz, r, r.originalUnchangedRange, !sideBySide, modifiedOutlineSource, l => this._diffModel.get().ensureModifiedLineIsVisible(l, 2 /* RevealPreference.FromBottom */, undefined), this._options));
+                    }
+                    {
+                        const d = derived(this, reader => /** @description hiddenModifiedRangeStart */ r.getHiddenModifiedRange(reader).startLineNumber - 1);
+                        const modViewZone = new PlaceholderViewZone(d, 24);
+                        modViewZones.push(modViewZone);
+                        store.add(new CollapsedCodeOverlayWidget(this._editors.modified, modViewZone, r, r.modifiedUnchangedRange, false, modifiedOutlineSource, l => this._diffModel.get().ensureModifiedLineIsVisible(l, 2 /* RevealPreference.FromBottom */, undefined), this._options));
+                    }
                 }
             }
             return { origViewZones, modViewZones, };
@@ -168,8 +197,7 @@ let HideUnchangedRegionsFeature = HideUnchangedRegionsFeature_1 = class HideUnch
             }
         }));
         this._register(this._editors.modified.onMouseUp(event => {
-            var _a;
-            if (!event.event.rightButton && event.target.position && ((_a = event.target.element) === null || _a === void 0 ? void 0 : _a.className.includes('fold-unchanged'))) {
+            if (!event.event.rightButton && event.target.position && event.target.element?.className.includes('fold-unchanged')) {
                 const lineNumber = event.target.position.lineNumber;
                 const model = this._diffModel.get();
                 if (!model) {
@@ -185,8 +213,7 @@ let HideUnchangedRegionsFeature = HideUnchangedRegionsFeature_1 = class HideUnch
             }
         }));
         this._register(this._editors.original.onMouseUp(event => {
-            var _a;
-            if (!event.event.rightButton && event.target.position && ((_a = event.target.element) === null || _a === void 0 ? void 0 : _a.className.includes('fold-unchanged'))) {
+            if (!event.event.rightButton && event.target.position && event.target.element?.className.includes('fold-unchanged')) {
                 const lineNumber = event.target.position.lineNumber;
                 const model = this._diffModel.get();
                 if (!model) {
@@ -203,11 +230,35 @@ let HideUnchangedRegionsFeature = HideUnchangedRegionsFeature_1 = class HideUnch
         }));
     }
 };
-HideUnchangedRegionsFeature._breadcrumbsSourceFactory = observableValue('breadcrumbsSourceFactory', undefined);
 HideUnchangedRegionsFeature = HideUnchangedRegionsFeature_1 = __decorate([
     __param(3, IInstantiationService)
 ], HideUnchangedRegionsFeature);
 export { HideUnchangedRegionsFeature };
+class CompactCollapsedCodeOverlayWidget extends ViewZoneOverlayWidget {
+    constructor(editor, _viewZone, _unchangedRegion, _hide = false) {
+        const root = h('div.diff-hidden-lines-widget');
+        super(editor, _viewZone, root.root);
+        this._unchangedRegion = _unchangedRegion;
+        this._hide = _hide;
+        this._nodes = h('div.diff-hidden-lines-compact', [
+            h('div.line-left', []),
+            h('div.text@text', []),
+            h('div.line-right', [])
+        ]);
+        root.root.appendChild(this._nodes.root);
+        if (this._hide) {
+            this._nodes.root.replaceChildren();
+        }
+        this._register(autorun(reader => {
+            /** @description update labels */
+            if (!this._hide) {
+                const lineCount = this._unchangedRegion.getHiddenModifiedRange(reader).length;
+                const linesHiddenText = localize('hiddenLines', '{0} hidden lines', lineCount);
+                this._nodes.text.innerText = linesHiddenText;
+            }
+        }));
+    }
+}
 class CollapsedCodeOverlayWidget extends ViewZoneOverlayWidget {
     constructor(_editor, _viewZone, _unchangedRegion, _unchangedRegionRange, _hide, _modifiedOutlineSource, _revealModifiedHiddenLine, _options) {
         const root = h('div.diff-hidden-lines-widget');
@@ -228,9 +279,8 @@ class CollapsedCodeOverlayWidget extends ViewZoneOverlayWidget {
             h('div.bottom@bottom', { title: localize('diff.bottom', 'Click or drag to show more below'), role: 'button' }),
         ]);
         root.root.appendChild(this._nodes.root);
-        const layoutInfo = observableFromEvent(this._editor.onDidLayoutChange, () => this._editor.getLayoutInfo());
         if (!this._hide) {
-            this._register(applyStyle(this._nodes.first, { width: layoutInfo.map((l) => l.contentLeft) }));
+            this._register(applyStyle(this._nodes.first, { width: observableCodeEditor(this._editor).layoutInfoContentLeft }));
         }
         else {
             reset(this._nodes.first);

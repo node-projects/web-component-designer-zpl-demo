@@ -30,6 +30,7 @@ import { asCommandLink } from './inlayHints.js';
 import { isNonEmptyArray } from '../../../../base/common/arrays.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 class InlayHintsHoverAnchor extends HoverForeignElementAnchor {
     constructor(part, owner, initialMousePosX, initialMousePosY) {
         super(10, owner, part.item.anchor.range, initialMousePosX, initialMousePosY, true);
@@ -37,13 +38,12 @@ class InlayHintsHoverAnchor extends HoverForeignElementAnchor {
     }
 }
 let InlayHintsHover = class InlayHintsHover extends MarkdownHoverParticipant {
-    constructor(editor, languageService, openerService, keybindingService, hoverService, configurationService, _resolverService, languageFeaturesService) {
-        super(editor, languageService, openerService, configurationService, languageFeaturesService, keybindingService, hoverService);
+    constructor(editor, languageService, openerService, keybindingService, hoverService, configurationService, _resolverService, languageFeaturesService, commandService) {
+        super(editor, languageService, openerService, configurationService, languageFeaturesService, keybindingService, hoverService, commandService);
         this._resolverService = _resolverService;
         this.hoverOrdinal = 6;
     }
     suggestHoverAnchor(mouseEvent) {
-        var _a;
         const controller = InlayHintsController.get(this._editor);
         if (!controller) {
             return null;
@@ -51,7 +51,7 @@ let InlayHintsHover = class InlayHintsHover extends MarkdownHoverParticipant {
         if (mouseEvent.target.type !== 6 /* MouseTargetType.CONTENT_TEXT */) {
             return null;
         }
-        const options = (_a = mouseEvent.target.detail.injectedText) === null || _a === void 0 ? void 0 : _a.options;
+        const options = mouseEvent.target.detail.injectedText?.options;
         if (!(options instanceof ModelDecorationInjectedTextOptions && options.attachedData instanceof RenderedInlayHintLabelPart)) {
             return null;
         }
@@ -154,6 +154,7 @@ InlayHintsHover = __decorate([
     __param(4, IHoverService),
     __param(5, IConfigurationService),
     __param(6, ITextModelService),
-    __param(7, ILanguageFeaturesService)
+    __param(7, ILanguageFeaturesService),
+    __param(8, ICommandService)
 ], InlayHintsHover);
 export { InlayHintsHover };

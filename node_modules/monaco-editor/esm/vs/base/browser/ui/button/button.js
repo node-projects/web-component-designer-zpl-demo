@@ -138,7 +138,6 @@ export class Button extends Disposable {
         return this._element;
     }
     set label(value) {
-        var _a;
         if (this._label === value) {
             return;
         }
@@ -151,7 +150,7 @@ export class Button extends Disposable {
             const rendered = renderMarkdown(value, { inline: true });
             rendered.dispose();
             // Don't include outer `<p>`
-            const root = (_a = rendered.element.querySelector('p')) === null || _a === void 0 ? void 0 : _a.innerHTML;
+            const root = rendered.element.querySelector('p')?.innerHTML;
             if (root) {
                 // Only allow a very limited set of inline html tags
                 const sanitized = sanitize(root, { ADD_TAGS: ['b', 'i', 'u', 'code', 'span'], ALLOWED_ATTR: ['class'], RETURN_TRUSTED_TYPE: true });
@@ -206,9 +205,8 @@ export class Button extends Disposable {
         return !this._element.classList.contains('disabled');
     }
     setTitle(title) {
-        var _a;
         if (!this._hover && title !== '') {
-            this._hover = this._register(getBaseLayerHoverDelegate().setupUpdatableHover((_a = this.options.hoverDelegate) !== null && _a !== void 0 ? _a : getDefaultHoverDelegate('mouse'), this._element, title));
+            this._hover = this._register(getBaseLayerHoverDelegate().setupManagedHover(this.options.hoverDelegate ?? getDefaultHoverDelegate('mouse'), this._element, title));
         }
         else if (this._hover) {
             this._hover.update(title);

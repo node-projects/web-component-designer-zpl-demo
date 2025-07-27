@@ -100,7 +100,7 @@ export class FontMeasurementsImpl extends Disposable {
     _createRequest(chr, type, all, monospace) {
         const result = new CharWidthRequest(chr, type);
         all.push(result);
-        monospace === null || monospace === void 0 ? void 0 : monospace.push(result);
+        monospace?.push(result);
         return result;
     }
     _actualReadFontInfo(targetWindow, bareFontInfo) {

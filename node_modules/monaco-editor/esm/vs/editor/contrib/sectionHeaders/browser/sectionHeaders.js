@@ -18,6 +18,7 @@ import { ILanguageConfigurationService } from '../../../common/languages/languag
 import { ModelDecorationOptions } from '../../../common/model/textModel.js';
 import { IEditorWorkerService } from '../../../common/services/editorWorker.js';
 let SectionHeaderDetector = class SectionHeaderDetector extends Disposable {
+    static { this.ID = 'editor.sectionHeaderDetector'; }
     constructor(editor, languageConfigurationService, editorWorkerService) {
         super();
         this.editor = editor;
@@ -40,8 +41,7 @@ let SectionHeaderDetector = class SectionHeaderDetector extends Disposable {
             this.computeSectionHeaders.schedule(0);
         }));
         this._register(languageConfigurationService.onDidChange((e) => {
-            var _a;
-            const editorLanguageId = (_a = this.editor.getModel()) === null || _a === void 0 ? void 0 : _a.getLanguageId();
+            const editorLanguageId = this.editor.getModel()?.getLanguageId();
             if (editorLanguageId && e.affects(editorLanguageId)) {
                 this.currentOccurrences = {};
                 this.options = this.createOptions(editor.getOption(73 /* EditorOption.minimap */));
@@ -84,7 +84,7 @@ let SectionHeaderDetector = class SectionHeaderDetector extends Disposable {
         }
         const commentsConfiguration = this.languageConfigurationService.getLanguageConfiguration(languageId).comments;
         const foldingRules = this.languageConfigurationService.getLanguageConfiguration(languageId).foldingRules;
-        if (!commentsConfiguration && !(foldingRules === null || foldingRules === void 0 ? void 0 : foldingRules.markers)) {
+        if (!commentsConfiguration && !foldingRules?.markers) {
             return undefined;
         }
         return {
@@ -94,9 +94,8 @@ let SectionHeaderDetector = class SectionHeaderDetector extends Disposable {
         };
     }
     findSectionHeaders() {
-        var _a, _b;
         if (!this.editor.hasModel()
-            || (!((_a = this.options) === null || _a === void 0 ? void 0 : _a.findMarkSectionHeaders) && !((_b = this.options) === null || _b === void 0 ? void 0 : _b.findRegionSectionHeaders))) {
+            || (!this.options?.findMarkSectionHeaders && !this.options?.findRegionSectionHeaders)) {
             return;
         }
         const model = this.editor.getModel();
@@ -153,7 +152,6 @@ let SectionHeaderDetector = class SectionHeaderDetector extends Disposable {
         this.decorations.clear();
     }
 };
-SectionHeaderDetector.ID = 'editor.sectionHeaderDetector';
 SectionHeaderDetector = __decorate([
     __param(1, ILanguageConfigurationService),
     __param(2, IEditorWorkerService)

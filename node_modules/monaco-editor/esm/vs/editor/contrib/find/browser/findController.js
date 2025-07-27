@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var CommonFindController_1;
 import { Delayer } from '../../../../base/common/async.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import * as strings from '../../../../base/common/strings.js';
 import { EditorAction, EditorCommand, MultiEditorAction, registerEditorAction, registerEditorCommand, registerEditorContribution, registerMultiEditorAction } from '../../../browser/editorExtensions.js';
 import { overviewRulerRangeHighlight } from '../../../common/core/editorColorRegistry.js';
@@ -57,7 +57,9 @@ export function getSelectionSearchString(editor, seedSearchStringFromSelection =
     }
     return null;
 }
-let CommonFindController = CommonFindController_1 = class CommonFindController extends Disposable {
+let CommonFindController = class CommonFindController extends Disposable {
+    static { CommonFindController_1 = this; }
+    static { this.ID = 'editor.contrib.findController'; }
     get editor() {
         return this._editor;
     }
@@ -305,9 +307,8 @@ let CommonFindController = CommonFindController_1 = class CommonFindController e
         return false;
     }
     replaceAll() {
-        var _a;
         if (this._model) {
-            if ((_a = this._editor.getModel()) === null || _a === void 0 ? void 0 : _a.isTooLargeForHeapOperation()) {
+            if (this._editor.getModel()?.isTooLargeForHeapOperation()) {
                 this._notificationService.warn(nls.localize('too.large.for.replaceall', "The file is too large to perform a replace all operation."));
                 return false;
             }
@@ -341,7 +342,6 @@ let CommonFindController = CommonFindController_1 = class CommonFindController e
         }
     }
 };
-CommonFindController.ID = 'editor.contrib.findController';
 CommonFindController = CommonFindController_1 = __decorate([
     __param(1, IContextKeyService),
     __param(2, IStorageService),
@@ -506,7 +506,7 @@ export class StartFindWithArgsAction extends EditorAction {
                 seedSearchStringFromGlobalClipboard: true,
                 shouldFocus: 1 /* FindStartFocusAction.FocusFindInput */,
                 shouldAnimate: true,
-                updateSearchScope: (args === null || args === void 0 ? void 0 : args.findInSelection) || false,
+                updateSearchScope: args?.findInSelection || false,
                 loop: editor.getOption(41 /* EditorOption.find */).loop
             }, newState);
             controller.setGlobalBufferTerm(controller.getState().searchString);
@@ -642,7 +642,8 @@ export class MoveToMatchFindAction extends EditorAction {
             return;
         }
         const quickInputService = accessor.get(IQuickInputService);
-        const inputBox = quickInputService.createInputBox();
+        const disposables = new DisposableStore();
+        const inputBox = disposables.add(quickInputService.createInputBox());
         inputBox.placeholder = nls.localize('findMatchAction.inputPlaceHolder', "Type a number to go to a specific match (between 1 and {0})", matchesCount);
         const toFindMatchIndex = (value) => {
             const index = parseInt(value);
@@ -674,10 +675,10 @@ export class MoveToMatchFindAction extends EditorAction {
                 this.clearDecorations(editor);
             }
         };
-        inputBox.onDidChangeValue(value => {
+        disposables.add(inputBox.onDidChangeValue(value => {
             updatePickerAndEditor(value);
-        });
-        inputBox.onDidAccept(() => {
+        }));
+        disposables.add(inputBox.onDidAccept(() => {
             const index = toFindMatchIndex(inputBox.value);
             if (typeof index === 'number') {
                 controller.goToMatch(index);
@@ -686,11 +687,11 @@ export class MoveToMatchFindAction extends EditorAction {
             else {
                 inputBox.validationMessage = nls.localize('findMatchAction.inputValidationMessage', "Please type a number between 1 and {0}", controller.getState().matchesCount);
             }
-        });
-        inputBox.onDidHide(() => {
+        }));
+        disposables.add(inputBox.onDidHide(() => {
             this.clearDecorations(editor);
-            inputBox.dispose();
-        });
+            disposables.dispose();
+        }));
         inputBox.show();
     }
     clearDecorations(editor) {
@@ -803,7 +804,7 @@ export const StartFindReplaceAction = registerMultiEditorAction(new MultiEditorA
     }
 }));
 StartFindReplaceAction.addImplementation(0, (accessor, editor, args) => {
-    if (!editor.hasModel() || editor.getOption(91 /* EditorOption.readOnly */)) {
+    if (!editor.hasModel() || editor.getOption(92 /* EditorOption.readOnly */)) {
         return false;
     }
     const controller = CommonFindController.get(editor);

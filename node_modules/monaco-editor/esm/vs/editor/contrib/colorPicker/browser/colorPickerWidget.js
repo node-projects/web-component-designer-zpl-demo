@@ -342,12 +342,15 @@ export class ColorPickerWidget extends Widget {
         this.model = model;
         this.pixelRatio = pixelRatio;
         this._register(PixelRatio.getInstance(dom.getWindow(container)).onDidChange(() => this.layout()));
-        const element = $('.colorpicker-widget');
-        container.appendChild(element);
-        this.header = this._register(new ColorPickerHeader(element, this.model, themeService, standaloneColorPicker));
-        this.body = this._register(new ColorPickerBody(element, this.model, this.pixelRatio, standaloneColorPicker));
+        this._domNode = $('.colorpicker-widget');
+        container.appendChild(this._domNode);
+        this.header = this._register(new ColorPickerHeader(this._domNode, this.model, themeService, standaloneColorPicker));
+        this.body = this._register(new ColorPickerBody(this._domNode, this.model, this.pixelRatio, standaloneColorPicker));
     }
     layout() {
         this.body.layout();
+    }
+    get domNode() {
+        return this._domNode;
     }
 }

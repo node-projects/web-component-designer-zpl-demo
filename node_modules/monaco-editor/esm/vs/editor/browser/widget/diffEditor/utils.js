@@ -4,9 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 import { findLast } from '../../../../base/common/arraysFind.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
-import { isHotReloadEnabled, registerHotReloadHandler } from '../../../../base/common/hotReload.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
-import { autorun, autorunHandleChanges, autorunOpts, autorunWithStore, observableSignalFromEvent, observableValue, transaction } from '../../../../base/common/observable.js';
+import { autorun, autorunHandleChanges, autorunOpts, autorunWithStore, observableValue, transaction } from '../../../../base/common/observable.js';
 import { ElementSizeObserver } from '../../config/elementSizeObserver.js';
 import { Position } from '../../../common/core/position.js';
 import { Range } from '../../../common/core/range.js';
@@ -68,20 +67,22 @@ export function applyObservableDecorations(editor, decorations) {
 export function appendRemoveOnDispose(parent, child) {
     parent.appendChild(child);
     return toDisposable(() => {
-        parent.removeChild(child);
+        child.remove();
     });
 }
 export function prependRemoveOnDispose(parent, child) {
     parent.prepend(child);
     return toDisposable(() => {
-        parent.removeChild(child);
+        child.remove();
     });
 }
 export class ObservableElementSizeObserver extends Disposable {
     get width() { return this._width; }
     get height() { return this._height; }
+    get automaticLayout() { return this._automaticLayout; }
     constructor(element, dimension) {
         super();
+        this._automaticLayout = false;
         this.elementSizeObserver = this._register(new ElementSizeObserver(element, dimension));
         this._width = observableValue(this, this.elementSizeObserver.getWidth());
         this._height = observableValue(this, this.elementSizeObserver.getHeight());
@@ -95,6 +96,7 @@ export class ObservableElementSizeObserver extends Disposable {
         this.elementSizeObserver.observe(dimension);
     }
     setAutomaticLayout(automaticLayout) {
+        this._automaticLayout = automaticLayout;
         if (automaticLayout) {
             this.elementSizeObserver.startObserving();
         }
@@ -177,6 +179,7 @@ export class PlaceholderViewZone {
     }
 }
 export class ManagedOverlayWidget {
+    static { this._counter = 0; }
     constructor(_editor, _domElement) {
         this._editor = _editor;
         this._domElement = _domElement;
@@ -192,7 +195,6 @@ export class ManagedOverlayWidget {
         this._editor.removeOverlayWidget(this._overlayWidget);
     }
 }
-ManagedOverlayWidget._counter = 0;
 export function applyStyle(domNode, style) {
     return autorun(reader => {
         /** @description applyStyle */
@@ -207,24 +209,6 @@ export function applyStyle(domNode, style) {
             domNode.style[key] = val;
         }
     });
-}
-export function readHotReloadableExport(value, reader) {
-    observeHotReloadableExports([value], reader);
-    return value;
-}
-export function observeHotReloadableExports(values, reader) {
-    if (isHotReloadEnabled()) {
-        const o = observableSignalFromEvent('reload', event => registerHotReloadHandler(({ oldExports }) => {
-            if (![...Object.values(oldExports)].some(v => values.includes(v))) {
-                return undefined;
-            }
-            return (_newExports) => {
-                event(undefined);
-                return true;
-            };
-        }));
-        o.read(reader);
-    }
 }
 export function applyViewZones(editor, viewZones, setIsUpdating, zoneIds) {
     const store = new DisposableStore();
@@ -241,7 +225,7 @@ export function applyViewZones(editor, viewZones, setIsUpdating, zoneIds) {
         editor.changeViewZones(a => {
             for (const id of lastViewZoneIds) {
                 a.removeZone(id);
-                zoneIds === null || zoneIds === void 0 ? void 0 : zoneIds.delete(id);
+                zoneIds?.delete(id);
             }
             lastViewZoneIds.length = 0;
             for (const z of curViewZones) {
@@ -250,7 +234,7 @@ export function applyViewZones(editor, viewZones, setIsUpdating, zoneIds) {
                     z.setZoneId(id);
                 }
                 lastViewZoneIds.push(id);
-                zoneIds === null || zoneIds === void 0 ? void 0 : zoneIds.add(id);
+                zoneIds?.add(id);
                 viewZonIdsPerViewZone.set(z, id);
             }
         });
@@ -296,7 +280,7 @@ export function applyViewZones(editor, viewZones, setIsUpdating, zoneIds) {
             editor.changeViewZones(a => { for (const id of lastViewZoneIds) {
                 a.removeZone(id);
             } });
-            zoneIds === null || zoneIds === void 0 ? void 0 : zoneIds.clear();
+            zoneIds?.clear();
             if (setIsUpdating) {
                 setIsUpdating(false);
             }
@@ -344,12 +328,6 @@ function lengthBetweenPositions(position1, position2) {
         return new TextLength(position2.lineNumber - position1.lineNumber, position2.column - 1);
     }
 }
-export function bindContextKey(key, service, computeValue) {
-    const boundKey = key.bindTo(service);
-    return autorunOpts({ debugName: () => `Set Context Key "${key.key}"` }, reader => {
-        boundKey.set(computeValue(reader));
-    });
-}
 export function filterWithPrevious(arr, filter) {
     let prev;
     return arr.filter(cur => {
@@ -357,4 +335,79 @@ export function filterWithPrevious(arr, filter) {
         prev = cur;
         return result;
     });
+}
+export class RefCounted {
+    static create(value, debugOwner = undefined) {
+        return new BaseRefCounted(value, value, debugOwner);
+    }
+    static createWithDisposable(value, disposable, debugOwner = undefined) {
+        const store = new DisposableStore();
+        store.add(disposable);
+        store.add(value);
+        return new BaseRefCounted(value, store, debugOwner);
+    }
+}
+class BaseRefCounted extends RefCounted {
+    constructor(object, _disposable, _debugOwner) {
+        super();
+        this.object = object;
+        this._disposable = _disposable;
+        this._debugOwner = _debugOwner;
+        this._refCount = 1;
+        this._isDisposed = false;
+        this._owners = [];
+        if (_debugOwner) {
+            this._addOwner(_debugOwner);
+        }
+    }
+    _addOwner(debugOwner) {
+        if (debugOwner) {
+            this._owners.push(debugOwner);
+        }
+    }
+    createNewRef(debugOwner) {
+        this._refCount++;
+        if (debugOwner) {
+            this._addOwner(debugOwner);
+        }
+        return new ClonedRefCounted(this, debugOwner);
+    }
+    dispose() {
+        if (this._isDisposed) {
+            return;
+        }
+        this._isDisposed = true;
+        this._decreaseRefCount(this._debugOwner);
+    }
+    _decreaseRefCount(debugOwner) {
+        this._refCount--;
+        if (this._refCount === 0) {
+            this._disposable.dispose();
+        }
+        if (debugOwner) {
+            const idx = this._owners.indexOf(debugOwner);
+            if (idx !== -1) {
+                this._owners.splice(idx, 1);
+            }
+        }
+    }
+}
+class ClonedRefCounted extends RefCounted {
+    constructor(_base, _debugOwner) {
+        super();
+        this._base = _base;
+        this._debugOwner = _debugOwner;
+        this._isDisposed = false;
+    }
+    get object() { return this._base.object; }
+    createNewRef(debugOwner) {
+        return this._base.createNewRef(debugOwner);
+    }
+    dispose() {
+        if (this._isDisposed) {
+            return;
+        }
+        this._isDisposed = true;
+        this._base._decreaseRefCount(this._debugOwner);
+    }
 }

@@ -18,8 +18,7 @@ export function autorun(fn) {
  * {@link fn} should start with a JS Doc using `@description` to name the autorun.
  */
 export function autorunOpts(options, fn) {
-    var _a;
-    return new AutorunObserver(new DebugNameData(options.owner, options.debugName, (_a = options.debugReferenceFn) !== null && _a !== void 0 ? _a : fn), fn, undefined, undefined);
+    return new AutorunObserver(new DebugNameData(options.owner, options.debugName, options.debugReferenceFn ?? fn), fn, undefined, undefined);
 }
 /**
  * Runs immediately and whenever a transaction ends and an observed observable changed.
@@ -33,8 +32,27 @@ export function autorunOpts(options, fn) {
  * @see autorun
  */
 export function autorunHandleChanges(options, fn) {
-    var _a;
-    return new AutorunObserver(new DebugNameData(options.owner, options.debugName, (_a = options.debugReferenceFn) !== null && _a !== void 0 ? _a : fn), fn, options.createEmptyChangeSummary, options.handleChange);
+    return new AutorunObserver(new DebugNameData(options.owner, options.debugName, options.debugReferenceFn ?? fn), fn, options.createEmptyChangeSummary, options.handleChange);
+}
+/**
+ * @see autorunHandleChanges (but with a disposable store that is cleared before the next run or on dispose)
+ */
+export function autorunWithStoreHandleChanges(options, fn) {
+    const store = new DisposableStore();
+    const disposable = autorunHandleChanges({
+        owner: options.owner,
+        debugName: options.debugName,
+        debugReferenceFn: options.debugReferenceFn ?? fn,
+        createEmptyChangeSummary: options.createEmptyChangeSummary,
+        handleChange: options.handleChange,
+    }, (reader, changeSummary) => {
+        store.clear();
+        fn(reader, changeSummary, store);
+    });
+    return toDisposable(() => {
+        disposable.dispose();
+        store.dispose();
+    });
 }
 /**
  * @see autorun (but with a disposable store that is cleared before the next run or on dispose)
@@ -56,11 +74,9 @@ export function autorunWithStore(fn) {
 }
 export class AutorunObserver {
     get debugName() {
-        var _a;
-        return (_a = this._debugNameData.getDebugName(this)) !== null && _a !== void 0 ? _a : '(anonymous)';
+        return this._debugNameData.getDebugName(this) ?? '(anonymous)';
     }
     constructor(_debugNameData, _runFn, createChangeSummary, _handleChange) {
-        var _a, _b;
         this._debugNameData = _debugNameData;
         this._runFn = _runFn;
         this.createChangeSummary = createChangeSummary;
@@ -70,8 +86,8 @@ export class AutorunObserver {
         this.disposed = false;
         this.dependencies = new Set();
         this.dependenciesToBeRemoved = new Set();
-        this.changeSummary = (_a = this.createChangeSummary) === null || _a === void 0 ? void 0 : _a.call(this);
-        (_b = getLogger()) === null || _b === void 0 ? void 0 : _b.handleAutorunCreated(this);
+        this.changeSummary = this.createChangeSummary?.();
+        getLogger()?.handleAutorunCreated(this);
         this._runIfNeeded();
         trackDisposable(this);
     }
@@ -84,7 +100,6 @@ export class AutorunObserver {
         markAsDisposed(this);
     }
     _runIfNeeded() {
-        var _a, _b, _c;
         if (this.state === 3 /* AutorunState.upToDate */) {
             return;
         }
@@ -95,15 +110,15 @@ export class AutorunObserver {
         const isDisposed = this.disposed;
         try {
             if (!isDisposed) {
-                (_a = getLogger()) === null || _a === void 0 ? void 0 : _a.handleAutorunTriggered(this);
+                getLogger()?.handleAutorunTriggered(this);
                 const changeSummary = this.changeSummary;
-                this.changeSummary = (_b = this.createChangeSummary) === null || _b === void 0 ? void 0 : _b.call(this);
+                this.changeSummary = this.createChangeSummary?.();
                 this._runFn(this, changeSummary);
             }
         }
         finally {
             if (!isDisposed) {
-                (_c = getLogger()) === null || _c === void 0 ? void 0 : _c.handleAutorunFinished(this);
+                getLogger()?.handleAutorunFinished(this);
             }
             // We don't want our observed observables to think that they are (not even temporarily) not being observed.
             // Thus, we only unsubscribe from observables that are definitely not read anymore.
@@ -152,7 +167,7 @@ export class AutorunObserver {
             const shouldReact = this._handleChange ? this._handleChange({
                 changedObservable: observable,
                 change,
-                didChange: o => o === observable,
+                didChange: (o) => o === observable,
             }, this.changeSummary) : true;
             if (shouldReact) {
                 this.state = 2 /* AutorunState.stale */;

@@ -23,7 +23,7 @@ export class RevertButtonsFeature extends Disposable {
         this._selectedDiffs = derived(this, (reader) => {
             /** @description selectedDiffs */
             const model = this._diffModel.read(reader);
-            const diff = model === null || model === void 0 ? void 0 : model.diff.read(reader);
+            const diff = model?.diff.read(reader);
             // Return `emptyArr` because it is a constant. [] is always a new array and would trigger a change.
             if (!diff) {
                 return emptyArr;
@@ -48,7 +48,7 @@ export class RevertButtonsFeature extends Disposable {
                 return;
             }
             const model = this._diffModel.read(reader);
-            const diff = model === null || model === void 0 ? void 0 : model.diff.read(reader);
+            const diff = model?.diff.read(reader);
             if (!model || !diff) {
                 return;
             }
@@ -84,6 +84,7 @@ export class RevertButtonsFeature extends Disposable {
     }
 }
 export class RevertButton extends Disposable {
+    static { this.counter = 0; }
     getId() { return this._id; }
     constructor(_lineNumber, _widget, _diffs, _revertSelection) {
         super();
@@ -141,4 +142,3 @@ export class RevertButton extends Disposable {
         };
     }
 }
-RevertButton.counter = 0;

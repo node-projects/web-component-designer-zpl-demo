@@ -56,6 +56,7 @@ export class OverlayWidgetDelegate {
     }
 }
 class Arrow {
+    static { this._IdGenerator = new IdGenerator('.arrow-decoration-'); }
     constructor(_editor) {
         this._editor = _editor;
         this._ruleName = Arrow._IdGenerator.nextId();
@@ -101,7 +102,6 @@ class Arrow {
         this._decorations.clear();
     }
 }
-Arrow._IdGenerator = new IdGenerator('.arrow-decoration-');
 export class ZoneWidget {
     constructor(editor, options = {}) {
         this._arrow = null;
@@ -193,7 +193,6 @@ export class ZoneWidget {
         this.domNode.style.top = top + 'px';
     }
     _onViewZoneHeight(height) {
-        var _a;
         this.domNode.style.height = `${height}px`;
         if (this.container) {
             const containerHeight = height - this._decoratingElementsHeight();
@@ -201,7 +200,7 @@ export class ZoneWidget {
             const layoutInfo = this.editor.getLayoutInfo();
             this._doLayout(containerHeight, this._getWidth(layoutInfo));
         }
-        (_a = this._resizeSash) === null || _a === void 0 ? void 0 : _a.layout();
+        this._resizeSash?.layout();
     }
     get position() {
         const range = this._positionMarkerId.getRange(0);
@@ -218,7 +217,6 @@ export class ZoneWidget {
         this._positionMarkerId.set([{ range, options: ModelDecorationOptions.EMPTY }]);
     }
     hide() {
-        var _a;
         if (this._viewZone) {
             this.editor.changeViewZones(accessor => {
                 if (this._viewZone) {
@@ -231,7 +229,7 @@ export class ZoneWidget {
             this.editor.removeOverlayWidget(this._overlayWidget);
             this._overlayWidget = null;
         }
-        (_a = this._arrow) === null || _a === void 0 ? void 0 : _a.hide();
+        this._arrow?.hide();
         this._positionMarkerId.clear();
     }
     _decoratingElementsHeight() {

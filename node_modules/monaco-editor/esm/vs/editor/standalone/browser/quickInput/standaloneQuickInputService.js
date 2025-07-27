@@ -84,17 +84,18 @@ let StandaloneQuickInputService = class StandaloneQuickInputService {
         }
         return quickInputService;
     }
+    get currentQuickInput() { return this.activeService.currentQuickInput; }
     get quickAccess() { return this.activeService.quickAccess; }
     constructor(instantiationService, codeEditorService) {
         this.instantiationService = instantiationService;
         this.codeEditorService = codeEditorService;
         this.mapEditorToService = new Map();
     }
-    pick(picks, options = {}, token = CancellationToken.None) {
+    pick(picks, options, token = CancellationToken.None) {
         return this.activeService /* TS fail */.pick(picks, options, token);
     }
-    createQuickPick() {
-        return this.activeService.createQuickPick();
+    createQuickPick(options = { useSeparators: false }) {
+        return this.activeService.createQuickPick(options);
     }
     createInputBox() {
         return this.activeService.createInputBox();
@@ -106,6 +107,7 @@ StandaloneQuickInputService = __decorate([
 ], StandaloneQuickInputService);
 export { StandaloneQuickInputService };
 export class QuickInputEditorContribution {
+    static { this.ID = 'editor.controller.quickInput'; }
     static get(editor) {
         return editor.getContribution(QuickInputEditorContribution.ID);
     }
@@ -117,8 +119,8 @@ export class QuickInputEditorContribution {
         this.widget.dispose();
     }
 }
-QuickInputEditorContribution.ID = 'editor.controller.quickInput';
 export class QuickInputEditorWidget {
+    static { this.ID = 'editor.contrib.quickInputWidget'; }
     constructor(codeEditor) {
         this.codeEditor = codeEditor;
         this.domNode = document.createElement('div');
@@ -137,5 +139,4 @@ export class QuickInputEditorWidget {
         this.codeEditor.removeOverlayWidget(this);
     }
 }
-QuickInputEditorWidget.ID = 'editor.contrib.quickInputWidget';
 registerEditorContribution(QuickInputEditorContribution.ID, QuickInputEditorContribution, 4 /* EditorContributionInstantiation.Lazy */);

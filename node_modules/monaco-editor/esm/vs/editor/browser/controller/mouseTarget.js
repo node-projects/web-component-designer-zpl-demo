@@ -48,7 +48,7 @@ export class MouseTarget {
         if (!range && position) {
             return new EditorRange(position.lineNumber, position.column, position.lineNumber, position.column);
         }
-        return range !== null && range !== void 0 ? range : null;
+        return range ?? null;
     }
     static createUnknown(element, mouseColumn, position) {
         return { type: 0 /* MouseTargetType.UNKNOWN */, element, mouseColumn, position, range: this._deduceRage(position) };
@@ -176,10 +176,10 @@ export class HitTestContext {
     constructor(context, viewHelper, lastRenderData) {
         this.viewModel = context.viewModel;
         const options = context.configuration.options;
-        this.layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        this.layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         this.viewDomNode = viewHelper.viewDomNode;
         this.lineHeight = options.get(67 /* EditorOption.lineHeight */);
-        this.stickyTabStops = options.get(116 /* EditorOption.stickyTabStops */);
+        this.stickyTabStops = options.get(117 /* EditorOption.stickyTabStops */);
         this.typicalHalfwidthCharacterWidth = options.get(50 /* EditorOption.fontInfo */).typicalHalfwidthCharacterWidth;
         this.lastRenderData = lastRenderData;
         this._context = context;
@@ -633,7 +633,7 @@ export class MouseTargetFactory {
     }
     getMouseColumn(relativePos) {
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         const mouseContentHorizontalOffset = this._context.viewLayout.getCurrentScrollLeft() + relativePos.x - layoutInfo.contentLeft;
         return MouseTargetFactory._getMouseColumn(mouseContentHorizontalOffset, options.get(50 /* EditorOption.fontInfo */).typicalHalfwidthCharacterWidth);
     }
@@ -896,6 +896,7 @@ function shadowCaretRangeFromPoint(shadowRoot, x, y) {
     return range;
 }
 class CharWidthReader {
+    static { this._INSTANCE = null; }
     static getInstance() {
         if (!CharWidthReader._INSTANCE) {
             CharWidthReader._INSTANCE = new CharWidthReader();
@@ -919,4 +920,3 @@ class CharWidthReader {
         return width;
     }
 }
-CharWidthReader._INSTANCE = null;

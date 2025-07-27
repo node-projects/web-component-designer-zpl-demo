@@ -16,7 +16,8 @@ import { CancellationTokenSource } from '../../../../base/common/cancellation.js
 import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun, autorunWithStore, derived, observableSignal, observableSignalFromEvent, observableValue, transaction, waitForState } from '../../../../base/common/observable.js';
 import { IDiffProviderFactoryService } from './diffProviderFactoryService.js';
-import { filterWithPrevious, readHotReloadableExport } from './utils.js';
+import { filterWithPrevious } from './utils.js';
+import { readHotReloadableExport } from '../../../../base/common/hotReloadHelpers.js';
 import { LineRange, LineRangeSet } from '../../../common/core/lineRange.js';
 import { DefaultLinesDiffComputer } from '../../../common/diff/defaultLinesDiffComputer/defaultLinesDiffComputer.js';
 import { DetailedLineRangeMapping, LineRangeMapping, RangeMapping } from '../../../common/diff/rangeMapping.js';
@@ -41,15 +42,13 @@ let DiffEditorViewModel = class DiffEditorViewModel extends Disposable {
         this.diff = this._diff;
         this._unchangedRegions = observableValue(this, undefined);
         this.unchangedRegions = derived(this, r => {
-            var _a, _b;
             if (this._options.hideUnchangedRegions.read(r)) {
-                return (_b = (_a = this._unchangedRegions.read(r)) === null || _a === void 0 ? void 0 : _a.regions) !== null && _b !== void 0 ? _b : [];
+                return this._unchangedRegions.read(r)?.regions ?? [];
             }
             else {
                 // Reset state
                 transaction(tx => {
-                    var _a;
-                    for (const r of ((_a = this._unchangedRegions.get()) === null || _a === void 0 ? void 0 : _a.regions) || []) {
+                    for (const r of this._unchangedRegions.get()?.regions || []) {
                         r.collapseAll(tx);
                     }
                 });
@@ -59,7 +58,7 @@ let DiffEditorViewModel = class DiffEditorViewModel extends Disposable {
         this.movedTextToCompare = observableValue(this, undefined);
         this._activeMovedText = observableValue(this, undefined);
         this._hoveredMovedText = observableValue(this, undefined);
-        this.activeMovedText = derived(this, r => { var _a, _b; return (_b = (_a = this.movedTextToCompare.read(r)) !== null && _a !== void 0 ? _a : this._hoveredMovedText.read(r)) !== null && _b !== void 0 ? _b : this._activeMovedText.read(r); });
+        this.activeMovedText = derived(this, r => this.movedTextToCompare.read(r) ?? this._hoveredMovedText.read(r) ?? this._activeMovedText.read(r));
         this._cancellationTokenSource = new CancellationTokenSource();
         this._diffProvider = derived(this, reader => {
             const diffProvider = this._diffProviderFactoryService.createDiffProvider({
@@ -149,8 +148,8 @@ let DiffEditorViewModel = class DiffEditorViewModel extends Disposable {
             else {
                 newUnchangedRegions2.push(...newUnchangedRegions);
             }
-            const originalDecorationIds = model.original.deltaDecorations((lastUnchangedRegions === null || lastUnchangedRegions === void 0 ? void 0 : lastUnchangedRegions.originalDecorationIds) || [], newUnchangedRegions2.map(r => ({ range: r.originalUnchangedRange.toInclusiveRange(), options: { description: 'unchanged' } })));
-            const modifiedDecorationIds = model.modified.deltaDecorations((lastUnchangedRegions === null || lastUnchangedRegions === void 0 ? void 0 : lastUnchangedRegions.modifiedDecorationIds) || [], newUnchangedRegions2.map(r => ({ range: r.modifiedUnchangedRange.toInclusiveRange(), options: { description: 'unchanged' } })));
+            const originalDecorationIds = model.original.deltaDecorations(lastUnchangedRegions?.originalDecorationIds || [], newUnchangedRegions2.map(r => ({ range: r.originalUnchangedRange.toInclusiveRange(), options: { description: 'unchanged' } })));
+            const modifiedDecorationIds = model.modified.deltaDecorations(lastUnchangedRegions?.modifiedDecorationIds || [], newUnchangedRegions2.map(r => ({ range: r.modifiedUnchangedRange.toInclusiveRange(), options: { description: 'unchanged' } })));
             this._unchangedRegions.set({
                 regions: newUnchangedRegions2,
                 originalDecorationIds,
@@ -195,7 +194,6 @@ let DiffEditorViewModel = class DiffEditorViewModel extends Disposable {
         }));
         this._register(autorunWithStore(async (reader, store) => {
             /** @description compute diff */
-            var _a, _b;
             // So that they get recomputed when these settings change
             this._options.hideUnchangedRegionsMinimumLineCount.read(reader);
             this._options.hideUnchangedRegionsContextLineCount.read(reader);
@@ -229,8 +227,8 @@ let DiffEditorViewModel = class DiffEditorViewModel extends Disposable {
                 return;
             }
             result = normalizeDocumentDiff(result, model.original, model.modified);
-            result = (_a = applyOriginalEdits(result, originalTextEditInfos, model.original, model.modified)) !== null && _a !== void 0 ? _a : result;
-            result = (_b = applyModifiedEdits(result, modifiedTextEditInfos, model.original, model.modified)) !== null && _b !== void 0 ? _b : result;
+            result = applyOriginalEdits(result, originalTextEditInfos, model.original, model.modified) ?? result;
+            result = applyModifiedEdits(result, modifiedTextEditInfos, model.original, model.modified) ?? result;
             transaction(tx => {
                 /** @description write diff result */
                 updateUnchangedRegions(result, tx);
@@ -244,11 +242,10 @@ let DiffEditorViewModel = class DiffEditorViewModel extends Disposable {
         }));
     }
     ensureModifiedLineIsVisible(lineNumber, preference, tx) {
-        var _a, _b;
-        if (((_a = this.diff.get()) === null || _a === void 0 ? void 0 : _a.mappings.length) === 0) {
+        if (this.diff.get()?.mappings.length === 0) {
             return;
         }
-        const unchangedRegions = ((_b = this._unchangedRegions.get()) === null || _b === void 0 ? void 0 : _b.regions) || [];
+        const unchangedRegions = this._unchangedRegions.get()?.regions || [];
         for (const r of unchangedRegions) {
             if (r.getHiddenModifiedRange(undefined).contains(lineNumber)) {
                 r.showModifiedLine(lineNumber, preference, tx);
@@ -257,11 +254,10 @@ let DiffEditorViewModel = class DiffEditorViewModel extends Disposable {
         }
     }
     ensureOriginalLineIsVisible(lineNumber, preference, tx) {
-        var _a, _b;
-        if (((_a = this.diff.get()) === null || _a === void 0 ? void 0 : _a.mappings.length) === 0) {
+        if (this.diff.get()?.mappings.length === 0) {
             return;
         }
-        const unchangedRegions = ((_b = this._unchangedRegions.get()) === null || _b === void 0 ? void 0 : _b.regions) || [];
+        const unchangedRegions = this._unchangedRegions.get()?.regions || [];
         for (const r of unchangedRegions) {
             if (r.getHiddenOriginalRange(undefined).contains(lineNumber)) {
                 r.showOriginalLine(lineNumber, preference, tx);
@@ -275,12 +271,11 @@ let DiffEditorViewModel = class DiffEditorViewModel extends Disposable {
     serializeState() {
         const regions = this._unchangedRegions.get();
         return {
-            collapsedRegions: regions === null || regions === void 0 ? void 0 : regions.regions.map(r => ({ range: r.getHiddenModifiedRange(undefined).serialize() }))
+            collapsedRegions: regions?.regions.map(r => ({ range: r.getHiddenModifiedRange(undefined).serialize() }))
         };
     }
     restoreSerializedState(state) {
-        var _a;
-        const ranges = (_a = state.collapsedRegions) === null || _a === void 0 ? void 0 : _a.map(r => LineRange.deserialize(r.range));
+        const ranges = state.collapsedRegions?.map(r => LineRange.deserialize(r.range));
         const regions = this._unchangedRegions.get();
         if (!regions || !ranges) {
             return;
@@ -312,7 +307,8 @@ function normalizeDocumentDiff(diff, original, modified) {
 function normalizeRangeMapping(rangeMapping, original, modified) {
     let originalRange = rangeMapping.originalRange;
     let modifiedRange = rangeMapping.modifiedRange;
-    if ((originalRange.endColumn !== 1 || modifiedRange.endColumn !== 1) &&
+    if (originalRange.startColumn === 1 && modifiedRange.startColumn === 1 &&
+        (originalRange.endColumn !== 1 || modifiedRange.endColumn !== 1) &&
         originalRange.endColumn === original.getLineMaxColumn(originalRange.endLineNumber)
         && modifiedRange.endColumn === modified.getLineMaxColumn(modifiedRange.endLineNumber)
         && originalRange.endLineNumber < original.getLineCount()

@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 export class HierarchicalKind {
+    static { this.sep = '.'; }
+    static { this.None = new HierarchicalKind('@@none@@'); } // Special kind that matches nothing
+    static { this.Empty = new HierarchicalKind(''); }
     constructor(value) {
         this.value = value;
     }
@@ -19,6 +22,3 @@ export class HierarchicalKind {
         return new HierarchicalKind((this.value ? [this.value, ...parts] : parts).join(HierarchicalKind.sep));
     }
 }
-HierarchicalKind.sep = '.';
-HierarchicalKind.None = new HierarchicalKind('@@none@@'); // Special kind that matches nothing
-HierarchicalKind.Empty = new HierarchicalKind('');

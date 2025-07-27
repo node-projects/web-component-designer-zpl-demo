@@ -43,13 +43,12 @@ export class ListService {
         this._hasCreatedStyleController = false;
     }
     setLastFocusedList(widget) {
-        var _a, _b;
         if (widget === this._lastFocusedWidget) {
             return;
         }
-        (_a = this._lastFocusedWidget) === null || _a === void 0 ? void 0 : _a.getHTMLElement().classList.remove('last-focused');
+        this._lastFocusedWidget?.getHTMLElement().classList.remove('last-focused');
         this._lastFocusedWidget = widget;
-        (_b = this._lastFocusedWidget) === null || _b === void 0 ? void 0 : _b.getHTMLElement().classList.add('last-focused');
+        this._lastFocusedWidget?.getHTMLElement().classList.add('last-focused');
     }
     register(widget, extraContextKeys) {
         if (!this._hasCreatedStyleController) {
@@ -174,7 +173,6 @@ class MultipleSelectionController extends Disposable {
     }
 }
 function toWorkbenchListOptions(accessor, options) {
-    var _a;
     const configurationService = accessor.get(IConfigurationService);
     const keybindingService = accessor.get(IKeybindingService);
     const disposables = new DisposableStore();
@@ -184,7 +182,7 @@ function toWorkbenchListOptions(accessor, options) {
         smoothScrolling: Boolean(configurationService.getValue(listSmoothScrolling)),
         mouseWheelScrollSensitivity: configurationService.getValue(mouseWheelScrollSensitivityKey),
         fastScrollSensitivity: configurationService.getValue(fastScrollSensitivityKey),
-        multipleSelectionController: (_a = options.multipleSelectionController) !== null && _a !== void 0 ? _a : disposables.add(new MultipleSelectionController(configurationService)),
+        multipleSelectionController: options.multipleSelectionController ?? disposables.add(new MultipleSelectionController(configurationService)),
         keyboardNavigationEventFilter: createKeyboardNavigationEventFilter(keybindingService),
         scrollByPage: Boolean(configurationService.getValue(scrollByPageKey))
     };
@@ -454,7 +452,6 @@ WorkbenchTable = __decorate([
 export { WorkbenchTable };
 class ResourceNavigator extends Disposable {
     constructor(widget, options) {
-        var _a;
         super();
         this.widget = widget;
         this._onDidOpen = this._register(new Emitter());
@@ -462,16 +459,16 @@ class ResourceNavigator extends Disposable {
         this._register(Event.filter(this.widget.onDidChangeSelection, e => isKeyboardEvent(e.browserEvent))(e => this.onSelectionFromKeyboard(e)));
         this._register(this.widget.onPointer((e) => this.onPointer(e.element, e.browserEvent)));
         this._register(this.widget.onMouseDblClick((e) => this.onMouseDblClick(e.element, e.browserEvent)));
-        if (typeof (options === null || options === void 0 ? void 0 : options.openOnSingleClick) !== 'boolean' && (options === null || options === void 0 ? void 0 : options.configurationService)) {
-            this.openOnSingleClick = (options === null || options === void 0 ? void 0 : options.configurationService.getValue(openModeSettingKey)) !== 'doubleClick';
-            this._register(options === null || options === void 0 ? void 0 : options.configurationService.onDidChangeConfiguration(e => {
+        if (typeof options?.openOnSingleClick !== 'boolean' && options?.configurationService) {
+            this.openOnSingleClick = options?.configurationService.getValue(openModeSettingKey) !== 'doubleClick';
+            this._register(options?.configurationService.onDidChangeConfiguration(e => {
                 if (e.affectsConfiguration(openModeSettingKey)) {
-                    this.openOnSingleClick = (options === null || options === void 0 ? void 0 : options.configurationService.getValue(openModeSettingKey)) !== 'doubleClick';
+                    this.openOnSingleClick = options?.configurationService.getValue(openModeSettingKey) !== 'doubleClick';
                 }
             }));
         }
         else {
-            this.openOnSingleClick = (_a = options === null || options === void 0 ? void 0 : options.openOnSingleClick) !== null && _a !== void 0 ? _a : true;
+            this.openOnSingleClick = options?.openOnSingleClick ?? true;
         }
     }
     onSelectionFromKeyboard(event) {
@@ -552,8 +549,7 @@ class TreeResourceNavigator extends ResourceNavigator {
         super(widget, options);
     }
     getSelectedElement() {
-        var _a;
-        return (_a = this.widget.getSelection()[0]) !== null && _a !== void 0 ? _a : undefined;
+        return this.widget.getSelection()[0] ?? undefined;
     }
 }
 function createKeyboardNavigationEventFilter(keybindingService) {
@@ -713,7 +709,6 @@ function getDefaultTreeFindMatchType(configurationService) {
     return undefined;
 }
 function workbenchTreeDataPreamble(accessor, options) {
-    var _a;
     const configurationService = accessor.get(IConfigurationService);
     const contextViewService = accessor.get(IContextViewService);
     const contextKeyService = accessor.get(IContextKeyService);
@@ -762,7 +757,7 @@ function workbenchTreeDataPreamble(accessor, options) {
             scrollByPage: Boolean(configurationService.getValue(scrollByPageKey)),
             paddingBottom: paddingBottom,
             hideTwistiesOfChildlessElements: options.hideTwistiesOfChildlessElements,
-            expandOnlyOnTwistieClick: (_a = options.expandOnlyOnTwistieClick) !== null && _a !== void 0 ? _a : (configurationService.getValue(treeExpandMode) === 'doubleClick'),
+            expandOnlyOnTwistieClick: options.expandOnlyOnTwistieClick ?? (configurationService.getValue(treeExpandMode) === 'doubleClick'),
             contextViewProvider: contextViewService,
             findWidgetStyles: defaultFindWidgetStyles,
             enableStickyScroll: Boolean(configurationService.getValue(treeStickyScroll)),
@@ -773,7 +768,6 @@ function workbenchTreeDataPreamble(accessor, options) {
 let WorkbenchTreeInternals = class WorkbenchTreeInternals {
     get onDidOpen() { return this.navigator.onDidOpen; }
     constructor(tree, options, getTypeNavigationMode, overrideStyles, contextKeyService, listService, configurationService) {
-        var _a;
         this.tree = tree;
         this.disposables = [];
         this.contextKeyService = createScopedContextKeyService(contextKeyService, tree);
@@ -783,7 +777,7 @@ let WorkbenchTreeInternals = class WorkbenchTreeInternals {
         const listSelectionNavigation = WorkbenchListSelectionNavigation.bindTo(this.contextKeyService);
         listSelectionNavigation.set(Boolean(options.selectionNavigation));
         this.listSupportFindWidget = WorkbenchListSupportsFind.bindTo(this.contextKeyService);
-        this.listSupportFindWidget.set((_a = options.findWidgetEnabled) !== null && _a !== void 0 ? _a : true);
+        this.listSupportFindWidget.set(options.findWidgetEnabled ?? true);
         this.hasSelectionOrFocus = WorkbenchListHasSelectionOrFocus.bindTo(this.contextKeyService);
         this.hasDoubleSelection = WorkbenchListDoubleSelection.bindTo(this.contextKeyService);
         this.hasMultiSelection = WorkbenchListMultiSelection.bindTo(this.contextKeyService);
@@ -1024,7 +1018,7 @@ configurationRegistry.registerConfiguration({
             type: 'number',
             minimum: 1,
             default: 7,
-            markdownDescription: localize('sticky scroll maximum items', "Controls the number of sticky elements displayed in the tree when `#workbench.tree.enableStickyScroll#` is enabled."),
+            markdownDescription: localize('sticky scroll maximum items', "Controls the number of sticky elements displayed in the tree when {0} is enabled.", '`#workbench.tree.enableStickyScroll#`'),
         },
         [typeNavigationModeSettingKey]: {
             type: 'string',

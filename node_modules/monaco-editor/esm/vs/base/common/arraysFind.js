@@ -85,6 +85,7 @@ export function findFirstIdxMonotonousOrArrLen(array, predicate, startIdx = 0, e
  * * You query this array multiple times with monotonous predicates that get weaker and weaker.
  */
 export class MonotonousArray {
+    static { this.assertInvariants = false; }
     constructor(_array) {
         this._array = _array;
         this._findLastMonotonousLastIdx = 0;
@@ -109,7 +110,6 @@ export class MonotonousArray {
         return idx === -1 ? undefined : this._array[idx];
     }
 }
-MonotonousArray.assertInvariants = false;
 /**
  * Returns the first item that is equal to or greater than every other item.
 */

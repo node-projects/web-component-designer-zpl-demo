@@ -131,7 +131,7 @@ export class WordOperations {
         }
         return 0;
     }
-    static moveWordLeft(wordSeparators, model, position, wordNavigationType) {
+    static moveWordLeft(wordSeparators, model, position, wordNavigationType, hasMulticursor) {
         let lineNumber = position.lineNumber;
         let column = position.column;
         if (column === 1) {
@@ -145,7 +145,8 @@ export class WordOperations {
             return new Position(lineNumber, prevWordOnLine ? prevWordOnLine.start + 1 : 1);
         }
         if (wordNavigationType === 1 /* WordNavigationType.WordStartFast */) {
-            if (prevWordOnLine
+            if (!hasMulticursor // avoid having multiple cursors stop at different locations when doing word start
+                && prevWordOnLine
                 && prevWordOnLine.wordType === 2 /* WordType.Separator */
                 && prevWordOnLine.end - prevWordOnLine.start === 1
                 && prevWordOnLine.nextCharClass === 0 /* WordCharacterClass.Regular */) {
@@ -682,10 +683,10 @@ export class WordPartOperations extends WordOperations {
         candidates.sort(Range.compareRangesUsingStarts);
         return candidates[0];
     }
-    static moveWordPartLeft(wordSeparators, model, position) {
+    static moveWordPartLeft(wordSeparators, model, position, hasMulticursor) {
         const candidates = enforceDefined([
-            WordOperations.moveWordLeft(wordSeparators, model, position, 0 /* WordNavigationType.WordStart */),
-            WordOperations.moveWordLeft(wordSeparators, model, position, 2 /* WordNavigationType.WordEnd */),
+            WordOperations.moveWordLeft(wordSeparators, model, position, 0 /* WordNavigationType.WordStart */, hasMulticursor),
+            WordOperations.moveWordLeft(wordSeparators, model, position, 2 /* WordNavigationType.WordEnd */, hasMulticursor),
             WordOperations._moveWordPartLeft(model, position)
         ]);
         candidates.sort(Position.compare);

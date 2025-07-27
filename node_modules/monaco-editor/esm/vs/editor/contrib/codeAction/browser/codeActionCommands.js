@@ -44,7 +44,7 @@ const argsSchema = {
 function triggerCodeActionsForEditorSelection(editor, notAvailableMessage, filter, autoApply, triggerAction = CodeActionTriggerSource.Default) {
     if (editor.hasModel()) {
         const controller = CodeActionController.get(editor);
-        controller === null || controller === void 0 ? void 0 : controller.manualTriggerAtCurrentPosition(notAvailableMessage, triggerAction, filter, autoApply);
+        controller?.manualTriggerAtCurrentPosition(notAvailableMessage, triggerAction, filter, autoApply);
     }
 }
 export class QuickFixAction extends EditorAction {
@@ -81,7 +81,7 @@ export class CodeActionCommand extends EditorCommand {
             kind: HierarchicalKind.Empty,
             apply: "ifSingle" /* CodeActionAutoApply.IfSingle */,
         });
-        return triggerCodeActionsForEditorSelection(editor, typeof (userArgs === null || userArgs === void 0 ? void 0 : userArgs.kind) === 'string'
+        return triggerCodeActionsForEditorSelection(editor, typeof userArgs?.kind === 'string'
             ? args.preferred
                 ? nls.localize('editor.action.codeAction.noneMessage.preferred.kind', "No preferred code actions for '{0}' available", userArgs.kind)
                 : nls.localize('editor.action.codeAction.noneMessage.kind', "No code actions for '{0}' available", userArgs.kind)
@@ -125,7 +125,7 @@ export class RefactorAction extends EditorAction {
             kind: CodeActionKind.Refactor,
             apply: "never" /* CodeActionAutoApply.Never */
         });
-        return triggerCodeActionsForEditorSelection(editor, typeof (userArgs === null || userArgs === void 0 ? void 0 : userArgs.kind) === 'string'
+        return triggerCodeActionsForEditorSelection(editor, typeof userArgs?.kind === 'string'
             ? args.preferred
                 ? nls.localize('editor.action.refactor.noneMessage.preferred.kind', "No preferred refactorings for '{0}' available", userArgs.kind)
                 : nls.localize('editor.action.refactor.noneMessage.kind', "No refactorings for '{0}' available", userArgs.kind)
@@ -160,7 +160,7 @@ export class SourceAction extends EditorAction {
             kind: CodeActionKind.Source,
             apply: "never" /* CodeActionAutoApply.Never */
         });
-        return triggerCodeActionsForEditorSelection(editor, typeof (userArgs === null || userArgs === void 0 ? void 0 : userArgs.kind) === 'string'
+        return triggerCodeActionsForEditorSelection(editor, typeof userArgs?.kind === 'string'
             ? args.preferred
                 ? nls.localize('editor.action.source.noneMessage.preferred.kind', "No preferred source actions for '{0}' available", userArgs.kind)
                 : nls.localize('editor.action.source.noneMessage.kind', "No source actions for '{0}' available", userArgs.kind)

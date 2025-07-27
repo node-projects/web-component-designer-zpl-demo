@@ -8,6 +8,7 @@ import { Color } from '../../../base/common/color.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Extensions as JSONExtensions } from '../../jsonschemas/common/jsonContributionRegistry.js';
 import * as platform from '../../registry/common/platform.js';
+import * as nls from '../../../nls.js';
 /**
  * Returns the css variable name for the given color identifier. Dots (`.`) are replaced with hyphens (`-`) and
  * everything is prefixed with `--vscode-`.
@@ -23,10 +24,14 @@ export function asCssVariable(color) {
 export function asCssVariableWithDefault(color, defaultCssValue) {
     return `var(${asCssVariableName(color)}, ${defaultCssValue})`;
 }
+export function isColorDefaults(value) {
+    return value !== null && typeof value === 'object' && 'light' in value && 'dark' in value;
+}
 // color registry
 export const Extensions = {
     ColorContribution: 'base.contributions.colors'
 };
+export const DEFAULT_COLOR_CONFIG_VALUE = 'default';
 class ColorRegistry {
     constructor() {
         this._onDidChangeSchema = new Emitter();
@@ -38,15 +43,21 @@ class ColorRegistry {
     registerColor(id, defaults, description, needsTransparency = false, deprecationMessage) {
         const colorContribution = { id, description, defaults, needsTransparency, deprecationMessage };
         this.colorsById[id] = colorContribution;
-        const propertySchema = { type: 'string', description, format: 'color-hex', defaultSnippets: [{ body: '${1:#ff0000}' }] };
+        const propertySchema = { type: 'string', format: 'color-hex', defaultSnippets: [{ body: '${1:#ff0000}' }] };
         if (deprecationMessage) {
             propertySchema.deprecationMessage = deprecationMessage;
         }
         if (needsTransparency) {
             propertySchema.pattern = '^#(?:(?<rgba>[0-9a-fA-f]{3}[0-9a-eA-E])|(?:[0-9a-fA-F]{6}(?:(?![fF]{2})(?:[0-9a-fA-F]{2}))))?$';
-            propertySchema.patternErrorMessage = 'This color must be transparent or it will obscure content';
+            propertySchema.patternErrorMessage = nls.localize('transparecyRequired', 'This color must be transparent or it will obscure content');
         }
-        this.colorSchema.properties[id] = propertySchema;
+        this.colorSchema.properties[id] = {
+            description,
+            oneOf: [
+                propertySchema,
+                { type: 'string', const: DEFAULT_COLOR_CONFIG_VALUE, description: nls.localize('useDefault', 'Use the default color.') }
+            ]
+        };
         this.colorReferenceSchema.enum.push(id);
         this.colorReferenceSchema.enumDescriptions.push(description);
         this._onDidChangeSchema.fire();
@@ -57,8 +68,8 @@ class ColorRegistry {
     }
     resolveDefaultColor(id, theme) {
         const colorDesc = this.colorsById[id];
-        if (colorDesc && colorDesc.defaults) {
-            const colorValue = colorDesc.defaults[theme.type];
+        if (colorDesc?.defaults) {
+            const colorValue = isColorDefaults(colorDesc.defaults) ? colorDesc.defaults[theme.type] : colorDesc.defaults;
             return resolveColorValue(colorValue, theme);
         }
         return undefined;
@@ -85,20 +96,19 @@ export function registerColor(id, defaults, description, needsTransparency, depr
 }
 // ----- color functions
 export function executeTransform(transform, theme) {
-    var _a, _b, _c, _d;
     switch (transform.op) {
         case 0 /* ColorTransformType.Darken */:
-            return (_a = resolveColorValue(transform.value, theme)) === null || _a === void 0 ? void 0 : _a.darken(transform.factor);
+            return resolveColorValue(transform.value, theme)?.darken(transform.factor);
         case 1 /* ColorTransformType.Lighten */:
-            return (_b = resolveColorValue(transform.value, theme)) === null || _b === void 0 ? void 0 : _b.lighten(transform.factor);
+            return resolveColorValue(transform.value, theme)?.lighten(transform.factor);
         case 2 /* ColorTransformType.Transparent */:
-            return (_c = resolveColorValue(transform.value, theme)) === null || _c === void 0 ? void 0 : _c.transparent(transform.factor);
+            return resolveColorValue(transform.value, theme)?.transparent(transform.factor);
         case 3 /* ColorTransformType.Opaque */: {
             const backgroundColor = resolveColorValue(transform.background, theme);
             if (!backgroundColor) {
                 return resolveColorValue(transform.value, theme);
             }
-            return (_d = resolveColorValue(transform.value, theme)) === null || _d === void 0 ? void 0 : _d.makeOpaque(backgroundColor);
+            return resolveColorValue(transform.value, theme)?.makeOpaque(backgroundColor);
         }
         case 4 /* ColorTransformType.OneOf */:
             for (const candidate of transform.values) {

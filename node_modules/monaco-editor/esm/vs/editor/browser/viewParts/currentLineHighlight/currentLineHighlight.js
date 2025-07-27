@@ -15,9 +15,9 @@ export class AbstractLineHighlightOverlay extends DynamicViewOverlay {
         super();
         this._context = context;
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
-        this._renderLineHighlight = options.get(96 /* EditorOption.renderLineHighlight */);
-        this._renderLineHighlightOnlyWhenFocus = options.get(97 /* EditorOption.renderLineHighlightOnlyWhenFocus */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
+        this._renderLineHighlight = options.get(97 /* EditorOption.renderLineHighlight */);
+        this._renderLineHighlightOnlyWhenFocus = options.get(98 /* EditorOption.renderLineHighlightOnlyWhenFocus */);
         this._wordWrap = layoutInfo.isViewportWrapping;
         this._contentLeft = layoutInfo.contentLeft;
         this._contentWidth = layoutInfo.contentWidth;
@@ -57,9 +57,9 @@ export class AbstractLineHighlightOverlay extends DynamicViewOverlay {
     }
     onConfigurationChanged(e) {
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
-        this._renderLineHighlight = options.get(96 /* EditorOption.renderLineHighlight */);
-        this._renderLineHighlightOnlyWhenFocus = options.get(97 /* EditorOption.renderLineHighlightOnlyWhenFocus */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
+        this._renderLineHighlight = options.get(97 /* EditorOption.renderLineHighlight */);
+        this._renderLineHighlightOnlyWhenFocus = options.get(98 /* EditorOption.renderLineHighlightOnlyWhenFocus */);
         this._wordWrap = layoutInfo.isViewportWrapping;
         this._contentLeft = layoutInfo.contentLeft;
         this._contentWidth = layoutInfo.contentWidth;

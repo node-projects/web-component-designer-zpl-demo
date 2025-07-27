@@ -75,14 +75,13 @@ class ManagedCodeActionSet extends Disposable {
 }
 const emptyCodeActionsResponse = { actions: [], documentation: undefined };
 export async function getCodeActions(registry, model, rangeOrSelection, trigger, progress, token) {
-    var _a;
     const filter = trigger.filter || {};
     const notebookFilter = {
         ...filter,
         excludes: [...(filter.excludes || []), CodeActionKind.Notebook],
     };
     const codeActionContext = {
-        only: (_a = filter.include) === null || _a === void 0 ? void 0 : _a.value,
+        only: filter.include?.value,
         trigger: trigger.type,
     };
     const cts = new TextModelCancellationTokenSource(model, token);
@@ -100,7 +99,7 @@ export async function getCodeActions(registry, model, rangeOrSelection, trigger,
             if (cts.token.isCancellationRequested) {
                 return emptyCodeActionsResponse;
             }
-            const filteredActions = ((providedCodeActions === null || providedCodeActions === void 0 ? void 0 : providedCodeActions.actions) || []).filter(action => action && filtersAction(filter, action));
+            const filteredActions = (providedCodeActions?.actions || []).filter(action => action && filtersAction(filter, action));
             const documentation = getDocumentationFromProvider(provider, filteredActions, filter.include);
             return {
                 actions: filteredActions.map(action => new CodeActionItem(action, provider)),
@@ -147,11 +146,10 @@ function getCodeActionProviders(registry, model, filter) {
     });
 }
 function* getAdditionalDocumentationForShowingActions(registry, model, trigger, actionsToShow) {
-    var _a, _b, _c;
     if (model && actionsToShow.length) {
         for (const provider of registry.all(model)) {
             if (provider._getAdditionalMenuItems) {
-                yield* (_a = provider._getAdditionalMenuItems) === null || _a === void 0 ? void 0 : _a.call(provider, { trigger: trigger.type, only: (_c = (_b = trigger.filter) === null || _b === void 0 ? void 0 : _b.include) === null || _c === void 0 ? void 0 : _c.value }, actionsToShow.map(item => item.action));
+                yield* provider._getAdditionalMenuItems?.({ trigger: trigger.type, only: trigger.filter?.include?.value }, actionsToShow.map(item => item.action));
             }
         }
     }
@@ -177,7 +175,7 @@ function getDocumentationFromProvider(provider, providedCodeActions, only) {
             }
         }
         if (currentBest) {
-            return currentBest === null || currentBest === void 0 ? void 0 : currentBest.command;
+            return currentBest?.command;
         }
     }
     // Otherwise, check to see if any of the provided actions match.
@@ -201,7 +199,6 @@ export var ApplyCodeActionReason;
     ApplyCodeActionReason["FromAILightbulb"] = "fromAILightbulb"; // direct invocation when clicking on the AI lightbulb
 })(ApplyCodeActionReason || (ApplyCodeActionReason = {}));
 export async function applyCodeAction(accessor, item, codeActionReason, options, token = CancellationToken.None) {
-    var _a;
     const bulkEditService = accessor.get(IBulkEditService);
     const commandService = accessor.get(ICommandService);
     const telemetryService = accessor.get(ITelemetryService);
@@ -216,14 +213,14 @@ export async function applyCodeAction(accessor, item, codeActionReason, options,
     if (token.isCancellationRequested) {
         return;
     }
-    if ((_a = item.action.edit) === null || _a === void 0 ? void 0 : _a.edits.length) {
+    if (item.action.edit?.edits.length) {
         const result = await bulkEditService.apply(item.action.edit, {
-            editor: options === null || options === void 0 ? void 0 : options.editor,
+            editor: options?.editor,
             label: item.action.title,
             quotableLabel: item.action.title,
             code: 'undoredo.codeAction',
             respectAutoSaveConfig: codeActionReason !== ApplyCodeActionReason.OnSave,
-            showPreview: options === null || options === void 0 ? void 0 : options.preview,
+            showPreview: options?.preview,
         });
         if (!result.isApplied) {
             return;

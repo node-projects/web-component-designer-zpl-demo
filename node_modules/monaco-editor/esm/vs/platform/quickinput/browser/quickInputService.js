@@ -33,6 +33,7 @@ let QuickInputService = class QuickInputService extends Themable {
         return this._controller;
     }
     get hasController() { return !!this._controller; }
+    get currentQuickInput() { return this.controller.currentQuickInput; }
     get quickAccess() {
         if (!this._quickAccess) {
             this._quickAccess = this._register(this.instantiationService.createInstance(QuickAccessController));
@@ -109,7 +110,7 @@ let QuickInputService = class QuickInputService extends Themable {
             return; // already active context
         }
         this.resetContextKeys();
-        key === null || key === void 0 ? void 0 : key.set(true);
+        key?.set(true);
     }
     resetContextKeys() {
         this.contexts.forEach(context => {
@@ -118,11 +119,11 @@ let QuickInputService = class QuickInputService extends Themable {
             }
         });
     }
-    pick(picks, options = {}, token = CancellationToken.None) {
+    pick(picks, options, token = CancellationToken.None) {
         return this.controller.pick(picks, options, token);
     }
-    createQuickPick() {
-        return this.controller.createQuickPick();
+    createQuickPick(options = { useSeparators: false }) {
+        return this.controller.createQuickPick(options);
     }
     createInputBox() {
         return this.controller.createInputBox();

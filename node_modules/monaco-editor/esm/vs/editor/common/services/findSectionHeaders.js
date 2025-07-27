@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-const markRegex = /\bMARK:\s*(.*)$/d;
+const markRegex = new RegExp('\\bMARK:\\s*(.*)$', 'd');
 const trimDashesRegex = /^-+|-+$/g;
 /**
  * Find section headers in the model.
@@ -12,9 +12,8 @@ const trimDashesRegex = /^-+|-+$/g;
  * @returns an array of section headers
  */
 export function findSectionHeaders(model, options) {
-    var _a;
     let headers = [];
-    if (options.findRegionSectionHeaders && ((_a = options.foldingRules) === null || _a === void 0 ? void 0 : _a.markers)) {
+    if (options.findRegionSectionHeaders && options.foldingRules?.markers) {
         const regionHeaders = collectRegionHeaders(model, options);
         headers = headers.concat(regionHeaders);
     }

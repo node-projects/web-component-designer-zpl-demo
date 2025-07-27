@@ -45,8 +45,9 @@ export var Iterable;
     }
     Iterable.first = first;
     function some(iterable, predicate) {
+        let i = 0;
         for (const element of iterable) {
-            if (predicate(element)) {
+            if (predicate(element, i++)) {
                 return true;
             }
         }
@@ -77,6 +78,13 @@ export var Iterable;
         }
     }
     Iterable.map = map;
+    function* flatMap(iterable, fn) {
+        let index = 0;
+        for (const element of iterable) {
+            yield* fn(element, index++);
+        }
+    }
+    Iterable.flatMap = flatMap;
     function* concat(...iterables) {
         for (const iterable of iterables) {
             yield* iterable;

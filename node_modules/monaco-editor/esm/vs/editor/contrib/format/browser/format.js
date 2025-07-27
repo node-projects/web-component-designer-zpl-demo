@@ -54,6 +54,7 @@ export function getRealAndSyntheticDocumentFormattersOrdered(documentFormattingE
     return result;
 }
 export class FormattingConflicts {
+    static { this._selectors = new LinkedList(); }
     static setFormatterSelector(selector) {
         const remove = FormattingConflicts._selectors.unshift(selector);
         return { dispose: remove };
@@ -69,7 +70,6 @@ export class FormattingConflicts {
         return undefined;
     }
 }
-FormattingConflicts._selectors = new LinkedList();
 export async function formatDocumentRangesWithSelectedProvider(accessor, editorOrModel, rangeOrRanges, mode, progress, token, userGesture) {
     const instaService = accessor.get(IInstantiationService);
     const { documentRangeFormattingEditProvider: documentRangeFormattingEditProviderRegistry } = accessor.get(ILanguageFeaturesService);
@@ -82,7 +82,6 @@ export async function formatDocumentRangesWithSelectedProvider(accessor, editorO
     }
 }
 export async function formatDocumentRangesWithProvider(accessor, provider, editorOrModel, rangeOrRanges, token, userGesture) {
-    var _a, _b;
     const workerService = accessor.get(IEditorWorkerService);
     const logService = accessor.get(ILogService);
     const accessibilitySignalService = accessor.get(IAccessibilitySignalService);
@@ -108,10 +107,9 @@ export async function formatDocumentRangesWithProvider(accessor, provider, edito
         }
     }
     const computeEdits = async (range) => {
-        var _a, _b;
-        logService.trace(`[format][provideDocumentRangeFormattingEdits] (request)`, (_a = provider.extensionId) === null || _a === void 0 ? void 0 : _a.value, range);
+        logService.trace(`[format][provideDocumentRangeFormattingEdits] (request)`, provider.extensionId?.value, range);
         const result = (await provider.provideDocumentRangeFormattingEdits(model, range, model.getFormattingOptions(), cts.token)) || [];
-        logService.trace(`[format][provideDocumentRangeFormattingEdits] (response)`, (_b = provider.extensionId) === null || _b === void 0 ? void 0 : _b.value, result);
+        logService.trace(`[format][provideDocumentRangeFormattingEdits] (response)`, provider.extensionId?.value, result);
         return result;
     };
     const hasIntersectingEdit = (a, b) => {
@@ -137,9 +135,9 @@ export async function formatDocumentRangesWithProvider(accessor, provider, edito
     const rawEditsList = [];
     try {
         if (typeof provider.provideDocumentRangesFormattingEdits === 'function') {
-            logService.trace(`[format][provideDocumentRangeFormattingEdits] (request)`, (_a = provider.extensionId) === null || _a === void 0 ? void 0 : _a.value, ranges);
+            logService.trace(`[format][provideDocumentRangeFormattingEdits] (request)`, provider.extensionId?.value, ranges);
             const result = (await provider.provideDocumentRangesFormattingEdits(model, ranges, model.getFormattingOptions(), cts.token)) || [];
-            logService.trace(`[format][provideDocumentRangeFormattingEdits] (response)`, (_b = provider.extensionId) === null || _b === void 0 ? void 0 : _b.value, result);
+            logService.trace(`[format][provideDocumentRangeFormattingEdits] (response)`, provider.extensionId?.value, result);
             rawEditsList.push(result);
         }
         else {

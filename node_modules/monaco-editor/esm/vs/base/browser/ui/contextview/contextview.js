@@ -45,6 +45,8 @@ export function layout(viewportSize, viewSize, anchor) {
     }
 }
 export class ContextView extends Disposable {
+    static { this.BUBBLE_UP_EVENTS = ['click', 'keydown', 'focus', 'blur']; }
+    static { this.BUBBLE_DOWN_EVENTS = ['click']; }
     constructor(container, domPosition) {
         super();
         this.container = null;
@@ -61,7 +63,6 @@ export class ContextView extends Disposable {
         this._register(toDisposable(() => this.setContainer(null, 1 /* ContextViewDOMPosition.ABSOLUTE */)));
     }
     setContainer(container, domPosition) {
-        var _a;
         this.useFixedPosition = domPosition !== 1 /* ContextViewDOMPosition.ABSOLUTE */;
         const usedShadowDOM = this.useShadowDOM;
         this.useShadowDOM = domPosition === 3 /* ContextViewDOMPosition.FIXED_SHADOW */;
@@ -70,14 +71,11 @@ export class ContextView extends Disposable {
         }
         if (this.container) {
             this.toDisposeOnSetContainer.dispose();
+            this.view.remove();
             if (this.shadowRoot) {
-                this.shadowRoot.removeChild(this.view);
                 this.shadowRoot = null;
-                (_a = this.shadowRootHostElement) === null || _a === void 0 ? void 0 : _a.remove();
+                this.shadowRootHostElement?.remove();
                 this.shadowRootHostElement = null;
-            }
-            else {
-                this.container.removeChild(this.view);
             }
             this.container = null;
         }
@@ -111,7 +109,6 @@ export class ContextView extends Disposable {
         }
     }
     show(delegate) {
-        var _a, _b, _c;
         if (this.isVisible()) {
             this.hide();
         }
@@ -120,7 +117,7 @@ export class ContextView extends Disposable {
         this.view.className = 'context-view monaco-component';
         this.view.style.top = '0px';
         this.view.style.left = '0px';
-        this.view.style.zIndex = `${2575 + ((_a = delegate.layer) !== null && _a !== void 0 ? _a : 0)}`;
+        this.view.style.zIndex = `${2575 + (delegate.layer ?? 0)}`;
         this.view.style.position = this.useFixedPosition ? 'fixed' : 'absolute';
         DOM.show(this.view);
         // Render content
@@ -130,13 +127,12 @@ export class ContextView extends Disposable {
         // Layout
         this.doLayout();
         // Focus
-        (_c = (_b = this.delegate).focus) === null || _c === void 0 ? void 0 : _c.call(_b);
+        this.delegate.focus?.();
     }
     getViewElement() {
         return this.view;
     }
     layout() {
-        var _a, _b;
         if (!this.isVisible()) {
             return;
         }
@@ -144,7 +140,7 @@ export class ContextView extends Disposable {
             this.hide();
             return;
         }
-        (_b = (_a = this.delegate) === null || _a === void 0 ? void 0 : _a.layout) === null || _b === void 0 ? void 0 : _b.call(_a);
+        this.delegate?.layout?.();
         this.doLayout();
     }
     doLayout() {
@@ -157,7 +153,7 @@ export class ContextView extends Disposable {
         // Compute around
         let around;
         // Get the element's position and size (to anchor the view)
-        if (anchor instanceof HTMLElement) {
+        if (DOM.isHTMLElement(anchor)) {
             const elementPosition = DOM.getDomNodePagePosition(anchor);
             // In areas where zoom is applied to the element or its ancestors, we need to adjust the size of the element
             // e.g. The title bar has counter zoom behavior meaning it applies the inverse of zoom level.
@@ -230,7 +226,7 @@ export class ContextView extends Disposable {
     hide(data) {
         const delegate = this.delegate;
         this.delegate = null;
-        if (delegate === null || delegate === void 0 ? void 0 : delegate.onHide) {
+        if (delegate?.onHide) {
             delegate.onHide(data);
         }
         this.toDisposeOnClean.dispose();
@@ -254,8 +250,6 @@ export class ContextView extends Disposable {
         super.dispose();
     }
 }
-ContextView.BUBBLE_UP_EVENTS = ['click', 'keydown', 'focus', 'blur'];
-ContextView.BUBBLE_DOWN_EVENTS = ['click'];
 const SHADOW_ROOT_CSS = /* css */ `
 	:host {
 		all: initial; /* 1st rule so subsequent properties are reset. */

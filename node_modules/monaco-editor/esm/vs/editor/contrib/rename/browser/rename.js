@@ -110,13 +110,15 @@ class RenameSkeleton {
 export async function rename(registry, model, position, newName) {
     const skeleton = new RenameSkeleton(model, position, registry);
     const loc = await skeleton.resolveRenameLocation(CancellationToken.None);
-    if (loc === null || loc === void 0 ? void 0 : loc.rejectReason) {
+    if (loc?.rejectReason) {
         return { edits: [], rejectReason: loc.rejectReason };
     }
     return skeleton.provideRenameEdits(newName, CancellationToken.None);
 }
 // ---  register actions and commands
-let RenameController = RenameController_1 = class RenameController {
+let RenameController = class RenameController {
+    static { RenameController_1 = this; }
+    static { this.ID = 'editor.contrib.renameController'; }
     static get(editor) {
         return editor.getContribution(RenameController_1.ID);
     }
@@ -139,7 +141,6 @@ let RenameController = RenameController_1 = class RenameController {
         this._cts.dispose(true);
     }
     async run() {
-        var _a, _b;
         const trace = this._logService.trace.bind(this._logService, '[rename]');
         // set up cancellation token to prevent reentrant rename, this
         // is the parent to the resolve- and rename-tokens
@@ -172,7 +173,7 @@ let RenameController = RenameController_1 = class RenameController {
             else {
                 trace('resolve rename location failed', e instanceof Error ? e : JSON.stringify(e, null, '\t'));
                 if (typeof e === 'string' || isMarkdownString(e)) {
-                    (_a = MessageController.get(this.editor)) === null || _a === void 0 ? void 0 : _a.showMessage(e || nls.localize('resolveRenameLocationFailed', "An unknown error occurred while resolving rename location"), position);
+                    MessageController.get(this.editor)?.showMessage(e || nls.localize('resolveRenameLocationFailed', "An unknown error occurred while resolving rename location"), position);
                 }
             }
             return undefined;
@@ -186,7 +187,7 @@ let RenameController = RenameController_1 = class RenameController {
         }
         if (loc.rejectReason) {
             trace(`returning early - rejected with reason: ${loc.rejectReason}`, loc.rejectReason);
-            (_b = MessageController.get(this.editor)) === null || _b === void 0 ? void 0 : _b.showMessage(loc.rejectReason, position);
+            MessageController.get(this.editor)?.showMessage(loc.rejectReason, position);
             return undefined;
         }
         if (cts1.token.isCancellationRequested) {
@@ -197,7 +198,7 @@ let RenameController = RenameController_1 = class RenameController {
         const cts2 = new EditorStateCancellationTokenSource(this.editor, 4 /* CodeEditorStateFlag.Position */ | 1 /* CodeEditorStateFlag.Value */, loc.range, this._cts.token);
         const model = this.editor.getModel(); // @ulugbekna: assumes editor still has a model, otherwise, cts1 should've been cancelled
         const newSymbolNamesProviders = this._languageFeaturesService.newSymbolNamesProvider.all(model);
-        const resolvedNewSymbolnamesProviders = await Promise.all(newSymbolNamesProviders.map(async (p) => { var _a; return [p, (_a = await p.supportsAutomaticNewSymbolNamesTriggerKind) !== null && _a !== void 0 ? _a : false]; }));
+        const resolvedNewSymbolnamesProviders = await Promise.all(newSymbolNamesProviders.map(async (p) => [p, await p.supportsAutomaticNewSymbolNamesTriggerKind ?? false]));
         const requestRenameSuggestions = (triggerKind, cts) => {
             let providers = resolvedNewSymbolnamesProviders.slice();
             if (triggerKind === NewSymbolNameTriggerKind.Automatic) {
@@ -243,9 +244,9 @@ let RenameController = RenameController_1 = class RenameController {
             this._bulkEditService.apply(renameResult, {
                 editor: this.editor,
                 showPreview: inputFieldResult.wantsPreview,
-                label: nls.localize('label', "Renaming '{0}' to '{1}'", loc === null || loc === void 0 ? void 0 : loc.text, inputFieldResult.newName),
+                label: nls.localize('label', "Renaming '{0}' to '{1}'", loc?.text, inputFieldResult.newName),
                 code: 'undoredo.rename',
-                quotableLabel: nls.localize('quotableLabel', "Renaming {0} to {1}", loc === null || loc === void 0 ? void 0 : loc.text, inputFieldResult.newName),
+                quotableLabel: nls.localize('quotableLabel', "Renaming {0} to {1}", loc?.text, inputFieldResult.newName),
                 respectAutoSaveConfig: true
             }).then(result => {
                 trace('edits applied');
@@ -301,7 +302,6 @@ let RenameController = RenameController_1 = class RenameController {
         this._telemetryService.publicLog2('renameInvokedEvent', value);
     }
 };
-RenameController.ID = 'editor.contrib.renameController';
 RenameController = RenameController_1 = __decorate([
     __param(1, IInstantiationService),
     __param(2, INotificationService),
@@ -460,7 +460,7 @@ registerModelAndPositionCommand('_executePrepareRename', async function (accesso
     const { renameProvider } = accessor.get(ILanguageFeaturesService);
     const skeleton = new RenameSkeleton(model, position, renameProvider);
     const loc = await skeleton.resolveRenameLocation(CancellationToken.None);
-    if (loc === null || loc === void 0 ? void 0 : loc.rejectReason) {
+    if (loc?.rejectReason) {
         throw new Error(loc.rejectReason);
     }
     return loc;

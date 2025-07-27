@@ -40,7 +40,7 @@ let ContextViewHandler = class ContextViewHandler extends Disposable {
         else {
             domPosition = 1 /* ContextViewDOMPosition.ABSOLUTE */;
         }
-        this.contextView.setContainer(container !== null && container !== void 0 ? container : this.layoutService.activeContainer, domPosition);
+        this.contextView.setContainer(container ?? this.layoutService.activeContainer, domPosition);
         this.contextView.show(delegate);
         const openContextView = {
             close: () => {

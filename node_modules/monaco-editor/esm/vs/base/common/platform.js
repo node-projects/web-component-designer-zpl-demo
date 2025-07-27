@@ -1,4 +1,3 @@
-var _a, _b;
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -26,12 +25,12 @@ if (typeof $globalThis.vscode !== 'undefined' && typeof $globalThis.vscode.proce
     // Native environment (sandboxed)
     nodeProcess = $globalThis.vscode.process;
 }
-else if (typeof process !== 'undefined' && typeof ((_a = process === null || process === void 0 ? void 0 : process.versions) === null || _a === void 0 ? void 0 : _a.node) === 'string') {
+else if (typeof process !== 'undefined' && typeof process?.versions?.node === 'string') {
     // Native environment (non-sandboxed)
     nodeProcess = process;
 }
-const isElectronProcess = typeof ((_b = nodeProcess === null || nodeProcess === void 0 ? void 0 : nodeProcess.versions) === null || _b === void 0 ? void 0 : _b.electron) === 'string';
-const isElectronRenderer = isElectronProcess && (nodeProcess === null || nodeProcess === void 0 ? void 0 : nodeProcess.type) === 'renderer';
+const isElectronProcess = typeof nodeProcess?.versions?.electron === 'string';
+const isElectronRenderer = isElectronProcess && nodeProcess?.type === 'renderer';
 // Native environment
 if (typeof nodeProcess === 'object') {
     _isWindows = (nodeProcess.platform === 'win32');
@@ -46,12 +45,10 @@ if (typeof nodeProcess === 'object') {
     if (rawNlsConfig) {
         try {
             const nlsConfig = JSON.parse(rawNlsConfig);
-            const resolved = nlsConfig.availableLanguages['*'];
-            _locale = nlsConfig.locale;
+            _locale = nlsConfig.userLocale;
             _platformLocale = nlsConfig.osLocale;
-            // VSCode's default language is 'en'
-            _language = resolved ? resolved : LANGUAGE_DEFAULT;
-            _translationsConfigFile = nlsConfig._translationsConfigFile;
+            _language = nlsConfig.resolvedLanguage || LANGUAGE_DEFAULT;
+            _translationsConfigFile = nlsConfig.languagePack?.translationsConfigFile;
         }
         catch (e) {
         }
@@ -65,17 +62,11 @@ else if (typeof navigator === 'object' && !isElectronRenderer) {
     _isMacintosh = _userAgent.indexOf('Macintosh') >= 0;
     _isIOS = (_userAgent.indexOf('Macintosh') >= 0 || _userAgent.indexOf('iPad') >= 0 || _userAgent.indexOf('iPhone') >= 0) && !!navigator.maxTouchPoints && navigator.maxTouchPoints > 0;
     _isLinux = _userAgent.indexOf('Linux') >= 0;
-    _isMobile = (_userAgent === null || _userAgent === void 0 ? void 0 : _userAgent.indexOf('Mobi')) >= 0;
+    _isMobile = _userAgent?.indexOf('Mobi') >= 0;
     _isWeb = true;
-    const configuredLocale = nls.getConfiguredDefaultLocale(
-    // This call _must_ be done in the file that calls `nls.getConfiguredDefaultLocale`
-    // to ensure that the NLS AMD Loader plugin has been loaded and configured.
-    // This is because the loader plugin decides what the default locale is based on
-    // how it's able to resolve the strings.
-    nls.localize({ key: 'ensureLoaderPluginIsLoaded', comment: ['{Locked}'] }, '_'));
-    _locale = configuredLocale || LANGUAGE_DEFAULT;
-    _language = _locale;
-    _platformLocale = navigator.language;
+    _language = nls.getNLSLanguage() || LANGUAGE_DEFAULT;
+    _locale = navigator.language.toLowerCase();
+    _platformLocale = _locale;
 }
 // Unknown environment
 else {
@@ -104,7 +95,7 @@ export const userAgent = _userAgent;
 /**
  * The language used for the user interface. The format of
  * the string is all lower case (e.g. zh-tw for Traditional
- * Chinese)
+ * Chinese or de for German)
  */
 export const language = _language;
 export const setTimeout0IsFaster = (typeof $globalThis.postMessage === 'function' && !$globalThis.importScripts);

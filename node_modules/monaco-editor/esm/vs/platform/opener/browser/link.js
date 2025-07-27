@@ -45,16 +45,15 @@ let Link = class Link extends Disposable {
         this._enabled = enabled;
     }
     constructor(container, _link, options = {}, _hoverService, openerService) {
-        var _a, _b;
         super();
         this._link = _link;
         this._hoverService = _hoverService;
         this._enabled = true;
         this.el = append(container, $('a.monaco-link', {
-            tabIndex: (_a = _link.tabIndex) !== null && _a !== void 0 ? _a : 0,
+            tabIndex: _link.tabIndex ?? 0,
             href: _link.href,
         }, _link.label));
-        this.hoverDelegate = (_b = options.hoverDelegate) !== null && _b !== void 0 ? _b : getDefaultHoverDelegate('mouse');
+        this.hoverDelegate = options.hoverDelegate ?? getDefaultHoverDelegate('mouse');
         this.setTooltip(_link.title);
         this.el.setAttribute('role', 'button');
         const onClickEmitter = this._register(new DomEmitter(this.el, 'click'));
@@ -69,7 +68,7 @@ let Link = class Link extends Disposable {
                 return;
             }
             EventHelper.stop(e, true);
-            if (options === null || options === void 0 ? void 0 : options.opener) {
+            if (options?.opener) {
                 options.opener(this._link.href);
             }
             else {
@@ -80,10 +79,10 @@ let Link = class Link extends Disposable {
     }
     setTooltip(title) {
         if (this.hoverDelegate.showNativeHover) {
-            this.el.title = title !== null && title !== void 0 ? title : '';
+            this.el.title = title ?? '';
         }
         else if (!this.hover && title) {
-            this.hover = this._register(this._hoverService.setupUpdatableHover(this.hoverDelegate, this.el, title));
+            this.hover = this._register(this._hoverService.setupManagedHover(this.hoverDelegate, this.el, title));
         }
         else if (this.hover) {
             this.hover.update(title);

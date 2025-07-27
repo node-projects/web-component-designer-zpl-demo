@@ -13,9 +13,9 @@ export class EditorGutter extends Disposable {
         this._editor = _editor;
         this._domNode = _domNode;
         this.itemProvider = itemProvider;
-        this.scrollTop = observableFromEvent(this._editor.onDidScrollChange, (e) => /** @description editor.onDidScrollChange */ this._editor.getScrollTop());
+        this.scrollTop = observableFromEvent(this, this._editor.onDidScrollChange, (e) => /** @description editor.onDidScrollChange */ this._editor.getScrollTop());
         this.isScrollTopZero = this.scrollTop.map((scrollTop) => /** @description isScrollTopZero */ scrollTop === 0);
-        this.modelAttached = observableFromEvent(this._editor.onDidChangeModel, (e) => /** @description editor.onDidChangeModel */ this._editor.hasModel());
+        this.modelAttached = observableFromEvent(this, this._editor.onDidChangeModel, (e) => /** @description editor.onDidChangeModel */ this._editor.hasModel());
         this.editorOnDidChangeViewZones = observableSignalFromEvent('onDidChangeViewZones', this._editor.onDidChangeViewZones);
         this.editorOnDidContentSizeChange = observableSignalFromEvent('onDidContentSizeChange', this._editor.onDidContentSizeChange);
         this.domNodeSizeChanged = observableSignal('domNodeSizeChanged');
@@ -78,10 +78,9 @@ export class EditorGutter extends Disposable {
                         const top = gutterItem.range.startLineNumber <= this._editor.getModel().getLineCount()
                             ? this._editor.getTopForLineNumber(gutterItem.range.startLineNumber, true) - scrollTop
                             : this._editor.getBottomForLineNumber(gutterItem.range.startLineNumber - 1, false) - scrollTop;
-                        const bottom = gutterItem.range.isEmpty
-                            // Don't trust that `getBottomForLineNumber` for the previous line equals `getTopForLineNumber` for the current one.
-                            ? top
-                            : (this._editor.getBottomForLineNumber(gutterItem.range.endLineNumberExclusive - 1, true) - scrollTop);
+                        const bottom = gutterItem.range.endLineNumberExclusive === 1 ?
+                            Math.max(top, this._editor.getTopForLineNumber(gutterItem.range.startLineNumber, false) - scrollTop)
+                            : Math.max(top, this._editor.getBottomForLineNumber(gutterItem.range.endLineNumberExclusive - 1, true) - scrollTop);
                         const height = bottom - top;
                         view.domNode.style.top = `${top}px`;
                         view.domNode.style.height = `${height}px`;
@@ -93,7 +92,7 @@ export class EditorGutter extends Disposable {
         for (const id of unusedIds) {
             const view = this.views.get(id);
             view.gutterItemView.dispose();
-            this._domNode.removeChild(view.domNode);
+            view.domNode.remove();
             this.views.delete(id);
         }
     }

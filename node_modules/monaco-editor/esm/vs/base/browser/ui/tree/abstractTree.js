@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { $, append, clearNode, createStyleSheet, getWindow, h, hasParentWithClass, asCssValueWithDefault, isKeyboardEvent } from '../../dom.js';
+import { $, append, clearNode, createStyleSheet, getWindow, h, hasParentWithClass, asCssValueWithDefault, isKeyboardEvent, addDisposableListener } from '../../dom.js';
 import { DomEmitter } from '../../event.js';
 import { StandardKeyboardEvent } from '../../keyboardEvent.js';
 import { ActionBar } from '../actionbar/actionbar.js';
@@ -28,6 +28,7 @@ import './media/tree.css';
 import { localize } from '../../../../nls.js';
 import { createInstantHoverDelegate, getDefaultHoverDelegate } from '../hover/hoverDelegateFactory.js';
 import { autorun, constObservable } from '../../../common/observable.js';
+import { alert } from '../aria/aria.js';
 class TreeElementsDragAndDropData extends ElementsDragAndDropData {
     constructor(data) {
         super(data.elements.map(node => node.element));
@@ -57,8 +58,7 @@ class TreeNodeListDragAndDrop {
         return undefined;
     }
     onDragStart(data, originalEvent) {
-        var _a, _b;
-        (_b = (_a = this.dnd).onDragStart) === null || _b === void 0 ? void 0 : _b.call(_a, asTreeDragAndDropData(data), originalEvent);
+        this.dnd.onDragStart?.(asTreeDragAndDropData(data), originalEvent);
     }
     onDragOver(data, targetNode, targetIndex, targetSector, originalEvent, raw = true) {
         const result = this.dnd.onDragOver(asTreeDragAndDropData(data), targetNode && targetNode.element, targetIndex, targetSector, originalEvent);
@@ -108,8 +108,7 @@ class TreeNodeListDragAndDrop {
         this.dnd.drop(asTreeDragAndDropData(data), targetNode && targetNode.element, targetIndex, targetSector, originalEvent);
     }
     onDragEnd(originalEvent) {
-        var _a, _b;
-        (_b = (_a = this.dnd).onDragEnd) === null || _b === void 0 ? void 0 : _b.call(_a, originalEvent);
+        this.dnd.onDragEnd?.(originalEvent);
     }
     dispose() {
         this.disposables.dispose();
@@ -187,8 +186,7 @@ export class ComposedTreeDelegate {
         return !!this.delegate.hasDynamicHeight && this.delegate.hasDynamicHeight(element.element);
     }
     setDynamicHeight(element, height) {
-        var _a, _b;
-        (_b = (_a = this.delegate).setDynamicHeight) === null || _b === void 0 ? void 0 : _b.call(_a, element.element, height);
+        this.delegate.setDynamicHeight?.(element.element, height);
     }
 }
 export var RenderIndentGuides;
@@ -211,8 +209,8 @@ class EventCollection {
     }
 }
 export class TreeRenderer {
+    static { this.DefaultIndent = 8; }
     constructor(renderer, modelProvider, onDidChangeCollapseState, activeNodes, renderedIndentGuides, options = {}) {
-        var _a;
         this.renderer = renderer;
         this.modelProvider = modelProvider;
         this.activeNodes = activeNodes;
@@ -228,7 +226,7 @@ export class TreeRenderer {
         this.templateId = renderer.templateId;
         this.updateOptions(options);
         Event.map(onDidChangeCollapseState, e => e.node)(this.onDidChangeNodeTwistieState, this, this.disposables);
-        (_a = renderer.onDidChangeTwistieState) === null || _a === void 0 ? void 0 : _a.call(renderer, this.onDidChangeTwistieState, this, this.disposables);
+        renderer.onDidChangeTwistieState?.(this.onDidChangeTwistieState, this, this.disposables);
     }
     updateOptions(options = {}) {
         if (typeof options.indent !== 'undefined') {
@@ -275,9 +273,8 @@ export class TreeRenderer {
         this.renderer.renderElement(node, index, templateData.templateData, height);
     }
     disposeElement(node, index, templateData, height) {
-        var _a, _b;
         templateData.indentGuidesDisposable.dispose();
-        (_b = (_a = this.renderer).disposeElement) === null || _b === void 0 ? void 0 : _b.call(_a, node, index, templateData.templateData, height);
+        this.renderer.disposeElement?.(node, index, templateData.templateData, height);
         if (typeof height === 'number') {
             this.renderedNodes.delete(node);
             this.renderedElements.delete(node.element);
@@ -376,7 +373,7 @@ export class TreeRenderer {
                     set.add(model.getNode(parentRef));
                 }
             }
-            catch (_a) {
+            catch {
                 // noop
             }
         });
@@ -399,7 +396,6 @@ export class TreeRenderer {
         dispose(this.disposables);
     }
 }
-TreeRenderer.DefaultIndent = 8;
 class FindFilter {
     get totalCount() { return this._totalCount; }
     get matchCount() { return this._matchCount; }
@@ -488,12 +484,11 @@ class FindFilter {
 }
 export class ModeToggle extends Toggle {
     constructor(opts) {
-        var _a, _b;
         super({
             icon: Codicon.listFilter,
             title: localize('filter', "Filter"),
-            isChecked: (_a = opts.isChecked) !== null && _a !== void 0 ? _a : false,
-            hoverDelegate: (_b = opts.hoverDelegate) !== null && _b !== void 0 ? _b : getDefaultHoverDelegate('element'),
+            isChecked: opts.isChecked ?? false,
+            hoverDelegate: opts.hoverDelegate ?? getDefaultHoverDelegate('element'),
             inputActiveOptionBorder: opts.inputActiveOptionBorder,
             inputActiveOptionForeground: opts.inputActiveOptionForeground,
             inputActiveOptionBackground: opts.inputActiveOptionBackground
@@ -502,12 +497,11 @@ export class ModeToggle extends Toggle {
 }
 export class FuzzyToggle extends Toggle {
     constructor(opts) {
-        var _a, _b;
         super({
             icon: Codicon.searchFuzzy,
             title: localize('fuzzySearch', "Fuzzy Match"),
-            isChecked: (_a = opts.isChecked) !== null && _a !== void 0 ? _a : false,
-            hoverDelegate: (_b = opts.hoverDelegate) !== null && _b !== void 0 ? _b : getDefaultHoverDelegate('element'),
+            isChecked: opts.isChecked ?? false,
+            hoverDelegate: opts.hoverDelegate ?? getDefaultHoverDelegate('element'),
             inputActiveOptionBorder: opts.inputActiveOptionBorder,
             inputActiveOptionForeground: opts.inputActiveOptionForeground,
             inputActiveOptionBackground: opts.inputActiveOptionBackground
@@ -541,7 +535,6 @@ class FindWidget extends Disposable {
         this.matchTypeToggle.checked = matchType === TreeFindMatchType.Fuzzy;
     }
     constructor(container, tree, contextViewProvider, mode, matchType, options) {
-        var _a;
         super();
         this.tree = tree;
         this.elements = h('.monaco-tree-type-filter', [
@@ -554,8 +547,8 @@ class FindWidget extends Disposable {
         this.top = 0;
         this._onDidDisable = new Emitter();
         container.appendChild(this.elements.root);
-        this._register(toDisposable(() => container.removeChild(this.elements.root)));
-        const styles = (_a = options === null || options === void 0 ? void 0 : options.styles) !== null && _a !== void 0 ? _a : unthemedFindWidgetStyles;
+        this._register(toDisposable(() => this.elements.root.remove()));
+        const styles = options?.styles ?? unthemedFindWidgetStyles;
         if (styles.listFilterWidgetBackground) {
             this.elements.root.style.backgroundColor = styles.listFilterWidgetBackground;
         }
@@ -573,7 +566,7 @@ class FindWidget extends Disposable {
             showCommonFindToggles: false,
             inputBoxStyles: styles.inputBoxStyles,
             toggleStyles: styles.toggleStyles,
-            history: options === null || options === void 0 ? void 0 : options.history
+            history: options?.history
         }));
         this.actionbar = this._register(new ActionBar(this.elements.actionbar));
         this.mode = mode;
@@ -728,7 +721,6 @@ class FindController {
         this._onDidChangeMatchType.fire(matchType);
     }
     constructor(tree, model, view, filter, contextViewProvider, options = {}) {
-        var _a, _b;
         this.tree = tree;
         this.view = view;
         this.filter = filter;
@@ -745,8 +737,8 @@ class FindController {
         this.onDidChangeOpenState = this._onDidChangeOpenState.event;
         this.enabledDisposables = new DisposableStore();
         this.disposables = new DisposableStore();
-        this._mode = (_a = tree.options.defaultFindMode) !== null && _a !== void 0 ? _a : TreeFindMode.Highlight;
-        this._matchType = (_b = tree.options.defaultFindMatchType) !== null && _b !== void 0 ? _b : TreeFindMatchType.Fuzzy;
+        this._mode = tree.options.defaultFindMode ?? TreeFindMode.Highlight;
+        this._matchType = tree.options.defaultFindMatchType ?? TreeFindMatchType.Fuzzy;
         model.onDidSplice(this.onDidSpliceModel, this, this.disposables);
     }
     updateOptions(optionsUpdate = {}) {
@@ -765,18 +757,21 @@ class FindController {
         this.render();
     }
     render() {
-        var _a, _b, _c, _d;
         const noMatches = this.filter.totalCount > 0 && this.filter.matchCount === 0;
         if (this.pattern && noMatches) {
-            if ((_a = this.tree.options.showNotFoundMessage) !== null && _a !== void 0 ? _a : true) {
-                (_b = this.widget) === null || _b === void 0 ? void 0 : _b.showMessage({ type: 2 /* MessageType.WARNING */, content: localize('not found', "No elements found.") });
+            alert(localize('replFindNoResults', "No results"));
+            if (this.tree.options.showNotFoundMessage ?? true) {
+                this.widget?.showMessage({ type: 2 /* MessageType.WARNING */, content: localize('not found', "No elements found.") });
             }
             else {
-                (_c = this.widget) === null || _c === void 0 ? void 0 : _c.showMessage({ type: 2 /* MessageType.WARNING */ });
+                this.widget?.showMessage({ type: 2 /* MessageType.WARNING */ });
             }
         }
         else {
-            (_d = this.widget) === null || _d === void 0 ? void 0 : _d.clearMessage();
+            this.widget?.clearMessage();
+            if (this.pattern) {
+                alert(localize('replFindResults', "{0} results", this.filter.matchCount));
+            }
         }
     }
     shouldAllowFocus(node) {
@@ -789,9 +784,8 @@ class FindController {
         return !FuzzyScore.isDefault(node.filterData);
     }
     layout(width) {
-        var _a;
         this.width = width;
-        (_a = this.widget) === null || _a === void 0 ? void 0 : _a.layout(width);
+        this.widget?.layout(width);
     }
     dispose() {
         this._history = undefined;
@@ -854,7 +848,6 @@ class DefaultStickyScrollDelegate {
 }
 class StickyScrollController extends Disposable {
     constructor(tree, model, view, renderers, treeDelegate, options = {}) {
-        var _a;
         super();
         this.tree = tree;
         this.model = model;
@@ -863,7 +856,7 @@ class StickyScrollController extends Disposable {
         this.maxWidgetViewRatio = 0.4;
         const stickyScrollOptions = this.validateStickySettings(options);
         this.stickyScrollMaxItemCount = stickyScrollOptions.stickyScrollMaxItemCount;
-        this.stickyScrollDelegate = (_a = options.stickyScrollDelegate) !== null && _a !== void 0 ? _a : new DefaultStickyScrollDelegate();
+        this.stickyScrollDelegate = options.stickyScrollDelegate ?? new DefaultStickyScrollDelegate();
         this._widget = this._register(new StickyScrollWidget(view.getScrollableElement(), view, tree, renderers, treeDelegate, options.accessibilityProvider));
         this.onDidChangeHasFocus = this._widget.onDidChangeHasFocus;
         this.onContextMenu = this._widget.onContextMenu;
@@ -1173,7 +1166,6 @@ class StickyScrollWidget {
         return { element: stickyElement, disposable };
     }
     setAccessibilityAttributes(container, element, stickyIndex, stickyNodesTotal) {
-        var _a;
         if (!this.accessibilityProvider) {
             return Disposable.None;
         }
@@ -1184,7 +1176,7 @@ class StickyScrollWidget {
             container.setAttribute('aria-posinset', String(this.accessibilityProvider.getPosInSet(element, stickyIndex)));
         }
         if (this.accessibilityProvider.getRole) {
-            container.setAttribute('role', (_a = this.accessibilityProvider.getRole(element)) !== null && _a !== void 0 ? _a : 'treeitem');
+            container.setAttribute('role', this.accessibilityProvider.getRole(element) ?? 'treeitem');
         }
         const ariaLabel = this.accessibilityProvider.getAriaLabel(element);
         const observable = (ariaLabel && typeof ariaLabel !== 'string') ? ariaLabel : constObservable(ariaLabel);
@@ -1247,8 +1239,8 @@ class StickyScrollFocus extends Disposable {
         this._onContextMenu = new Emitter();
         this.onContextMenu = this._onContextMenu.event;
         this._domHasFocus = false;
-        this.container.addEventListener('focus', () => this.onFocus());
-        this.container.addEventListener('blur', () => this.onBlur());
+        this._register(addDisposableListener(this.container, 'focus', () => this.onFocus()));
+        this._register(addDisposableListener(this.container, 'blur', () => this.onBlur()));
         this._register(this.view.onDidFocus(() => this.toggleStickyScrollFocused(false)));
         this._register(this.view.onKeyDown((e) => this.onKeyDown(e)));
         this._register(this.view.onMouseDown((e) => this.onMouseDown(e)));
@@ -1268,7 +1260,7 @@ class StickyScrollFocus extends Disposable {
             if (!this.state) {
                 throw new Error('Context menu should not be triggered when state is undefined');
             }
-            const stickyIndex = this.state.stickyNodes.findIndex(stickyNode => { var _a; return stickyNode.node.element === ((_a = e.element) === null || _a === void 0 ? void 0 : _a.element); });
+            const stickyIndex = this.state.stickyNodes.findIndex(stickyNode => stickyNode.node.element === e.element?.element);
             if (stickyIndex === -1) {
                 throw new Error('Context menu should not be triggered when element is not in sticky scroll widget');
             }
@@ -1495,7 +1487,7 @@ class Trait {
         this.onDidChange = this._onDidChange.event;
     }
     set(nodes, browserEvent) {
-        if (!(browserEvent === null || browserEvent === void 0 ? void 0 : browserEvent.__forceEvent) && equals(this.nodes, nodes)) {
+        if (!browserEvent?.__forceEvent && equals(this.nodes, nodes)) {
             return;
         }
         this._set(nodes, false, browserEvent);
@@ -1743,17 +1735,17 @@ export class AbstractTree {
     get onMouseDblClick() { return Event.filter(Event.map(this.view.onMouseDblClick, asTreeMouseEvent), e => e.target !== TreeMouseEventTarget.Filter); }
     get onMouseOver() { return Event.map(this.view.onMouseOver, asTreeMouseEvent); }
     get onMouseOut() { return Event.map(this.view.onMouseOut, asTreeMouseEvent); }
-    get onContextMenu() { var _a, _b; return Event.any(Event.filter(Event.map(this.view.onContextMenu, asTreeContextMenuEvent), e => !e.isStickyScroll), (_b = (_a = this.stickyScrollController) === null || _a === void 0 ? void 0 : _a.onContextMenu) !== null && _b !== void 0 ? _b : Event.None); }
+    get onContextMenu() { return Event.any(Event.filter(Event.map(this.view.onContextMenu, asTreeContextMenuEvent), e => !e.isStickyScroll), this.stickyScrollController?.onContextMenu ?? Event.None); }
     get onPointer() { return Event.map(this.view.onPointer, asTreeMouseEvent); }
     get onKeyDown() { return this.view.onKeyDown; }
     get onDidFocus() { return this.view.onDidFocus; }
     get onDidChangeModel() { return Event.signal(this.model.onDidSplice); }
     get onDidChangeCollapseState() { return this.model.onDidChangeCollapseState; }
-    get findMode() { var _a, _b; return (_b = (_a = this.findController) === null || _a === void 0 ? void 0 : _a.mode) !== null && _b !== void 0 ? _b : TreeFindMode.Highlight; }
+    get findMode() { return this.findController?.mode ?? TreeFindMode.Highlight; }
     set findMode(findMode) { if (this.findController) {
         this.findController.mode = findMode;
     } }
-    get findMatchType() { var _a, _b; return (_b = (_a = this.findController) === null || _a === void 0 ? void 0 : _a.matchType) !== null && _b !== void 0 ? _b : TreeFindMatchType.Fuzzy; }
+    get findMatchType() { return this.findController?.matchType ?? TreeFindMatchType.Fuzzy; }
     set findMatchType(findFuzzy) { if (this.findController) {
         this.findController.matchType = findFuzzy;
     } }
@@ -1761,7 +1753,6 @@ export class AbstractTree {
     get expandOnlyOnTwistieClick() { return typeof this._options.expandOnlyOnTwistieClick === 'undefined' ? true : this._options.expandOnlyOnTwistieClick; }
     get onDidDispose() { return this.view.onDidDispose; }
     constructor(_user, container, delegate, renderers, _options = {}) {
-        var _a;
         this._user = _user;
         this._options = _options;
         this.eventBufferer = new EventBufferer();
@@ -1826,7 +1817,7 @@ export class AbstractTree {
             Event.chain(onKeyDown, $ => $.filter(e => e.keyCode === 17 /* KeyCode.RightArrow */))(this.onRightArrow, this, this.disposables);
             Event.chain(onKeyDown, $ => $.filter(e => e.keyCode === 10 /* KeyCode.Space */))(this.onSpace, this, this.disposables);
         }
-        if (((_a = _options.findWidgetEnabled) !== null && _a !== void 0 ? _a : true) && _options.keyboardNavigationLabelProvider && _options.contextViewProvider) {
+        if ((_options.findWidgetEnabled ?? true) && _options.keyboardNavigationLabelProvider && _options.contextViewProvider) {
             const opts = this.options.findWidgetStyles ? { styles: this.options.findWidgetStyles } : undefined;
             this.findController = new FindController(this, this.model, this.view, filter, _options.contextViewProvider, opts);
             this.focusNavigationFilter = node => this.findController.shouldAllowFocus(node);
@@ -1847,13 +1838,12 @@ export class AbstractTree {
         this.getHTMLElement().classList.toggle('always', this._options.renderIndentGuides === RenderIndentGuides.Always);
     }
     updateOptions(optionsUpdate = {}) {
-        var _a;
         this._options = { ...this._options, ...optionsUpdate };
         for (const renderer of this.renderers) {
             renderer.updateOptions(optionsUpdate);
         }
         this.view.updateOptions(this._options);
-        (_a = this.findController) === null || _a === void 0 ? void 0 : _a.updateOptions(optionsUpdate);
+        this.findController?.updateOptions(optionsUpdate);
         this.updateStickyScroll(optionsUpdate);
         this._onDidUpdateOptions.fire(this._options);
         this.getHTMLElement().classList.toggle('always', this._options.renderIndentGuides === RenderIndentGuides.Always);
@@ -1862,7 +1852,6 @@ export class AbstractTree {
         return this._options;
     }
     updateStickyScroll(optionsUpdate) {
-        var _a;
         if (!this.stickyScrollController && this._options.enableStickyScroll) {
             this.stickyScrollController = new StickyScrollController(this, this.model, this.view, this.renderers, this.treeDelegate, this._options);
             this.onDidChangeStickyScrollFocused = this.stickyScrollController.onDidChangeHasFocus;
@@ -1872,7 +1861,7 @@ export class AbstractTree {
             this.stickyScrollController.dispose();
             this.stickyScrollController = undefined;
         }
-        (_a = this.stickyScrollController) === null || _a === void 0 ? void 0 : _a.updateOptions(optionsUpdate);
+        this.stickyScrollController?.updateOptions(optionsUpdate);
     }
     // Widget
     getHTMLElement() {
@@ -1897,8 +1886,7 @@ export class AbstractTree {
         this.view.ariaLabel = value;
     }
     domFocus() {
-        var _a;
-        if ((_a = this.stickyScrollController) === null || _a === void 0 ? void 0 : _a.focusedLast()) {
+        if (this.stickyScrollController?.focusedLast()) {
             this.stickyScrollController.domFocus();
         }
         else {
@@ -1906,14 +1894,12 @@ export class AbstractTree {
         }
     }
     layout(height, width) {
-        var _a;
         this.view.layout(height, width);
         if (isNumber(width)) {
-            (_a = this.findController) === null || _a === void 0 ? void 0 : _a.layout(width);
+            this.findController?.layout(width);
         }
     }
     style(styles) {
-        var _a, _b;
         const suffix = `.${this.view.domId}`;
         const content = [];
         if (styles.treeIndentGuidesStroke) {
@@ -1921,7 +1907,7 @@ export class AbstractTree {
             content.push(`.monaco-list${suffix} .monaco-tl-indent > .indent-guide.active { border-color: ${styles.treeIndentGuidesStroke}; }`);
         }
         // Sticky Scroll Background
-        const stickyScrollBackground = (_a = styles.treeStickyScrollBackground) !== null && _a !== void 0 ? _a : styles.listBackground;
+        const stickyScrollBackground = styles.treeStickyScrollBackground ?? styles.listBackground;
         if (stickyScrollBackground) {
             content.push(`.monaco-list${suffix} .monaco-scrollable-element .monaco-tree-sticky-container { background-color: ${stickyScrollBackground}; }`);
             content.push(`.monaco-list${suffix} .monaco-scrollable-element .monaco-tree-sticky-container .monaco-tree-sticky-row { background-color: ${stickyScrollBackground}; }`);
@@ -1940,7 +1926,7 @@ export class AbstractTree {
             content.push(`.monaco-list${suffix}:not(.sticky-scroll-focused) .monaco-scrollable-element .monaco-tree-sticky-container .monaco-list-row.focused { color: inherit; }`);
         }
         // Sticky Scroll Focus Outlines
-        const focusAndSelectionOutline = asCssValueWithDefault(styles.listFocusAndSelectionOutline, asCssValueWithDefault(styles.listSelectionOutline, (_b = styles.listFocusOutline) !== null && _b !== void 0 ? _b : ''));
+        const focusAndSelectionOutline = asCssValueWithDefault(styles.listFocusAndSelectionOutline, asCssValueWithDefault(styles.listSelectionOutline, styles.listFocusOutline ?? ''));
         if (focusAndSelectionOutline) { // default: listFocusOutline
             content.push(`.monaco-list${suffix}.sticky-scroll-focused .monaco-scrollable-element .monaco-tree-sticky-container:focus .monaco-list-row.focused.selected { outline: 1px solid ${focusAndSelectionOutline}; outline-offset: -1px;}`);
             content.push(`.monaco-list${suffix}:not(.sticky-scroll-focused) .monaco-scrollable-element .monaco-tree-sticky-container .monaco-list-row.focused.selected { outline: inherit;}`);
@@ -2022,7 +2008,10 @@ export class AbstractTree {
         return this.view.focusNextPage(browserEvent, filter);
     }
     focusPreviousPage(browserEvent, filter = (isKeyboardEvent(browserEvent) && browserEvent.altKey) ? undefined : this.focusNavigationFilter) {
-        return this.view.focusPreviousPage(browserEvent, filter, () => { var _a, _b; return (_b = (_a = this.stickyScrollController) === null || _a === void 0 ? void 0 : _a.height) !== null && _b !== void 0 ? _b : 0; });
+        return this.view.focusPreviousPage(browserEvent, filter, () => this.stickyScrollController?.height ?? 0);
+    }
+    focusLast(browserEvent, filter = (isKeyboardEvent(browserEvent) && browserEvent.altKey) ? undefined : this.focusNavigationFilter) {
+        this.view.focusLast(browserEvent, filter);
     }
     focusFirst(browserEvent, filter = (isKeyboardEvent(browserEvent) && browserEvent.altKey) ? undefined : this.focusNavigationFilter) {
         this.view.focusFirst(browserEvent, filter);
@@ -2098,9 +2087,8 @@ export class AbstractTree {
         this.model.setCollapsed(location, undefined, recursive);
     }
     dispose() {
-        var _a;
         dispose(this.disposables);
-        (_a = this.stickyScrollController) === null || _a === void 0 ? void 0 : _a.dispose();
+        this.stickyScrollController?.dispose();
         this.view.dispose();
     }
 }

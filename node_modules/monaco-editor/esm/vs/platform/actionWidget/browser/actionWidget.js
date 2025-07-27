@@ -23,7 +23,7 @@ import { IContextViewService } from '../../contextview/browser/contextView.js';
 import { registerSingleton } from '../../instantiation/common/extensions.js';
 import { createDecorator, IInstantiationService } from '../../instantiation/common/instantiation.js';
 import { inputActiveOptionBackground, registerColor } from '../../theme/common/colorRegistry.js';
-registerColor('actionBar.toggledBackground', { dark: inputActiveOptionBackground, light: inputActiveOptionBackground, hcDark: inputActiveOptionBackground, hcLight: inputActiveOptionBackground, }, localize('actionBar.toggledBackground', 'Background color for toggled action items in action bar.'));
+registerColor('actionBar.toggledBackground', inputActiveOptionBackground, localize('actionBar.toggledBackground', 'Background color for toggled action items in action bar.'));
 const ActionWidgetContextKeys = {
     Visible: new RawContextKey('codeActionMenuVisible', false, localize('codeActionMenuVisible', "Whether the action widget list is visible"))
 };
@@ -46,7 +46,7 @@ let ActionWidgetService = class ActionWidgetService extends Disposable {
             getAnchor: () => anchor,
             render: (container) => {
                 visibleContext.set(true);
-                return this._renderWidget(container, list, actionBarActions !== null && actionBarActions !== void 0 ? actionBarActions : []);
+                return this._renderWidget(container, list, actionBarActions ?? []);
             },
             onHide: (didCancel) => {
                 visibleContext.reset();
@@ -55,24 +55,19 @@ let ActionWidgetService = class ActionWidgetService extends Disposable {
         }, container, false);
     }
     acceptSelected(preview) {
-        var _a;
-        (_a = this._list.value) === null || _a === void 0 ? void 0 : _a.acceptSelected(preview);
+        this._list.value?.acceptSelected(preview);
     }
     focusPrevious() {
-        var _a, _b;
-        (_b = (_a = this._list) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.focusPrevious();
+        this._list?.value?.focusPrevious();
     }
     focusNext() {
-        var _a, _b;
-        (_b = (_a = this._list) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.focusNext();
+        this._list?.value?.focusNext();
     }
     hide(didCancel) {
-        var _a;
-        (_a = this._list.value) === null || _a === void 0 ? void 0 : _a.hide(didCancel);
+        this._list.value?.hide(didCancel);
         this._list.clear();
     }
     _renderWidget(element, list, actionBarActions) {
-        var _a;
         const widget = document.createElement('div');
         widget.classList.add('action-widget');
         element.appendChild(widget);
@@ -106,7 +101,7 @@ let ActionWidgetService = class ActionWidgetService extends Disposable {
                 actionBarWidth = actionBar.getContainer().offsetWidth;
             }
         }
-        const width = (_a = this._list.value) === null || _a === void 0 ? void 0 : _a.layout(actionBarWidth);
+        const width = this._list.value?.layout(actionBarWidth);
         widget.style.width = `${width}px`;
         const focusTracker = renderDisposables.add(dom.trackFocus(element));
         renderDisposables.add(focusTracker.onDidBlur(() => this.hide(true)));
@@ -122,8 +117,7 @@ let ActionWidgetService = class ActionWidgetService extends Disposable {
         return actionBar;
     }
     _onWidgetClosed(didCancel) {
-        var _a;
-        (_a = this._list.value) === null || _a === void 0 ? void 0 : _a.hide(didCancel);
+        this._list.value?.hide(didCancel);
     }
 };
 ActionWidgetService = __decorate([

@@ -62,6 +62,12 @@ export class SingleTextEdit {
         this.range = range;
         this.text = text;
     }
+    toSingleEditOperation() {
+        return {
+            range: this.range,
+            text: this.text,
+        };
+    }
 }
 function rangeFromPositions(start, end) {
     if (start.lineNumber === end.lineNumber && start.column === Number.MAX_SAFE_INTEGER) {

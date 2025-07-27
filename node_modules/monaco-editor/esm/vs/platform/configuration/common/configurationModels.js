@@ -26,9 +26,8 @@ export class ConfigurationModel {
         this.overrideConfigurations = new Map();
     }
     get rawConfiguration() {
-        var _a;
         if (!this._rawConfiguration) {
-            if ((_a = this.raw) === null || _a === void 0 ? void 0 : _a.length) {
+            if (this.raw?.length) {
                 const rawConfigurationModels = this.raw.map(raw => {
                     if (raw instanceof ConfigurationModel) {
                         return raw;
@@ -100,13 +99,12 @@ export class ConfigurationModel {
         return overrideConfigurationModel;
     }
     merge(...others) {
-        var _a, _b;
         const contents = objects.deepClone(this.contents);
         const overrides = objects.deepClone(this.overrides);
         const keys = [...this.keys];
-        const raws = ((_a = this.raw) === null || _a === void 0 ? void 0 : _a.length) ? [...this.raw] : [this];
+        const raws = this.raw?.length ? [...this.raw] : [this];
         for (const other of others) {
-            raws.push(...(((_b = other.raw) === null || _b === void 0 ? void 0 : _b.length) ? other.raw : [other]));
+            raws.push(...(other.raw?.length ? other.raw : [other]));
             if (other.isEmpty()) {
                 continue;
             }
@@ -198,10 +196,6 @@ export class ConfigurationModel {
             keys: this.keys
         };
     }
-    // Update methods
-    addValue(key, value) {
-        this.updateValue(key, value, true);
-    }
     setValue(key, value) {
         this.updateValue(key, value, false);
     }
@@ -223,11 +217,19 @@ export class ConfigurationModel {
             this.keys.push(key);
         }
         if (OVERRIDE_PROPERTY_REGEX.test(key)) {
-            this.overrides.push({
-                identifiers: overrideIdentifiersFromKey(key),
+            const identifiers = overrideIdentifiersFromKey(key);
+            const override = {
+                identifiers,
                 keys: Object.keys(this.contents[key]),
                 contents: toValuesTree(this.contents[key], message => this.logService.error(message)),
-            });
+            };
+            const index = this.overrides.findIndex(o => arrays.equals(o.identifiers, identifiers));
+            if (index !== -1) {
+                this.overrides[index] = override;
+            }
+            else {
+                this.overrides.push(override);
+            }
         }
     }
 }
@@ -258,9 +260,8 @@ export class ConfigurationModelParser {
         return { contents, keys, overrides, restricted: filtered.restricted, hasExcludedProperties: filtered.hasExcludedProperties };
     }
     filter(properties, configurationProperties, filterOverriddenProperties, options) {
-        var _a, _b, _c;
         let hasExcludedProperties = false;
-        if (!(options === null || options === void 0 ? void 0 : options.scopes) && !(options === null || options === void 0 ? void 0 : options.skipRestricted) && !((_a = options === null || options === void 0 ? void 0 : options.exclude) === null || _a === void 0 ? void 0 : _a.length)) {
+        if (!options?.scopes && !options?.skipRestricted && !options?.exclude?.length) {
             return { raw: properties, restricted: [], hasExcludedProperties };
         }
         const raw = {};
@@ -275,13 +276,13 @@ export class ConfigurationModelParser {
             else {
                 const propertySchema = configurationProperties[key];
                 const scope = propertySchema ? typeof propertySchema.scope !== 'undefined' ? propertySchema.scope : 3 /* ConfigurationScope.WINDOW */ : undefined;
-                if (propertySchema === null || propertySchema === void 0 ? void 0 : propertySchema.restricted) {
+                if (propertySchema?.restricted) {
                     restricted.push(key);
                 }
-                if (!((_b = options.exclude) === null || _b === void 0 ? void 0 : _b.includes(key)) /* Check exclude */
-                    && (((_c = options.include) === null || _c === void 0 ? void 0 : _c.includes(key) /* Check include */)
+                if (!options.exclude?.includes(key) /* Check exclude */
+                    && (options.include?.includes(key) /* Check include */
                         || ((scope === undefined || options.scopes === undefined || options.scopes.includes(scope)) /* Check scopes */
-                            && !(options.skipRestricted && (propertySchema === null || propertySchema === void 0 ? void 0 : propertySchema.restricted))))) /* Check restricted */ {
+                            && !(options.skipRestricted && propertySchema?.restricted)))) /* Check restricted */ {
                     raw[key] = properties[key];
                 }
                 else {
@@ -326,7 +327,7 @@ class ConfigurationInspectValue {
         this.memoryConfigurationModel = memoryConfigurationModel;
     }
     toInspectValue(inspectValue) {
-        return (inspectValue === null || inspectValue === void 0 ? void 0 : inspectValue.value) !== undefined || (inspectValue === null || inspectValue === void 0 ? void 0 : inspectValue.override) !== undefined || (inspectValue === null || inspectValue === void 0 ? void 0 : inspectValue.overrides) !== undefined ? inspectValue : undefined;
+        return inspectValue?.value !== undefined || inspectValue?.override !== undefined || inspectValue?.overrides !== undefined ? inspectValue : undefined;
     }
     get userInspectValue() {
         if (!this._userInspectValue) {
@@ -546,7 +547,6 @@ export class ConfigurationChangeEvent {
         return this._previousConfiguration;
     }
     affectsConfiguration(section, overrides) {
-        var _a;
         // we have one large string with all keys that have changed. we pad (marker) the section
         // and check that either find it padded or before a segment character
         const needle = this._marker + section;
@@ -565,7 +565,7 @@ export class ConfigurationChangeEvent {
             return false;
         }
         if (overrides) {
-            const value1 = this.previousConfiguration ? this.previousConfiguration.getValue(section, overrides, (_a = this.previous) === null || _a === void 0 ? void 0 : _a.workspace) : undefined;
+            const value1 = this.previousConfiguration ? this.previousConfiguration.getValue(section, overrides, this.previous?.workspace) : undefined;
             const value2 = this.currentConfiguraiton.getValue(section, overrides, this.currentWorkspace);
             return !objects.equals(value1, value2);
         }

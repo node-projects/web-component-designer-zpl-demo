@@ -43,11 +43,10 @@ export class InlineDiffDeletedCodeMargin extends Disposable {
         this._diffActions.style.lineHeight = `${lineHeight}px`;
         this._marginDomNode.appendChild(this._diffActions);
         let currentLineNumberOffset = 0;
-        const useShadowDOM = _modifiedEditor.getOption(127 /* EditorOption.useShadowDOM */) && !isIOS; // Do not use shadow dom on IOS #122035
+        const useShadowDOM = _modifiedEditor.getOption(128 /* EditorOption.useShadowDOM */) && !isIOS; // Do not use shadow dom on IOS #122035
         const showContextMenu = (x, y) => {
-            var _a;
             this._contextMenuService.showContextMenu({
-                domForShadowRoot: useShadowDOM ? (_a = _modifiedEditor.getDomNode()) !== null && _a !== void 0 ? _a : undefined : undefined,
+                domForShadowRoot: useShadowDOM ? _modifiedEditor.getDomNode() ?? undefined : undefined,
                 getAnchor: () => ({ x, y }),
                 getActions: () => {
                     const actions = [];
@@ -76,7 +75,7 @@ export class InlineDiffDeletedCodeMargin extends Disposable {
                             await this._clipboardService.writeText(lineContent);
                         }));
                     }
-                    const readOnly = _modifiedEditor.getOption(91 /* EditorOption.readOnly */);
+                    const readOnly = _modifiedEditor.getOption(92 /* EditorOption.readOnly */);
                     if (!readOnly) {
                         actions.push(new Action('diff.inline.revertChange', localize('diff.inline.revertChange.label', "Revert this change"), undefined, true, async () => {
                             this._editor.revert(this._diff);

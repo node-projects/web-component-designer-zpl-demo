@@ -137,6 +137,10 @@ exports.features = [
     "entry": "vs/editor/contrib/inlineEdit/browser/inlineEdit.contribution"
   },
   {
+    "label": "inlineEdits",
+    "entry": "vs/editor/contrib/inlineEdits/browser/inlineEdits.contribution"
+  },
+  {
     "label": "inlineProgress",
     "entry": "vs/editor/contrib/inlineProgress/browser/inlineProgress"
   },
@@ -171,6 +175,10 @@ exports.features = [
   {
     "label": "parameterHints",
     "entry": "vs/editor/contrib/parameterHints/browser/parameterHints"
+  },
+  {
+    "label": "placeholderText",
+    "entry": "vs/editor/contrib/placeholderText/browser/placeholderText.contribution"
   },
   {
     "label": "quickCommand",

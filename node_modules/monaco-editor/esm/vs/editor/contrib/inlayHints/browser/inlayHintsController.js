@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 var InlayHintsController_1;
-import { ModifierKeyEmitter } from '../../../../base/browser/dom.js';
+import { isHTMLElement, ModifierKeyEmitter } from '../../../../base/browser/dom.js';
 import { isNonEmptyArray } from '../../../../base/common/arrays.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
@@ -83,10 +83,13 @@ class ActiveInlayHintInfo {
     }
 }
 // --- controller
-let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
+let InlayHintsController = class InlayHintsController {
+    static { InlayHintsController_1 = this; }
+    static { this.ID = 'editor.contrib.InlayHints'; }
+    static { this._MAX_DECORATORS = 1500; }
+    static { this._MAX_LABEL_LEN = 43; }
     static get(editor) {
-        var _a;
-        return (_a = editor.getContribution(InlayHintsController_1.ID)) !== null && _a !== void 0 ? _a : undefined;
+        return editor.getContribution(InlayHintsController_1.ID) ?? undefined;
     }
     constructor(_editor, _languageFeaturesService, _featureDebounce, _inlayHintsCache, _commandService, _notificationService, _instaService) {
         this._editor = _editor;
@@ -105,7 +108,7 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
         this._disposables.add(_editor.onDidChangeModel(() => this._update()));
         this._disposables.add(_editor.onDidChangeModelLanguage(() => this._update()));
         this._disposables.add(_editor.onDidChangeConfiguration(e => {
-            if (e.hasChanged(141 /* EditorOption.inlayHints */)) {
+            if (e.hasChanged(142 /* EditorOption.inlayHints */)) {
                 this._update();
             }
         }));
@@ -119,7 +122,7 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
     _update() {
         this._sessionDisposables.clear();
         this._removeAllDecorations();
-        const options = this._editor.getOption(141 /* EditorOption.inlayHints */);
+        const options = this._editor.getOption(142 /* EditorOption.inlayHints */);
         if (options.enabled === 'off') {
             return;
         }
@@ -173,9 +176,9 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
         const watchedProviders = new Set();
         const scheduler = new RunOnceScheduler(async () => {
             const t1 = Date.now();
-            cts === null || cts === void 0 ? void 0 : cts.dispose(true);
+            cts?.dispose(true);
             cts = new CancellationTokenSource();
-            const listener = model.onWillDispose(() => cts === null || cts === void 0 ? void 0 : cts.cancel());
+            const listener = model.onWillDispose(() => cts?.cancel());
             try {
                 const myToken = cts.token;
                 const inlayHints = await InlayHintsFragments.create(this._languageFeaturesService.inlayHintsProvider, model, this._getHintsRanges(), myToken);
@@ -208,7 +211,7 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
             }
         }, this._debounceInfo.get(model));
         this._sessionDisposables.add(scheduler);
-        this._sessionDisposables.add(toDisposable(() => cts === null || cts === void 0 ? void 0 : cts.dispose(true)));
+        this._sessionDisposables.add(toDisposable(() => cts?.dispose(true)));
         scheduler.schedule(0);
         this._sessionDisposables.add(this._editor.onDidScrollChange((e) => {
             // update when scroll position changes
@@ -219,7 +222,7 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
             }
         }));
         this._sessionDisposables.add(this._editor.onDidChangeModelContent((e) => {
-            cts === null || cts === void 0 ? void 0 : cts.cancel();
+            cts?.cancel();
             // update less aggressive when typing
             const delay = Math.max(scheduler.delay, 1250);
             scheduler.schedule(delay);
@@ -306,7 +309,7 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
     }
     _installContextMenu() {
         return this._editor.onContextMenu(async (e) => {
-            if (!(e.event.target instanceof HTMLElement)) {
+            if (!(isHTMLElement(e.event.target))) {
                 return;
             }
             const part = this._getInlayHintLabelPart(e);
@@ -316,20 +319,18 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
         });
     }
     _getInlayHintLabelPart(e) {
-        var _a;
         if (e.target.type !== 6 /* MouseTargetType.CONTENT_TEXT */) {
             return undefined;
         }
-        const options = (_a = e.target.detail.injectedText) === null || _a === void 0 ? void 0 : _a.options;
-        if (options instanceof ModelDecorationInjectedTextOptions && (options === null || options === void 0 ? void 0 : options.attachedData) instanceof RenderedInlayHintLabelPart) {
+        const options = e.target.detail.injectedText?.options;
+        if (options instanceof ModelDecorationInjectedTextOptions && options?.attachedData instanceof RenderedInlayHintLabelPart) {
             return options.attachedData;
         }
         return undefined;
     }
     async _invokeCommand(command, item) {
-        var _a;
         try {
-            await this._commandService.executeCommand(command.id, ...((_a = command.arguments) !== null && _a !== void 0 ? _a : []));
+            await this._commandService.executeCommand(command.id, ...(command.arguments ?? []));
         }
         catch (err) {
             this._notificationService.notify({
@@ -380,7 +381,6 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
         return result;
     }
     _updateHintsDecorators(ranges, items) {
-        var _a, _b;
         // utils to collect/create injected text decorations
         const newDecorationsData = [];
         const addInjectedText = (item, ref, content, cursorStops, attachedData) => {
@@ -448,7 +448,7 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
                     cssProperties.cursor = 'default';
                 }
                 this._fillInColors(cssProperties, item.hint);
-                if ((part.command || part.location) && ((_a = this._activeInlayHintPart) === null || _a === void 0 ? void 0 : _a.part.item) === item && this._activeInlayHintPart.part.index === i) {
+                if ((part.command || part.location) && this._activeInlayHintPart?.part.item === item && this._activeInlayHintPart.part.index === i) {
                     // active link!
                     cssProperties.textDecoration = 'underline';
                     if (this._activeInlayHintPart.hasTriggerModifier) {
@@ -501,7 +501,7 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
         // and only update those decorations
         const decorationIdsToReplace = [];
         for (const [id, metadata] of this._decorationsMetadata) {
-            const range = (_b = this._editor.getModel()) === null || _b === void 0 ? void 0 : _b.getDecorationRange(id);
+            const range = this._editor.getModel()?.getDecorationRange(id);
             if (range && ranges.some(r => r.containsRange(range))) {
                 decorationIdsToReplace.push(id);
                 metadata.classNameRef.dispose();
@@ -533,7 +533,7 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
         }
     }
     _getLayoutInfo() {
-        const options = this._editor.getOption(141 /* EditorOption.inlayHints */);
+        const options = this._editor.getOption(142 /* EditorOption.inlayHints */);
         const padding = options.padding;
         const editorFontSize = this._editor.getOption(52 /* EditorOption.fontSize */);
         const editorFontFamily = this._editor.getOption(49 /* EditorOption.fontFamily */);
@@ -555,9 +555,6 @@ let InlayHintsController = InlayHintsController_1 = class InlayHintsController {
         this._decorationsMetadata.clear();
     }
 };
-InlayHintsController.ID = 'editor.contrib.InlayHints';
-InlayHintsController._MAX_DECORATORS = 1500;
-InlayHintsController._MAX_LABEL_LEN = 43;
 InlayHintsController = InlayHintsController_1 = __decorate([
     __param(1, ILanguageFeaturesService),
     __param(2, ILanguageFeatureDebounceService),

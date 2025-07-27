@@ -57,7 +57,6 @@ let MarkerDecorationsService = class MarkerDecorationsService extends Disposable
         this._updateDecorations(markerDecorations);
     }
     _onModelRemoved(model) {
-        var _a;
         const markerDecorations = this._markerDecorations.get(model.uri);
         if (markerDecorations) {
             markerDecorations.dispose();
@@ -67,7 +66,7 @@ let MarkerDecorationsService = class MarkerDecorationsService extends Disposable
         if (model.uri.scheme === Schemas.inMemory
             || model.uri.scheme === Schemas.internal
             || model.uri.scheme === Schemas.vscode) {
-            (_a = this._markerService) === null || _a === void 0 ? void 0 : _a.read({ resource: model.uri }).map(marker => marker.owner).forEach(owner => this._markerService.remove(owner, [model.uri]));
+            this._markerService?.read({ resource: model.uri }).map(marker => marker.owner).forEach(owner => this._markerService.remove(owner, [model.uri]));
         }
     }
     _updateDecorations(markerDecorations) {

@@ -56,8 +56,7 @@ export class FocusStickyScroll extends EditorAction2 {
         });
     }
     runEditorCommand(_accessor, editor) {
-        var _a;
-        (_a = StickyScrollController.get(editor)) === null || _a === void 0 ? void 0 : _a.focus();
+        StickyScrollController.get(editor)?.focus();
     }
 }
 export class SelectNextStickyScrollLine extends EditorAction2 {
@@ -73,8 +72,7 @@ export class SelectNextStickyScrollLine extends EditorAction2 {
         });
     }
     runEditorCommand(_accessor, editor) {
-        var _a;
-        (_a = StickyScrollController.get(editor)) === null || _a === void 0 ? void 0 : _a.focusNext();
+        StickyScrollController.get(editor)?.focusNext();
     }
 }
 export class SelectPreviousStickyScrollLine extends EditorAction2 {
@@ -90,8 +88,7 @@ export class SelectPreviousStickyScrollLine extends EditorAction2 {
         });
     }
     runEditorCommand(_accessor, editor) {
-        var _a;
-        (_a = StickyScrollController.get(editor)) === null || _a === void 0 ? void 0 : _a.focusPrevious();
+        StickyScrollController.get(editor)?.focusPrevious();
     }
 }
 export class GoToStickyScrollLine extends EditorAction2 {
@@ -107,8 +104,7 @@ export class GoToStickyScrollLine extends EditorAction2 {
         });
     }
     runEditorCommand(_accessor, editor) {
-        var _a;
-        (_a = StickyScrollController.get(editor)) === null || _a === void 0 ? void 0 : _a.goToFocused();
+        StickyScrollController.get(editor)?.goToFocused();
     }
 }
 export class SelectEditor extends EditorAction2 {
@@ -124,7 +120,6 @@ export class SelectEditor extends EditorAction2 {
         });
     }
     runEditorCommand(_accessor, editor) {
-        var _a;
-        (_a = StickyScrollController.get(editor)) === null || _a === void 0 ? void 0 : _a.selectEditor();
+        StickyScrollController.get(editor)?.selectEditor();
     }
 }

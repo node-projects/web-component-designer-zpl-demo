@@ -11,11 +11,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { derived, observableValue } from '../../../../base/common/observable.js';
 import { constObservable, derivedObservableWithWritableCache, mapObservableArrayCached, observableFromValueWithChangeEvent } from '../../../../base/common/observableInternal/utils.js';
 import { DiffEditorOptions } from '../diffEditor/diffEditorOptions.js';
 import { DiffEditorViewModel } from '../diffEditor/diffEditorViewModel.js';
+import { RefCounted } from '../diffEditor/utils.js';
 import { IModelService } from '../../../common/services/model.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 export class MultiDiffEditorViewModel extends Disposable {
@@ -30,19 +31,20 @@ export class MultiDiffEditorViewModel extends Disposable {
         this.items = mapObservableArrayCached(this, this._documents, (d, store) => store.add(this._instantiationService.createInstance(DocumentDiffItemViewModel, d, this)))
             .recomputeInitiallyAndOnChange(this._store);
         this.focusedDiffItem = derived(this, reader => this.items.read(reader).find(i => i.isFocused.read(reader)));
-        this.activeDiffItem = derivedObservableWithWritableCache(this, (reader, lastValue) => { var _a; return (_a = this.focusedDiffItem.read(reader)) !== null && _a !== void 0 ? _a : lastValue; });
+        this.activeDiffItem = derivedObservableWithWritableCache(this, (reader, lastValue) => this.focusedDiffItem.read(reader) ?? lastValue);
     }
 }
 let DocumentDiffItemViewModel = class DocumentDiffItemViewModel extends Disposable {
-    get originalUri() { var _a; return (_a = this.entry.value.original) === null || _a === void 0 ? void 0 : _a.uri; }
-    get modifiedUri() { var _a; return (_a = this.entry.value.modified) === null || _a === void 0 ? void 0 : _a.uri; }
+    get originalUri() { return this.documentDiffItem.original?.uri; }
+    get modifiedUri() { return this.documentDiffItem.modified?.uri; }
     setIsFocused(source, tx) {
         this._isFocusedSource.set(source, tx);
     }
-    constructor(entry, _editorViewModel, _instantiationService, _modelService) {
-        var _a, _b;
+    get documentDiffItem() {
+        return this.documentDiffItemRef.object;
+    }
+    constructor(documentDiffItem, _editorViewModel, _instantiationService, _modelService) {
         super();
-        this.entry = entry;
         this._editorViewModel = _editorViewModel;
         this._instantiationService = _instantiationService;
         this._modelService = _modelService;
@@ -51,6 +53,11 @@ let DocumentDiffItemViewModel = class DocumentDiffItemViewModel extends Disposab
         this.isActive = derived(this, reader => this._editorViewModel.activeDiffItem.read(reader) === this);
         this._isFocusedSource = observableValue(this, constObservable(false));
         this.isFocused = derived(this, reader => this._isFocusedSource.read(reader).read(reader));
+        this.isAlive = observableValue(this, true);
+        this._register(toDisposable(() => {
+            this.isAlive.set(false, undefined);
+        }));
+        this.documentDiffItemRef = this._register(documentDiffItem.createNewRef(this));
         function updateOptions(options) {
             return {
                 ...options,
@@ -59,24 +66,25 @@ let DocumentDiffItemViewModel = class DocumentDiffItemViewModel extends Disposab
                 },
             };
         }
-        const options = this._instantiationService.createInstance(DiffEditorOptions, updateOptions(this.entry.value.options || {}));
-        if (this.entry.value.onOptionsDidChange) {
-            this._register(this.entry.value.onOptionsDidChange(() => {
-                options.updateOptions(updateOptions(this.entry.value.options || {}));
+        const options = this._instantiationService.createInstance(DiffEditorOptions, updateOptions(this.documentDiffItem.options || {}));
+        if (this.documentDiffItem.onOptionsDidChange) {
+            this._register(this.documentDiffItem.onOptionsDidChange(() => {
+                options.updateOptions(updateOptions(this.documentDiffItem.options || {}));
             }));
         }
-        const originalTextModel = (_a = this.entry.value.original) !== null && _a !== void 0 ? _a : this._register(this._modelService.createModel('', null));
-        const modifiedTextModel = (_b = this.entry.value.modified) !== null && _b !== void 0 ? _b : this._register(this._modelService.createModel('', null));
-        this.diffEditorViewModel = this._register(this._instantiationService.createInstance(DiffEditorViewModel, {
+        const diffEditorViewModelStore = new DisposableStore();
+        const originalTextModel = this.documentDiffItem.original ?? diffEditorViewModelStore.add(this._modelService.createModel('', null));
+        const modifiedTextModel = this.documentDiffItem.modified ?? diffEditorViewModelStore.add(this._modelService.createModel('', null));
+        diffEditorViewModelStore.add(this.documentDiffItemRef.createNewRef(this));
+        this.diffEditorViewModelRef = this._register(RefCounted.createWithDisposable(this._instantiationService.createInstance(DiffEditorViewModel, {
             original: originalTextModel,
             modified: modifiedTextModel,
-        }, options));
+        }, options), diffEditorViewModelStore, this));
     }
     getKey() {
-        var _a, _b;
         return JSON.stringify([
-            (_a = this.originalUri) === null || _a === void 0 ? void 0 : _a.toString(),
-            (_b = this.modifiedUri) === null || _b === void 0 ? void 0 : _b.toString()
+            this.originalUri?.toString(),
+            this.modifiedUri?.toString()
         ]);
     }
 };

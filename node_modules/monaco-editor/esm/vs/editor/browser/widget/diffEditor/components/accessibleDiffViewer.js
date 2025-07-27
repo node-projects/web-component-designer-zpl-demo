@@ -42,6 +42,7 @@ const accessibleDiffViewerInsertIcon = registerIcon('diff-review-insert', Codico
 const accessibleDiffViewerRemoveIcon = registerIcon('diff-review-remove', Codicon.remove, localize('accessibleDiffViewerRemoveIcon', 'Icon for \'Remove\' in accessible diff viewer.'));
 const accessibleDiffViewerCloseIcon = registerIcon('diff-review-close', Codicon.close, localize('accessibleDiffViewerCloseIcon', 'Icon for \'Close\' in accessible diff viewer.'));
 let AccessibleDiffViewer = class AccessibleDiffViewer extends Disposable {
+    static { this._ttPolicy = createTrustedTypesPolicy('diffReview', { createHTML: value => value }); }
     constructor(_parentNode, _visible, _setVisible, _canClose, _width, _height, _diffs, _models, _instantiationService) {
         super();
         this._parentNode = _parentNode;
@@ -85,7 +86,6 @@ let AccessibleDiffViewer = class AccessibleDiffViewer extends Disposable {
         });
     }
 };
-AccessibleDiffViewer._ttPolicy = createTrustedTypesPolicy('diffReview', { createHTML: value => value });
 AccessibleDiffViewer = __decorate([
     __param(8, IInstantiationService)
 ], AccessibleDiffViewer);
@@ -104,7 +104,7 @@ let ViewModel = class ViewModel extends Disposable {
         this.groups = this._groups;
         this.currentGroup = this._currentGroupIdx.map((idx, r) => this._groups.read(r)[idx]);
         this.currentGroupIndex = this._currentGroupIdx;
-        this.currentElement = this._currentElementIdx.map((idx, r) => { var _a; return (_a = this.currentGroup.read(r)) === null || _a === void 0 ? void 0 : _a.lines[idx]; });
+        this.currentElement = this._currentElementIdx.map((idx, r) => this.currentGroup.read(r)?.lines[idx]);
         this._register(autorun(reader => {
             /** @description update groups */
             const diffs = this._diffs.read(reader);
@@ -116,7 +116,7 @@ let ViewModel = class ViewModel extends Disposable {
             transaction(tx => {
                 const p = this._models.getModifiedPosition();
                 if (p) {
-                    const nextGroup = groups.findIndex(g => (p === null || p === void 0 ? void 0 : p.lineNumber) < g.range.modified.endLineNumberExclusive);
+                    const nextGroup = groups.findIndex(g => p?.lineNumber < g.range.modified.endLineNumberExclusive);
                     if (nextGroup !== -1) {
                         this._currentGroupIdx.set(nextGroup, tx);
                     }
@@ -127,20 +127,19 @@ let ViewModel = class ViewModel extends Disposable {
         this._register(autorun(reader => {
             /** @description play audio-cue for diff */
             const currentViewItem = this.currentElement.read(reader);
-            if ((currentViewItem === null || currentViewItem === void 0 ? void 0 : currentViewItem.type) === LineType.Deleted) {
+            if (currentViewItem?.type === LineType.Deleted) {
                 this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineDeleted, { source: 'accessibleDiffViewer.currentElementChanged' });
             }
-            else if ((currentViewItem === null || currentViewItem === void 0 ? void 0 : currentViewItem.type) === LineType.Added) {
+            else if (currentViewItem?.type === LineType.Added) {
                 this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineInserted, { source: 'accessibleDiffViewer.currentElementChanged' });
             }
         }));
         this._register(autorun(reader => {
-            var _a;
             /** @description select lines in editor */
             // This ensures editor commands (like revert/stage) work
             const currentViewItem = this.currentElement.read(reader);
             if (currentViewItem && currentViewItem.type !== LineType.Header) {
-                const lineNumber = (_a = currentViewItem.modifiedLineNumber) !== null && _a !== void 0 ? _a : currentViewItem.diff.modified.startLineNumber;
+                const lineNumber = currentViewItem.modifiedLineNumber ?? currentViewItem.diff.modified.startLineNumber;
                 this._models.modifiedSetSelection(Range.fromPositions(new Position(lineNumber, 1)));
             }
         }));
@@ -364,7 +363,7 @@ let View = class View extends Disposable {
         const modifiedModelOpts = modifiedModel.getOptions();
         const lineHeight = modifiedOptions.get(67 /* EditorOption.lineHeight */);
         const group = this._model.currentGroup.get();
-        for (const viewItem of (group === null || group === void 0 ? void 0 : group.lines) || []) {
+        for (const viewItem of group?.lines || []) {
             if (!group) {
                 break;
             }
@@ -419,9 +418,9 @@ let View = class View extends Disposable {
         this._scrollbar.scanDomNode();
     }
     _createRow(item, lineHeight, width, originalOptions, originalModel, originalModelOpts, modifiedOptions, modifiedModel, modifiedModelOpts) {
-        const originalLayoutInfo = originalOptions.get(145 /* EditorOption.layoutInfo */);
+        const originalLayoutInfo = originalOptions.get(146 /* EditorOption.layoutInfo */);
         const originalLineNumbersWidth = originalLayoutInfo.glyphMarginWidth + originalLayoutInfo.lineNumbersWidth;
-        const modifiedLayoutInfo = modifiedOptions.get(145 /* EditorOption.layoutInfo */);
+        const modifiedLayoutInfo = modifiedOptions.get(146 /* EditorOption.layoutInfo */);
         const modifiedLineNumbersWidth = 10 + modifiedLayoutInfo.glyphMarginWidth + modifiedLayoutInfo.lineNumbersWidth;
         let rowClassName = 'diff-review-row';
         let lineNumbersExtraClassName = '';
@@ -529,7 +528,7 @@ let View = class View extends Disposable {
         const lineTokens = LineTokens.createEmpty(lineContent, languageIdCodec);
         const isBasicASCII = ViewLineRenderingData.isBasicASCII(lineContent, model.mightContainNonBasicASCII());
         const containsRTL = ViewLineRenderingData.containsRTL(lineContent, isBasicASCII, model.mightContainRTL());
-        const r = renderViewLine2(new RenderLineInput((fontInfo.isMonospace && !options.get(33 /* EditorOption.disableMonospaceOptimizations */)), fontInfo.canUseHalfwidthRightwardsArrow, lineContent, false, isBasicASCII, containsRTL, 0, lineTokens, [], tabSize, 0, fontInfo.spaceWidth, fontInfo.middotWidth, fontInfo.wsmiddotWidth, options.get(117 /* EditorOption.stopRenderingLineAfter */), options.get(99 /* EditorOption.renderWhitespace */), options.get(94 /* EditorOption.renderControlCharacters */), options.get(51 /* EditorOption.fontLigatures */) !== EditorFontLigatures.OFF, null));
+        const r = renderViewLine2(new RenderLineInput((fontInfo.isMonospace && !options.get(33 /* EditorOption.disableMonospaceOptimizations */)), fontInfo.canUseHalfwidthRightwardsArrow, lineContent, false, isBasicASCII, containsRTL, 0, lineTokens, [], tabSize, 0, fontInfo.spaceWidth, fontInfo.middotWidth, fontInfo.wsmiddotWidth, options.get(118 /* EditorOption.stopRenderingLineAfter */), options.get(100 /* EditorOption.renderWhitespace */), options.get(95 /* EditorOption.renderControlCharacters */), options.get(51 /* EditorOption.fontLigatures */) !== EditorFontLigatures.OFF, null));
         return r.html;
     }
 };
@@ -571,7 +570,6 @@ export class AccessibleDiffViewerModelFromEditors {
         this.editors.modified.focus();
     }
     getModifiedPosition() {
-        var _a;
-        return (_a = this.editors.modified.getPosition()) !== null && _a !== void 0 ? _a : undefined;
+        return this.editors.modified.getPosition() ?? undefined;
     }
 }

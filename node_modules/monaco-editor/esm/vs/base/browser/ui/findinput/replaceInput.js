@@ -15,13 +15,12 @@ const NLS_DEFAULT_LABEL = nls.localize('defaultLabel', "input");
 const NLS_PRESERVE_CASE_LABEL = nls.localize('label.preserveCaseToggle', "Preserve Case");
 class PreserveCaseToggle extends Toggle {
     constructor(opts) {
-        var _a;
         super({
             // TODO: does this need its own icon?
             icon: Codicon.preserveCase,
             title: NLS_PRESERVE_CASE_LABEL + opts.appendTitle,
             isChecked: opts.isChecked,
-            hoverDelegate: (_a = opts.hoverDelegate) !== null && _a !== void 0 ? _a : getDefaultHoverDelegate('element'),
+            hoverDelegate: opts.hoverDelegate ?? getDefaultHoverDelegate('element'),
             inputActiveOptionBorder: opts.inputActiveOptionBorder,
             inputActiveOptionForeground: opts.inputActiveOptionForeground,
             inputActiveOptionBackground: opts.inputActiveOptionBackground,
@@ -122,7 +121,7 @@ export class ReplaceInput extends Widget {
         controls.style.display = this._showOptionButtons ? 'block' : 'none';
         controls.appendChild(this.preserveCase.domNode);
         this.domNode.appendChild(controls);
-        parent === null || parent === void 0 ? void 0 : parent.appendChild(this.domNode);
+        parent?.appendChild(this.domNode);
         this.onkeydown(this.inputBox.inputElement, (e) => this._onKeyDown.fire(e));
         this.onkeyup(this.inputBox.inputElement, (e) => this._onKeyUp.fire(e));
         this.oninput(this.inputBox.inputElement, (e) => this._onInput.fire());
@@ -162,8 +161,7 @@ export class ReplaceInput extends Widget {
         this.preserveCase.focus();
     }
     validate() {
-        var _a;
-        (_a = this.inputBox) === null || _a === void 0 ? void 0 : _a.validate();
+        this.inputBox?.validate();
     }
     set width(newWidth) {
         this.inputBox.paddingRight = this.cachedOptionsWidth;

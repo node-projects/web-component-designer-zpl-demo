@@ -6,7 +6,6 @@ export class ObjectPool {
         this._itemData = new Map();
     }
     getUnusedObj(data) {
-        var _a;
         let obj;
         if (this._unused.size === 0) {
             obj = this._create(data);
@@ -14,7 +13,7 @@ export class ObjectPool {
         }
         else {
             const values = [...this._unused.values()];
-            obj = (_a = values.find(obj => this._itemData.get(obj).getId() === data.getId())) !== null && _a !== void 0 ? _a : values[0];
+            obj = values.find(obj => this._itemData.get(obj).getId() === data.getId()) ?? values[0];
             this._unused.delete(obj);
             this._itemData.set(obj, data);
             obj.setData(data);

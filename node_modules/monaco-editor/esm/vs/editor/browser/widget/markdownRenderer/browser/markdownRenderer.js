@@ -27,7 +27,13 @@ import { IOpenerService } from '../../../../../platform/opener/common/opener.js'
  * Markdown renderer that can render codeblocks with the editor mechanics. This
  * renderer should always be preferred.
  */
-let MarkdownRenderer = MarkdownRenderer_1 = class MarkdownRenderer {
+let MarkdownRenderer = class MarkdownRenderer {
+    static { MarkdownRenderer_1 = this; }
+    static { this._ttpTokenizer = createTrustedTypesPolicy('tokenizeToString', {
+        createHTML(html) {
+            return html;
+        }
+    }); }
     constructor(_options, _languageService, _openerService) {
         this._options = _options;
         this._languageService = _languageService;
@@ -54,7 +60,6 @@ let MarkdownRenderer = MarkdownRenderer_1 = class MarkdownRenderer {
     _getRenderOptions(markdown, disposables) {
         return {
             codeBlockRenderer: async (languageAlias, value) => {
-                var _a, _b, _c;
                 // In markdown,
                 // it is possible that we stumble upon language aliases (e.g.js instead of javascript)
                 // it is possible no alias is given in which case we fall back to the current editor lang
@@ -63,14 +68,14 @@ let MarkdownRenderer = MarkdownRenderer_1 = class MarkdownRenderer {
                     languageId = this._languageService.getLanguageIdByLanguageName(languageAlias);
                 }
                 else if (this._options.editor) {
-                    languageId = (_a = this._options.editor.getModel()) === null || _a === void 0 ? void 0 : _a.getLanguageId();
+                    languageId = this._options.editor.getModel()?.getLanguageId();
                 }
                 if (!languageId) {
                     languageId = PLAINTEXT_LANGUAGE_ID;
                 }
                 const html = await tokenizeToString(this._languageService, value, languageId);
                 const element = document.createElement('span');
-                element.innerHTML = ((_c = (_b = MarkdownRenderer_1._ttpTokenizer) === null || _b === void 0 ? void 0 : _b.createHTML(html)) !== null && _c !== void 0 ? _c : html);
+                element.innerHTML = (MarkdownRenderer_1._ttpTokenizer?.createHTML(html) ?? html);
                 // use "good" font
                 if (this._options.editor) {
                     const fontInfo = this._options.editor.getOption(50 /* EditorOption.fontInfo */);
@@ -92,11 +97,6 @@ let MarkdownRenderer = MarkdownRenderer_1 = class MarkdownRenderer {
         };
     }
 };
-MarkdownRenderer._ttpTokenizer = createTrustedTypesPolicy('tokenizeToString', {
-    createHTML(html) {
-        return html;
-    }
-});
 MarkdownRenderer = MarkdownRenderer_1 = __decorate([
     __param(1, ILanguageService),
     __param(2, IOpenerService)

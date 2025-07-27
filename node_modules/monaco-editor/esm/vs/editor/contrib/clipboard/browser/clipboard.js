@@ -96,7 +96,6 @@ export const CopyAction = supportsCopy ? registerCommand(new MultiCommand({
 MenuRegistry.appendMenuItem(MenuId.MenubarEditMenu, { submenu: MenuId.MenubarCopy, title: nls.localize2('copy as', "Copy As"), group: '2_ccp', order: 3 });
 MenuRegistry.appendMenuItem(MenuId.EditorContext, { submenu: MenuId.EditorContextCopy, title: nls.localize2('copy as', "Copy As"), group: CLIPBOARD_CONTEXT_MENU_GROUP, order: 3 });
 MenuRegistry.appendMenuItem(MenuId.EditorContext, { submenu: MenuId.EditorContextShare, title: nls.localize2('share', "Share"), group: '11_share', order: -1, when: ContextKeyExpr.and(ContextKeyExpr.notEquals('resourceScheme', 'output'), EditorContextKeys.editorTextFocus) });
-MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { submenu: MenuId.EditorTitleContextShare, title: nls.localize2('share', "Share"), group: '11_share', order: -1 });
 MenuRegistry.appendMenuItem(MenuId.ExplorerContext, { submenu: MenuId.ExplorerContextShare, title: nls.localize2('share', "Share"), group: '11_share', order: -1 });
 export const PasteAction = supportsPaste ? registerCommand(new MultiCommand({
     id: 'editor.action.clipboardPasteAction',
@@ -193,7 +192,6 @@ registerExecCommandImpl(CopyAction, 'copy');
 if (PasteAction) {
     // 1. Paste: handle case when focus is in editor.
     PasteAction.addImplementation(10000, 'code-editor', (accessor, args) => {
-        var _a, _b;
         const codeEditorService = accessor.get(ICodeEditorService);
         const clipboardService = accessor.get(IClipboardService);
         // Only if editor text focus (i.e. not if editor has widget focus).
@@ -201,7 +199,7 @@ if (PasteAction) {
         if (focusedEditor && focusedEditor.hasTextFocus()) {
             const result = focusedEditor.getContainerDomNode().ownerDocument.execCommand('paste');
             if (result) {
-                return (_b = (_a = CopyPasteController.get(focusedEditor)) === null || _a === void 0 ? void 0 : _a.finishedPaste()) !== null && _b !== void 0 ? _b : Promise.resolve();
+                return CopyPasteController.get(focusedEditor)?.finishedPaste() ?? Promise.resolve();
             }
             else if (platform.isWeb) {
                 // Use the clipboard service if document.execCommand('paste') was not successful

@@ -9,7 +9,6 @@ import { escapeRegExpCharacters } from './strings.js';
 import { URI } from './uri.js';
 export class MarkdownString {
     constructor(value = '', isTrustedOrOptions = false) {
-        var _a, _b, _c;
         this.value = value;
         if (typeof this.value !== 'string') {
             throw illegalArgument('value');
@@ -20,9 +19,9 @@ export class MarkdownString {
             this.supportHtml = false;
         }
         else {
-            this.isTrusted = (_a = isTrustedOrOptions.isTrusted) !== null && _a !== void 0 ? _a : undefined;
-            this.supportThemeIcons = (_b = isTrustedOrOptions.supportThemeIcons) !== null && _b !== void 0 ? _b : false;
-            this.supportHtml = (_c = isTrustedOrOptions.supportHtml) !== null && _c !== void 0 ? _c : false;
+            this.isTrusted = isTrustedOrOptions.isTrusted ?? undefined;
+            this.supportThemeIcons = isTrustedOrOptions.supportThemeIcons ?? false;
+            this.supportHtml = isTrustedOrOptions.supportHtml ?? false;
         }
     }
     appendText(value, newlineStyle = 0 /* MarkdownStringTextNewlineStyle.Paragraph */) {
@@ -108,8 +107,8 @@ export function escapeMarkdownSyntaxTokens(text) {
  * @see https://github.com/microsoft/vscode/issues/193746
  */
 export function appendEscapedMarkdownCodeBlockFence(code, langId) {
-    var _a, _b;
-    const longestFenceLength = (_b = (_a = code.match(/^`+/gm)) === null || _a === void 0 ? void 0 : _a.reduce((a, b) => (a.length > b.length ? a : b)).length) !== null && _b !== void 0 ? _b : 0;
+    const longestFenceLength = code.match(/^`+/gm)?.reduce((a, b) => (a.length > b.length ? a : b)).length ??
+        0;
     const desiredFenceLength = longestFenceLength >= 3 ? longestFenceLength + 1 : 3;
     // the markdown result
     return [

@@ -14,7 +14,7 @@ class Settings {
     constructor(config, theme) {
         const options = config.options;
         this.lineHeight = options.get(67 /* EditorOption.lineHeight */);
-        this.pixelRatio = options.get(143 /* EditorOption.pixelRatio */);
+        this.pixelRatio = options.get(144 /* EditorOption.pixelRatio */);
         this.overviewRulerLanes = options.get(83 /* EditorOption.overviewRulerLanes */);
         this.renderBorder = options.get(82 /* EditorOption.overviewRulerBorder */);
         const borderColor = theme.getColor(editorOverviewRulerBorder);
@@ -41,7 +41,7 @@ class Settings {
         else {
             this.backgroundColor = null;
         }
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         const position = layoutInfo.overviewRuler;
         this.top = position.top;
         this.right = position.right;
@@ -405,8 +405,7 @@ export class DecorationsOverviewRuler extends ViewPart {
             canvasCtx.strokeStyle = this._settings.borderColor;
             canvasCtx.moveTo(0, 0);
             canvasCtx.lineTo(0, canvasHeight);
-            canvasCtx.stroke();
-            canvasCtx.moveTo(0, 0);
+            canvasCtx.moveTo(1, 0);
             canvasCtx.lineTo(canvasWidth, 0);
             canvasCtx.stroke();
         }

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { derived } from '../../../../../base/common/observable.js';
+import { allowsTrueInlineDiffRendering } from './diffEditorViewZones/diffEditorViewZones.js';
 import { MovedBlocksLinesFeature } from '../features/movedBlocksLinesFeature.js';
 import { diffAddDecoration, diffAddDecorationEmpty, diffDeleteDecoration, diffDeleteDecorationEmpty, diffLineAddDecorationBackground, diffLineAddDecorationBackgroundWithIndicator, diffLineDeleteDecorationBackground, diffLineDeleteDecorationBackgroundWithIndicator, diffWholeLineAddDecoration, diffWholeLineDeleteDecoration } from '../registrations.contribution.js';
 import { applyObservableDecorations } from '../utils.js';
@@ -14,8 +15,8 @@ export class DiffEditorDecorations extends Disposable {
         this._diffModel = _diffModel;
         this._options = _options;
         this._decorations = derived(this, (reader) => {
-            var _a;
-            const diff = (_a = this._diffModel.read(reader)) === null || _a === void 0 ? void 0 : _a.diff.read(reader);
+            const diffModel = this._diffModel.read(reader);
+            const diff = diffModel?.diff.read(reader);
             if (!diff) {
                 return null;
             }
@@ -41,13 +42,29 @@ export class DiffEditorDecorations extends Disposable {
                         }
                     }
                     else {
+                        const useInlineDiff = this._options.useTrueInlineDiffRendering.read(reader) && allowsTrueInlineDiffRendering(m.lineRangeMapping);
                         for (const i of m.lineRangeMapping.innerChanges || []) {
                             // Don't show empty markers outside the line range
                             if (m.lineRangeMapping.original.contains(i.originalRange.startLineNumber)) {
                                 originalDecorations.push({ range: i.originalRange, options: (i.originalRange.isEmpty() && showEmptyDecorations) ? diffDeleteDecorationEmpty : diffDeleteDecoration });
                             }
                             if (m.lineRangeMapping.modified.contains(i.modifiedRange.startLineNumber)) {
-                                modifiedDecorations.push({ range: i.modifiedRange, options: (i.modifiedRange.isEmpty() && showEmptyDecorations) ? diffAddDecorationEmpty : diffAddDecoration });
+                                modifiedDecorations.push({ range: i.modifiedRange, options: (i.modifiedRange.isEmpty() && showEmptyDecorations && !useInlineDiff) ? diffAddDecorationEmpty : diffAddDecoration });
+                            }
+                            if (useInlineDiff) {
+                                const deletedText = diffModel.model.original.getValueInRange(i.originalRange);
+                                modifiedDecorations.push({
+                                    range: i.modifiedRange,
+                                    options: {
+                                        description: 'deleted-text',
+                                        before: {
+                                            content: deletedText,
+                                            inlineClassName: 'inline-deleted-text',
+                                        },
+                                        zIndex: 100000,
+                                        showIfCollapsed: true,
+                                    }
+                                });
                             }
                         }
                     }
@@ -88,7 +105,7 @@ export class DiffEditorDecorations extends Disposable {
             }
             return { originalDecorations, modifiedDecorations };
         });
-        this._register(applyObservableDecorations(this._editors.original, this._decorations.map(d => (d === null || d === void 0 ? void 0 : d.originalDecorations) || [])));
-        this._register(applyObservableDecorations(this._editors.modified, this._decorations.map(d => (d === null || d === void 0 ? void 0 : d.modifiedDecorations) || [])));
+        this._register(applyObservableDecorations(this._editors.original, this._decorations.map(d => d?.originalDecorations || [])));
+        this._register(applyObservableDecorations(this._editors.modified, this._decorations.map(d => d?.modifiedDecorations || [])));
     }
 }

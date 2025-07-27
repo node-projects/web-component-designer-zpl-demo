@@ -15,6 +15,15 @@ const CSS_DISCRETE = 'discrete';
  * A progress bar with support for infinite or discrete progress.
  */
 export class ProgressBar extends Disposable {
+    /**
+     * After a certain time of showing the progress bar, switch
+     * to long-running mode and throttle animations to reduce
+     * the pressure on the GPU process.
+     *
+     * https://github.com/microsoft/vscode/issues/97900
+     * https://github.com/microsoft/vscode/issues/138396
+     */
+    static { this.LONG_RUNNING_INFINITE_THRESHOLD = 10000; }
     constructor(container, options) {
         super();
         this.progressSignal = this._register(new MutableDisposable());
@@ -31,7 +40,7 @@ export class ProgressBar extends Disposable {
         container.appendChild(this.element);
         this.bit = document.createElement('div');
         this.bit.classList.add('progress-bit');
-        this.bit.style.backgroundColor = (options === null || options === void 0 ? void 0 : options.progressBarBackground) || '#0E70C0';
+        this.bit.style.backgroundColor = options?.progressBarBackground || '#0E70C0';
         this.element.appendChild(this.bit);
     }
     off() {
@@ -91,12 +100,3 @@ export class ProgressBar extends Disposable {
         return this.element;
     }
 }
-/**
- * After a certain time of showing the progress bar, switch
- * to long-running mode and throttle animations to reduce
- * the pressure on the GPU process.
- *
- * https://github.com/microsoft/vscode/issues/97900
- * https://github.com/microsoft/vscode/issues/138396
- */
-ProgressBar.LONG_RUNNING_INFINITE_THRESHOLD = 10000;

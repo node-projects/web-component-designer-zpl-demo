@@ -34,7 +34,9 @@ import { LayoutData, ReferenceWidget } from './referencesWidget.js';
 import { EditorContextKeys } from '../../../../common/editorContextKeys.js';
 import { InputFocusedContext } from '../../../../../platform/contextkey/common/contextkeys.js';
 export const ctxReferenceSearchVisible = new RawContextKey('referenceSearchVisible', false, nls.localize('referenceSearchVisible', "Whether reference peek is visible, like 'Peek References' or 'Peek Definition'"));
-let ReferencesController = ReferencesController_1 = class ReferencesController {
+let ReferencesController = class ReferencesController {
+    static { ReferencesController_1 = this; }
+    static { this.ID = 'editor.contrib.referencesController'; }
     static get(editor) {
         return editor.getContribution(ReferencesController_1.ID);
     }
@@ -52,11 +54,10 @@ let ReferencesController = ReferencesController_1 = class ReferencesController {
         this._referenceSearchVisible = ctxReferenceSearchVisible.bindTo(contextKeyService);
     }
     dispose() {
-        var _a, _b;
         this._referenceSearchVisible.reset();
         this._disposables.dispose();
-        (_a = this._widget) === null || _a === void 0 ? void 0 : _a.dispose();
-        (_b = this._model) === null || _b === void 0 ? void 0 : _b.dispose();
+        this._widget?.dispose();
+        this._model?.dispose();
         this._widget = undefined;
         this._model = undefined;
     }
@@ -88,9 +89,15 @@ let ReferencesController = ReferencesController_1 = class ReferencesController {
             modelPromise.cancel();
             if (this._widget) {
                 this._storageService.store(storageKey, JSON.stringify(this._widget.layoutData), 0 /* StorageScope.PROFILE */, 1 /* StorageTarget.MACHINE */);
+                if (!this._widget.isClosing) {
+                    // to prevent calling this too many times, check whether it was already closing.
+                    this.closeWidget();
+                }
                 this._widget = undefined;
             }
-            this.closeWidget();
+            else {
+                this.closeWidget();
+            }
         }));
         this._disposables.add(this._widget.onDidSelectReference(event => {
             const { element, kind } = event;
@@ -120,13 +127,12 @@ let ReferencesController = ReferencesController_1 = class ReferencesController {
         }));
         const requestId = ++this._requestIdPool;
         modelPromise.then(model => {
-            var _a;
             // still current request? widget still open?
             if (requestId !== this._requestIdPool || !this._widget) {
                 model.dispose();
                 return undefined;
             }
-            (_a = this._model) === null || _a === void 0 ? void 0 : _a.dispose();
+            this._model?.dispose();
             this._model = model;
             // show widget
             return this._widget.setModel(this._model).then(() => {
@@ -201,9 +207,8 @@ let ReferencesController = ReferencesController_1 = class ReferencesController {
         await this._widget.revealReference(reference);
     }
     closeWidget(focusEditor = true) {
-        var _a, _b;
-        (_a = this._widget) === null || _a === void 0 ? void 0 : _a.dispose();
-        (_b = this._model) === null || _b === void 0 ? void 0 : _b.dispose();
+        this._widget?.dispose();
+        this._model?.dispose();
         this._referenceSearchVisible.reset();
         this._disposables.clear();
         this._widget = undefined;
@@ -214,15 +219,13 @@ let ReferencesController = ReferencesController_1 = class ReferencesController {
         this._requestIdPool += 1; // Cancel pending requests
     }
     _gotoReference(ref, pinned) {
-        var _a;
-        (_a = this._widget) === null || _a === void 0 ? void 0 : _a.hide();
+        this._widget?.hide();
         this._ignoreModelChangeEvent = true;
         const range = Range.lift(ref.range).collapseToStart();
         return this._editorService.openCodeEditor({
             resource: ref.uri,
             options: { selection: range, selectionSource: "code.jump" /* TextEditorSelectionSource.JUMP */, pinned }
         }, this._editor).then(openedEditor => {
-            var _a;
             this._ignoreModelChangeEvent = false;
             if (!openedEditor || !this._widget) {
                 // something went wrong...
@@ -241,7 +244,7 @@ let ReferencesController = ReferencesController_1 = class ReferencesController {
                 const model = this._model.clone();
                 this.closeWidget();
                 openedEditor.focus();
-                other === null || other === void 0 ? void 0 : other.toggleWidget(range, createCancelablePromise(_ => Promise.resolve(model)), (_a = this._peekMode) !== null && _a !== void 0 ? _a : false);
+                other?.toggleWidget(range, createCancelablePromise(_ => Promise.resolve(model)), this._peekMode ?? false);
             }
         }, (err) => {
             this._ignoreModelChangeEvent = false;
@@ -260,7 +263,6 @@ let ReferencesController = ReferencesController_1 = class ReferencesController {
         }, this._editor, sideBySide);
     }
 };
-ReferencesController.ID = 'editor.contrib.referencesController';
 ReferencesController = ReferencesController_1 = __decorate([
     __param(2, IContextKeyService),
     __param(3, ICodeEditorService),
@@ -345,9 +347,8 @@ KeybindingsRegistry.registerCommandAndKeybindingRule({
     },
     when: ContextKeyExpr.and(ctxReferenceSearchVisible, WorkbenchListFocusContextKey, WorkbenchTreeElementCanCollapse.negate(), WorkbenchTreeElementCanExpand.negate()),
     handler(accessor) {
-        var _a;
         const listService = accessor.get(IListService);
-        const focus = (_a = listService.lastFocusedList) === null || _a === void 0 ? void 0 : _a.getFocus();
+        const focus = listService.lastFocusedList?.getFocus();
         if (Array.isArray(focus) && focus[0] instanceof OneReference) {
             withController(accessor, controller => controller.revealReference(focus[0]));
         }
@@ -362,18 +363,16 @@ KeybindingsRegistry.registerCommandAndKeybindingRule({
     },
     when: ContextKeyExpr.and(ctxReferenceSearchVisible, WorkbenchListFocusContextKey, WorkbenchTreeElementCanCollapse.negate(), WorkbenchTreeElementCanExpand.negate()),
     handler(accessor) {
-        var _a;
         const listService = accessor.get(IListService);
-        const focus = (_a = listService.lastFocusedList) === null || _a === void 0 ? void 0 : _a.getFocus();
+        const focus = listService.lastFocusedList?.getFocus();
         if (Array.isArray(focus) && focus[0] instanceof OneReference) {
             withController(accessor, controller => controller.openReference(focus[0], true, true));
         }
     }
 });
 CommandsRegistry.registerCommand('openReference', (accessor) => {
-    var _a;
     const listService = accessor.get(IListService);
-    const focus = (_a = listService.lastFocusedList) === null || _a === void 0 ? void 0 : _a.getFocus();
+    const focus = listService.lastFocusedList?.getFocus();
     if (Array.isArray(focus) && focus[0] instanceof OneReference) {
         withController(accessor, controller => controller.openReference(focus[0], false, true));
     }

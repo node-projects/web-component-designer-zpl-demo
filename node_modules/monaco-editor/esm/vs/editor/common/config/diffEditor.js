@@ -21,6 +21,7 @@ export const diffEditorDefaultOptions = {
     experimental: {
         showMoves: false,
         showEmptyDecorations: true,
+        useTrueInlineView: false,
     },
     hideUnchangedRegions: {
         enabled: false,
@@ -32,4 +33,5 @@ export const diffEditorDefaultOptions = {
     onlyShowAccessibleDiffViewer: false,
     renderSideBySideInlineBreakpoint: 900,
     useInlineViewWhenSpaceIsLimited: true,
+    compactMode: false,
 };

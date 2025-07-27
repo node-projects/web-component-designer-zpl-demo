@@ -19,6 +19,7 @@ import { EditorContextKeys } from '../common/editorContextKeys.js';
 import { ContextKeyExpr } from '../../platform/contextkey/common/contextkey.js';
 import { KeybindingsRegistry } from '../../platform/keybinding/common/keybindingsRegistry.js';
 import { getActiveElement } from '../../base/browser/dom.js';
+import { EnterOperation } from '../common/cursor/cursorTypeEditOperations.js';
 const CORE_WEIGHT = 0 /* KeybindingWeight.EditorCore */;
 export class CoreEditorCommand extends EditorCommand {
     runEditorCommand(accessor, editor, args) {
@@ -1567,7 +1568,7 @@ export var CoreEditingCommands;
         }
         runCoreEditingCommand(editor, viewModel, args) {
             editor.pushUndoStop();
-            editor.executeCommands(this.id, TypeOperations.lineBreakInsert(viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selection)));
+            editor.executeCommands(this.id, EnterOperation.lineBreakInsert(viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selection)));
         }
     });
     CoreEditingCommands.Outdent = registerEditorCommand(new class extends CoreEditingCommand {
@@ -1659,7 +1660,7 @@ export var CoreEditingCommands;
             activeElement.ownerDocument.execCommand('undo');
         }
         runEditorCommand(accessor, editor, args) {
-            if (!editor.hasModel() || editor.getOption(91 /* EditorOption.readOnly */) === true) {
+            if (!editor.hasModel() || editor.getOption(92 /* EditorOption.readOnly */) === true) {
                 return;
             }
             return editor.getModel().undo();
@@ -1673,7 +1674,7 @@ export var CoreEditingCommands;
             activeElement.ownerDocument.execCommand('redo');
         }
         runEditorCommand(accessor, editor, args) {
-            if (!editor.hasModel() || editor.getOption(91 /* EditorOption.readOnly */) === true) {
+            if (!editor.hasModel() || editor.getOption(92 /* EditorOption.readOnly */) === true) {
                 return;
             }
             return editor.getModel().redo();

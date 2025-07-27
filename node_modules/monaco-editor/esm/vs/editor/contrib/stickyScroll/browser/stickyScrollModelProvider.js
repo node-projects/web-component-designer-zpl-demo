@@ -43,7 +43,7 @@ let StickyModelProvider = class StickyModelProvider extends Disposable {
         this._modelPromise = null;
         this._updateScheduler = this._register(new Delayer(300));
         this._updateOperation = this._register(new DisposableStore());
-        switch (this._editor.getOption(115 /* EditorOption.stickyScroll */).defaultModel) {
+        switch (this._editor.getOption(116 /* EditorOption.stickyScroll */).defaultModel) {
             case ModelProvider.OUTLINE_MODEL:
                 this._modelProviders.push(new StickyModelFromCandidateOutlineProvider(this._editor, _languageFeaturesService));
             // fall through
@@ -166,8 +166,7 @@ let StickyModelFromCandidateOutlineProvider = class StickyModelFromCandidateOutl
         return OutlineModel.create(this._languageFeaturesService.documentSymbolProvider, this._editor.getModel(), token);
     }
     createStickyModel(token, model) {
-        var _a;
-        const { stickyOutlineElement, providerID } = this._stickyModelFromOutlineModel(model, (_a = this._stickyModel) === null || _a === void 0 ? void 0 : _a.outlineProviderId);
+        const { stickyOutlineElement, providerID } = this._stickyModelFromOutlineModel(model, this._stickyModel?.outlineProviderId);
         const textModel = this._editor.getModel();
         return new StickyModel(textModel.uri, textModel.getVersionId(), stickyOutlineElement, providerID);
     }
@@ -321,8 +320,7 @@ let StickyModelFromCandidateSyntaxFoldingProvider = class StickyModelFromCandida
         return this.provider !== undefined;
     }
     async createModelFromProvider(token) {
-        var _a, _b;
-        return (_b = (_a = this.provider) === null || _a === void 0 ? void 0 : _a.compute(token)) !== null && _b !== void 0 ? _b : null;
+        return this.provider?.compute(token) ?? null;
     }
 };
 StickyModelFromCandidateSyntaxFoldingProvider = __decorate([

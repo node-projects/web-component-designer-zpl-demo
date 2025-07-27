@@ -26,8 +26,7 @@ export class ShowOrFocusStandaloneColorPicker extends EditorAction2 {
         });
     }
     runEditorCommand(_accessor, editor) {
-        var _a;
-        (_a = StandaloneColorPickerController.get(editor)) === null || _a === void 0 ? void 0 : _a.showOrFocus();
+        StandaloneColorPickerController.get(editor)?.showOrFocus();
     }
 }
 class HideStandaloneColorPicker extends EditorAction {
@@ -52,8 +51,7 @@ class HideStandaloneColorPicker extends EditorAction {
         });
     }
     run(_accessor, editor) {
-        var _a;
-        (_a = StandaloneColorPickerController.get(editor)) === null || _a === void 0 ? void 0 : _a.hide();
+        StandaloneColorPickerController.get(editor)?.hide();
     }
 }
 class InsertColorWithStandaloneColorPicker extends EditorAction {
@@ -78,8 +76,7 @@ class InsertColorWithStandaloneColorPicker extends EditorAction {
         });
     }
     run(_accessor, editor) {
-        var _a;
-        (_a = StandaloneColorPickerController.get(editor)) === null || _a === void 0 ? void 0 : _a.insertColor();
+        StandaloneColorPickerController.get(editor)?.insertColor();
     }
 }
 registerEditorAction(HideStandaloneColorPicker);

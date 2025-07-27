@@ -8,7 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { asCssValueWithDefault, createStyleSheet, EventHelper, getActiveElement, getWindow, isMouseEvent } from '../../dom.js';
+import { asCssValueWithDefault, createStyleSheet, EventHelper, getActiveElement, getWindow, isHTMLElement, isMouseEvent } from '../../dom.js';
 import { DomEmitter } from '../../event.js';
 import { StandardKeyboardEvent } from '../../keyboardEvent.js';
 import { Gesture } from '../../touch.js';
@@ -376,14 +376,13 @@ class TypeNavigationController {
         this.updateOptions(list.options);
     }
     updateOptions(options) {
-        var _a, _b;
-        if ((_a = options.typeNavigationEnabled) !== null && _a !== void 0 ? _a : true) {
+        if (options.typeNavigationEnabled ?? true) {
             this.enable();
         }
         else {
             this.disable();
         }
-        this.mode = (_b = options.typeNavigationMode) !== null && _b !== void 0 ? _b : TypeNavigationMode.Automatic;
+        this.mode = options.typeNavigationMode ?? TypeNavigationMode.Automatic;
     }
     enable() {
         if (this.enabled) {
@@ -415,12 +414,11 @@ class TypeNavigationController {
         this.triggered = false;
     }
     onClear() {
-        var _a;
         const focus = this.list.getFocus();
         if (focus.length > 0 && focus[0] === this.previouslyFocused) {
             // List: re-announce element on typing end since typed keys will interrupt aria label of focused element
             // Do not announce if there was a focus change at the end to prevent duplication https://github.com/microsoft/vscode/issues/95961
-            const ariaLabel = (_a = this.list.options.accessibilityProvider) === null || _a === void 0 ? void 0 : _a.getAriaLabel(this.list.element(focus[0]));
+            const ariaLabel = this.list.options.accessibilityProvider?.getAriaLabel(this.list.element(focus[0]));
             if (typeof ariaLabel === 'string') {
                 alert(ariaLabel);
             }
@@ -504,7 +502,7 @@ class DOMFocusController {
             return;
         }
         const tabIndexElement = focusedDomElement.querySelector('[tabIndex]');
-        if (!tabIndexElement || !(tabIndexElement instanceof HTMLElement) || tabIndexElement.tabIndex === -1) {
+        if (!tabIndexElement || !(isHTMLElement(tabIndexElement)) || tabIndexElement.tabIndex === -1) {
             return;
         }
         const style = getWindow(tabIndexElement).getComputedStyle(tabIndexElement);
@@ -637,7 +635,7 @@ export class MouseController {
         if (this.isSelectionRangeChangeEvent(e)) {
             if (typeof anchor === 'undefined') {
                 const currentFocus = this.list.getFocus()[0];
-                anchor = currentFocus !== null && currentFocus !== void 0 ? currentFocus : focus;
+                anchor = currentFocus ?? focus;
                 this.list.setAnchor(anchor);
             }
             const min = Math.min(anchor, focus);
@@ -675,7 +673,6 @@ export class DefaultStyleController {
         this.selectorSuffix = selectorSuffix;
     }
     style(styles) {
-        var _a, _b;
         const suffix = this.selectorSuffix && `.${this.selectorSuffix}`;
         const content = [];
         if (styles.listBackground) {
@@ -737,7 +734,7 @@ export class DefaultStyleController {
         /**
          * Outlines
          */
-        const focusAndSelectionOutline = asCssValueWithDefault(styles.listFocusAndSelectionOutline, asCssValueWithDefault(styles.listSelectionOutline, (_a = styles.listFocusOutline) !== null && _a !== void 0 ? _a : ''));
+        const focusAndSelectionOutline = asCssValueWithDefault(styles.listFocusAndSelectionOutline, asCssValueWithDefault(styles.listSelectionOutline, styles.listFocusOutline ?? ''));
         if (focusAndSelectionOutline) { // default: listFocusOutline
             content.push(`.monaco-list${suffix}:focus .monaco-list-row.focused.selected { outline: 1px solid ${focusAndSelectionOutline}; outline-offset: -1px;}`);
         }
@@ -748,7 +745,7 @@ export class DefaultStyleController {
 				.monaco-workbench.context-menu-visible .monaco-list${suffix}.last-focused .monaco-list-row.focused { outline: 1px solid ${styles.listFocusOutline}; outline-offset: -1px; }
 			`);
         }
-        const inactiveFocusAndSelectionOutline = asCssValueWithDefault(styles.listSelectionOutline, (_b = styles.listInactiveFocusOutline) !== null && _b !== void 0 ? _b : '');
+        const inactiveFocusAndSelectionOutline = asCssValueWithDefault(styles.listSelectionOutline, styles.listInactiveFocusOutline ?? '');
         if (inactiveFocusAndSelectionOutline) {
             content.push(`.monaco-list${suffix} .monaco-list-row.focused.selected { outline: 1px dotted ${inactiveFocusAndSelectionOutline}; outline-offset: -1px; }`);
         }
@@ -946,10 +943,9 @@ class PipelineRenderer {
         }
     }
     disposeElement(element, index, templateData, height) {
-        var _a;
         let i = 0;
         for (const renderer of this.renderers) {
-            (_a = renderer.disposeElement) === null || _a === void 0 ? void 0 : _a.call(renderer, element, index, templateData[i], height);
+            renderer.disposeElement?.(element, index, templateData[i], height);
             i += 1;
         }
     }
@@ -1017,19 +1013,16 @@ class ListViewDragAndDrop {
         return undefined;
     }
     onDragStart(data, originalEvent) {
-        var _a, _b;
-        (_b = (_a = this.dnd).onDragStart) === null || _b === void 0 ? void 0 : _b.call(_a, data, originalEvent);
+        this.dnd.onDragStart?.(data, originalEvent);
     }
     onDragOver(data, targetElement, targetIndex, targetSector, originalEvent) {
         return this.dnd.onDragOver(data, targetElement, targetIndex, targetSector, originalEvent);
     }
     onDragLeave(data, targetElement, targetIndex, originalEvent) {
-        var _a, _b;
-        (_b = (_a = this.dnd).onDragLeave) === null || _b === void 0 ? void 0 : _b.call(_a, data, targetElement, targetIndex, originalEvent);
+        this.dnd.onDragLeave?.(data, targetElement, targetIndex, originalEvent);
     }
     onDragEnd(originalEvent) {
-        var _a, _b;
-        (_b = (_a = this.dnd).onDragEnd) === null || _b === void 0 ? void 0 : _b.call(_a, originalEvent);
+        this.dnd.onDragEnd?.(originalEvent);
     }
     drop(data, targetElement, targetIndex, targetSector, originalEvent) {
         this.dnd.drop(data, targetElement, targetIndex, targetSector, originalEvent);
@@ -1103,7 +1096,6 @@ export class List {
     get onDidFocus() { return Event.signal(this.disposables.add(new DomEmitter(this.view.domNode, 'focus', true)).event); }
     get onDidBlur() { return Event.signal(this.disposables.add(new DomEmitter(this.view.domNode, 'blur', true)).event); }
     constructor(user, container, virtualDelegate, renderers, _options = DefaultOptions) {
-        var _a, _b, _c, _d;
         this.user = user;
         this._options = _options;
         this.focus = new Trait('focused');
@@ -1113,13 +1105,13 @@ export class List {
         this.disposables = new DisposableStore();
         this._onDidDispose = new Emitter();
         this.onDidDispose = this._onDidDispose.event;
-        const role = this._options.accessibilityProvider && this._options.accessibilityProvider.getWidgetRole ? (_a = this._options.accessibilityProvider) === null || _a === void 0 ? void 0 : _a.getWidgetRole() : 'list';
+        const role = this._options.accessibilityProvider && this._options.accessibilityProvider.getWidgetRole ? this._options.accessibilityProvider?.getWidgetRole() : 'list';
         this.selection = new SelectionTrait(role !== 'listbox');
         const baseRenderers = [this.focus.renderer, this.selection.renderer];
         this.accessibilityProvider = _options.accessibilityProvider;
         if (this.accessibilityProvider) {
             baseRenderers.push(new AccessibiltyRenderer(this.accessibilityProvider));
-            (_c = (_b = this.accessibilityProvider).onDidChangeActiveDescendant) === null || _c === void 0 ? void 0 : _c.call(_b, this.onDidChangeActiveDescendant, this, this.disposables);
+            this.accessibilityProvider.onDidChangeActiveDescendant?.(this.onDidChangeActiveDescendant, this, this.disposables);
         }
         renderers = renderers.map(r => new PipelineRenderer(r.templateId, [...baseRenderers, r]));
         const viewOptions = {
@@ -1153,7 +1145,7 @@ export class List {
         }
         if (_options.keyboardNavigationLabelProvider) {
             const delegate = _options.keyboardNavigationDelegate || DefaultKeyboardNavigationDelegate;
-            this.typeNavigationController = new TypeNavigationController(this, this.view, _options.keyboardNavigationLabelProvider, (_d = _options.keyboardNavigationEventFilter) !== null && _d !== void 0 ? _d : (() => true), delegate);
+            this.typeNavigationController = new TypeNavigationController(this, this.view, _options.keyboardNavigationLabelProvider, _options.keyboardNavigationEventFilter ?? (() => true), delegate);
             this.disposables.add(this.typeNavigationController);
         }
         this.mouseController = this.createMouseController(_options);
@@ -1174,9 +1166,8 @@ export class List {
         return new MouseController(this);
     }
     updateOptions(optionsUpdate = {}) {
-        var _a, _b;
         this._options = { ...this._options, ...optionsUpdate };
-        (_a = this.typeNavigationController) === null || _a === void 0 ? void 0 : _a.updateOptions(this._options);
+        this.typeNavigationController?.updateOptions(this._options);
         if (this._options.multipleSelectionController !== undefined) {
             if (this._options.multipleSelectionSupport) {
                 this.view.domNode.setAttribute('aria-multiselectable', 'true');
@@ -1186,7 +1177,7 @@ export class List {
             }
         }
         this.mouseController.updateOptions(optionsUpdate);
-        (_b = this.keyboardController) === null || _b === void 0 ? void 0 : _b.updateOptions(optionsUpdate);
+        this.keyboardController?.updateOptions(optionsUpdate);
         this.view.updateOptions(optionsUpdate);
     }
     get options() {
@@ -1493,11 +1484,10 @@ export class List {
         this.onDidChangeActiveDescendant();
     }
     onDidChangeActiveDescendant() {
-        var _a;
         const focus = this.focus.get();
         if (focus.length > 0) {
             let id;
-            if ((_a = this.accessibilityProvider) === null || _a === void 0 ? void 0 : _a.getActiveDescendantId) {
+            if (this.accessibilityProvider?.getActiveDescendantId) {
                 id = this.accessibilityProvider.getActiveDescendantId(this.view.element(focus[0]));
             }
             this.view.domNode.setAttribute('aria-activedescendant', id || this.view.getElementDomId(focus[0]));

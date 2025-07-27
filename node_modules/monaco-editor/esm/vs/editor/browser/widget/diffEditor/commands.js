@@ -156,16 +156,16 @@ export class RevertHunkOrSelection extends Action2 {
         });
     }
     run(accessor, arg) {
-        var _a;
         const diffEditor = findDiffEditor(accessor, arg.originalUri, arg.modifiedUri);
         if (diffEditor instanceof DiffEditorWidget) {
-            diffEditor.revertRangeMappings((_a = arg.mapping.innerChanges) !== null && _a !== void 0 ? _a : []);
+            diffEditor.revertRangeMappings(arg.mapping.innerChanges ?? []);
         }
         return undefined;
     }
 }
 const accessibleDiffViewerCategory = localize2('accessibleDiffViewer', "Accessible Diff Viewer");
 export class AccessibleDiffViewerNext extends Action2 {
+    static { this.id = 'editor.action.accessibleDiffViewer.next'; }
     constructor() {
         super({
             id: AccessibleDiffViewerNext.id,
@@ -181,11 +181,11 @@ export class AccessibleDiffViewerNext extends Action2 {
     }
     run(accessor) {
         const diffEditor = findFocusedDiffEditor(accessor);
-        diffEditor === null || diffEditor === void 0 ? void 0 : diffEditor.accessibleDiffViewerNext();
+        diffEditor?.accessibleDiffViewerNext();
     }
 }
-AccessibleDiffViewerNext.id = 'editor.action.accessibleDiffViewer.next';
 export class AccessibleDiffViewerPrev extends Action2 {
+    static { this.id = 'editor.action.accessibleDiffViewer.prev'; }
     constructor() {
         super({
             id: AccessibleDiffViewerPrev.id,
@@ -201,19 +201,17 @@ export class AccessibleDiffViewerPrev extends Action2 {
     }
     run(accessor) {
         const diffEditor = findFocusedDiffEditor(accessor);
-        diffEditor === null || diffEditor === void 0 ? void 0 : diffEditor.accessibleDiffViewerPrev();
+        diffEditor?.accessibleDiffViewerPrev();
     }
 }
-AccessibleDiffViewerPrev.id = 'editor.action.accessibleDiffViewer.prev';
 export function findDiffEditor(accessor, originalUri, modifiedUri) {
     const codeEditorService = accessor.get(ICodeEditorService);
     const diffEditors = codeEditorService.listDiffEditors();
     return diffEditors.find(diffEditor => {
-        var _a, _b;
         const modified = diffEditor.getModifiedEditor();
         const original = diffEditor.getOriginalEditor();
-        return modified && ((_a = modified.getModel()) === null || _a === void 0 ? void 0 : _a.uri.toString()) === modifiedUri.toString()
-            && original && ((_b = original.getModel()) === null || _b === void 0 ? void 0 : _b.uri.toString()) === originalUri.toString();
+        return modified && modified.getModel()?.uri.toString() === modifiedUri.toString()
+            && original && original.getModel()?.uri.toString() === originalUri.toString();
     }) || null;
 }
 export function findFocusedDiffEditor(accessor) {

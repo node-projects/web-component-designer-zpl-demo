@@ -26,17 +26,21 @@ async function executeProvider(provider, ordinal, model, position, token) {
     }
     return new HoverProviderResult(provider, result, ordinal);
 }
-export function getHoverProviderResultsAsAsyncIterable(registry, model, position, token) {
-    const providers = registry.ordered(model);
+export function getHoverProviderResultsAsAsyncIterable(registry, model, position, token, recursive = false) {
+    const providers = registry.ordered(model, recursive);
     const promises = providers.map((provider, index) => executeProvider(provider, index, model, position, token));
     return AsyncIterableObject.fromPromises(promises).coalesce();
 }
-export function getHoversPromise(registry, model, position, token) {
-    return getHoverProviderResultsAsAsyncIterable(registry, model, position, token).map(item => item.hover).toPromise();
+export function getHoversPromise(registry, model, position, token, recursive = false) {
+    return getHoverProviderResultsAsAsyncIterable(registry, model, position, token, recursive).map(item => item.hover).toPromise();
 }
 registerModelAndPositionCommand('_executeHoverProvider', (accessor, model, position) => {
     const languageFeaturesService = accessor.get(ILanguageFeaturesService);
     return getHoversPromise(languageFeaturesService.hoverProvider, model, position, CancellationToken.None);
+});
+registerModelAndPositionCommand('_executeHoverProvider_recursive', (accessor, model, position) => {
+    const languageFeaturesService = accessor.get(ILanguageFeaturesService);
+    return getHoversPromise(languageFeaturesService.hoverProvider, model, position, CancellationToken.None, true);
 });
 function isValid(result) {
     const hasRange = (typeof result.range !== 'undefined');

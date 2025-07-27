@@ -19,14 +19,13 @@ export class HighlightedLabel extends Disposable {
      * @param container The parent container to append to.
      */
     constructor(container, options) {
-        var _a;
         super();
         this.options = options;
         this.text = '';
         this.title = '';
         this.highlights = [];
         this.didEverRender = false;
-        this.supportIcons = (_a = options === null || options === void 0 ? void 0 : options.supportIcons) !== null && _a !== void 0 ? _a : false;
+        this.supportIcons = options?.supportIcons ?? false;
         this.domNode = dom.append(container, dom.$('span.monaco-highlighted-label'));
     }
     /**
@@ -61,7 +60,6 @@ export class HighlightedLabel extends Disposable {
         this.render();
     }
     render() {
-        var _a, _b, _c, _d;
         const children = [];
         let pos = 0;
         for (const highlight of this.highlights) {
@@ -96,14 +94,14 @@ export class HighlightedLabel extends Disposable {
             }
         }
         dom.reset(this.domNode, ...children);
-        if ((_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.hoverDelegate) === null || _b === void 0 ? void 0 : _b.showNativeHover) {
+        if (this.options?.hoverDelegate?.showNativeHover) {
             /* While custom hover is not inside custom hover */
             this.domNode.title = this.title;
         }
         else {
             if (!this.customHover && this.title !== '') {
-                const hoverDelegate = (_d = (_c = this.options) === null || _c === void 0 ? void 0 : _c.hoverDelegate) !== null && _d !== void 0 ? _d : getDefaultHoverDelegate('mouse');
-                this.customHover = this._register(getBaseLayerHoverDelegate().setupUpdatableHover(hoverDelegate, this.domNode, this.title));
+                const hoverDelegate = this.options?.hoverDelegate ?? getDefaultHoverDelegate('mouse');
+                this.customHover = this._register(getBaseLayerHoverDelegate().setupManagedHover(hoverDelegate, this.domNode, this.title));
             }
             else if (this.customHover) {
                 this.customHover.update(this.title);

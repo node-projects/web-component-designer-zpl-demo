@@ -7,6 +7,7 @@ import { TabFocus } from '../../../browser/config/tabFocus.js';
 import * as nls from '../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
 export class ToggleTabFocusModeAction extends Action2 {
+    static { this.ID = 'editor.action.toggleTabFocusMode'; }
     constructor() {
         super({
             id: ToggleTabFocusModeAction.ID,
@@ -35,5 +36,4 @@ export class ToggleTabFocusModeAction extends Action2 {
         }
     }
 }
-ToggleTabFocusModeAction.ID = 'editor.action.toggleTabFocusMode';
 registerAction2(ToggleTabFocusModeAction);

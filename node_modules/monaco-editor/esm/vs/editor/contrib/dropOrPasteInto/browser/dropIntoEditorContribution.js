@@ -24,8 +24,7 @@ registerEditorCommand(new class extends EditorCommand {
         });
     }
     runEditorCommand(_accessor, editor, _args) {
-        var _a;
-        (_a = DropIntoEditorController.get(editor)) === null || _a === void 0 ? void 0 : _a.changeDropType();
+        DropIntoEditorController.get(editor)?.changeDropType();
     }
 });
 registerEditorCommand(new class extends EditorCommand {
@@ -40,8 +39,7 @@ registerEditorCommand(new class extends EditorCommand {
         });
     }
     runEditorCommand(_accessor, editor, _args) {
-        var _a;
-        (_a = DropIntoEditorController.get(editor)) === null || _a === void 0 ? void 0 : _a.clearWidgets();
+        DropIntoEditorController.get(editor)?.clearWidgets();
     }
 });
 Registry.as(ConfigurationExtensions.Configuration).registerConfiguration({

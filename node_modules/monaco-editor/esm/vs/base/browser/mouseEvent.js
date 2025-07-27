@@ -45,7 +45,6 @@ export class StandardMouseEvent {
 }
 export class StandardWheelEvent {
     constructor(e, deltaX = 0, deltaY = 0) {
-        var _a;
         this.browserEvent = e || null;
         this.target = e ? (e.target || e.targetNode || e.srcElement) : null;
         this.deltaY = deltaY;
@@ -62,7 +61,7 @@ export class StandardWheelEvent {
             // Old (deprecated) wheel events
             const e1 = e;
             const e2 = e;
-            const devicePixelRatio = ((_a = e.view) === null || _a === void 0 ? void 0 : _a.devicePixelRatio) || 1;
+            const devicePixelRatio = e.view?.devicePixelRatio || 1;
             // vertical delta scroll
             if (typeof e1.wheelDeltaY !== 'undefined') {
                 if (shouldFactorDPR) {
@@ -139,11 +138,9 @@ export class StandardWheelEvent {
         }
     }
     preventDefault() {
-        var _a;
-        (_a = this.browserEvent) === null || _a === void 0 ? void 0 : _a.preventDefault();
+        this.browserEvent?.preventDefault();
     }
     stopPropagation() {
-        var _a;
-        (_a = this.browserEvent) === null || _a === void 0 ? void 0 : _a.stopPropagation();
+        this.browserEvent?.stopPropagation();
     }
 }
