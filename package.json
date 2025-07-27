@@ -25,7 +25,7 @@
     "@node-projects/base-custom-webcomponent": "0.30.0",
     "@node-projects/web-component-designer": "^0.1.260",
     "@node-projects/web-component-designer-codeview-monaco": "^0.1.33",
-    "@node-projects/web-component-designer-zpl": "^0.1.21",
+    "@node-projects/web-component-designer-zpl": "^0.1.22",
     "es-module-shims": "^2.6.1",
     "jsbarcode": "^3.12.1"
   }
