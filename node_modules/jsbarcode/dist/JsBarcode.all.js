@@ -3674,7 +3674,7 @@ var SVGRenderer = function () {
 			this.setSvgAttributes(width, maxHeight);
 
 			if (this.options.background) {
-				this.drawRect(0, 0, width, maxHeight, this.svg).setAttribute("style", "fill:" + this.options.background + ";");
+				this.drawRect(0, 0, width, maxHeight, this.svg).setAttribute("fill", this.options.background);
 			}
 		}
 	}, {
@@ -3717,7 +3717,14 @@ var SVGRenderer = function () {
 			if (options.displayValue) {
 				var x, y;
 
-				textElem.setAttribute("style", "font:" + options.fontOptions + " " + options.fontSize + "px " + options.font);
+				textElem.setAttribute("font-family", options.font);
+				textElem.setAttribute("font-size", options.fontSize);
+				if (options.fontOptions.includes("bold")) {
+					textElem.setAttribute("font-weight", "bold");
+				}
+				if (options.fontOptions.includes("italic")) {
+					textElem.setAttribute("font-style", "italic");
+				}
 
 				if (options.textPosition == "top") {
 					y = options.fontSize - options.textMargin;
@@ -3759,8 +3766,6 @@ var SVGRenderer = function () {
 
 			svg.setAttribute("xmlns", svgns);
 			svg.setAttribute("version", "1.1");
-
-			svg.setAttribute("style", "transform: translate(0,0)");
 		}
 	}, {
 		key: "createGroup",
@@ -3775,7 +3780,7 @@ var SVGRenderer = function () {
 	}, {
 		key: "setGroupOptions",
 		value: function setGroupOptions(group, options) {
-			group.setAttribute("style", "fill:" + options.lineColor + ";");
+			group.setAttribute("fill", options.lineColor);
 		}
 	}, {
 		key: "drawRect",

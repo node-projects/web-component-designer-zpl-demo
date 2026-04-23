@@ -45,7 +45,7 @@ class SVGRenderer{
 
 		if(this.options.background){
 			this.drawRect(0, 0, width, maxHeight, this.svg).setAttribute(
-				"style", "fill:" + this.options.background + ";"
+				"fill", this.options.background
 			);
 		}
 	}
@@ -89,9 +89,14 @@ class SVGRenderer{
 		if(options.displayValue){
 			var x, y;
 
-			textElem.setAttribute("style",
-				"font:" + options.fontOptions + " " + options.fontSize + "px " + options.font
-			);
+			textElem.setAttribute("font-family", options.font);
+			textElem.setAttribute("font-size", options.fontSize);
+			if (options.fontOptions.includes("bold")) {
+				textElem.setAttribute("font-weight", "bold");
+			}
+			if (options.fontOptions.includes("italic")) {
+				textElem.setAttribute("font-style", "italic");
+			}
 
 			if(options.textPosition == "top"){
 				y = options.fontSize - options.textMargin;
@@ -135,8 +140,6 @@ class SVGRenderer{
 
 		svg.setAttribute("xmlns", svgns);
 		svg.setAttribute("version", "1.1");
-
-		svg.setAttribute("style", "transform: translate(0,0)");
 	}
 
 	createGroup(x, y, parent){
@@ -149,9 +152,7 @@ class SVGRenderer{
 	}
 
 	setGroupOptions(group, options){
-		group.setAttribute("style",
-			"fill:" + options.lineColor + ";"
-		);
+		group.setAttribute("fill", options.lineColor);
 	}
 
 	drawRect(x, y, width, height, parent){
