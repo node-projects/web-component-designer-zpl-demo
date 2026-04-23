@@ -12,7 +12,7 @@ serviceContainer.config.codeViewWidget = CodeViewMonaco;
 
 const documentContainer = new DocumentContainer(serviceContainer);
 documentContainer.style.gridArea = 'c';
-document.getElementById('root').appendChild(documentContainer);
+document.getElementById('root')!.appendChild(documentContainer);
 (<CodeViewMonaco>documentContainer.codeView).language = "zplLanguage";
 (<CodeViewMonaco>documentContainer.codeView).theme = "zplTheme";
 addZplLanguageToMonaco();
