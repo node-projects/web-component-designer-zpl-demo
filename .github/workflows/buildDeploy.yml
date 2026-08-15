@@ -9,21 +9,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
+    - name: Use Node.js 22
+      uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 22
+        cache: npm
     - name: npm install
-      run: npm install
+      run: npm ci
     - name: Typescript
       run: npx tsc
+    - name: Third-party notices
+      run: npm run licenses:check
     #- name: Transform imports
     #  run: node ./node_modules/gulp/bin/gulp.js
     - name: Copy js & json
       run: |
         npx copyfiles --verbose "node_modules/**/*.js" build/default
+        npx copyfiles --verbose "node_modules/**/*.mjs" build/default
         npx copyfiles --verbose "node_modules/**/*.json" build/default
         npx copyfiles --verbose "dist/**/*.js" build/default
         npx copyfiles --verbose "dist/**/*.json" build/default
@@ -37,12 +41,17 @@ jobs:
         npx copyfiles --verbose "node_modules/**/*.gif" build/default
         npx copyfiles --verbose "node_modules/**/*.jpg" build/default
         npx copyfiles --verbose "node_modules/**/*.woff" build/default
+        npx copyfiles --verbose "node_modules/**/*.woff2" build/default
         npx copyfiles --verbose "node_modules/**/*.ttf" build/default
+        npx copyfiles --verbose "node_modules/@node-projects/web-component-designer/assets/**/*.html" build/default
+        npx copyfiles --verbose "node_modules/@node-projects/web-component-designer-zpl/**/*.md" build/default
+        npx copyfiles --verbose "node_modules/@node-projects/web-component-designer-zpl/**/*.txt" build/default
         npx copyfiles --soft --verbose "node_modules/**/*.js" build/default
         npx copyfiles --verbose "assets/**/*.png" build/default
         npx copyfiles --verbose "assets/**/*.svg" build/default
         npx copyfiles --verbose "assets/**/*.css" build/default
         npx copyfiles --verbose "*.json" build/default
+        npx copyfiles --verbose "*.md" build/default
     #- name: Setup upterm session (for debugging, see https://github.com/marketplace/actions/debugging-with-ssh)
     #  uses: lhotari/action-upterm@v1
     - name: Deploy 🚀
