@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "tsc": "tsc",
-    "start": "web-dev-server --open"
+    "start": "web-dev-server --open",
+    "licenses:check": "node scripts/check-third-party-licenses.mjs"
   },
   "repository": {
     "type": "git",
@@ -23,11 +24,13 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
+    "@bwip-js/browser": "4.11.2",
     "@node-projects/base-custom-webcomponent": "0.46.0",
-    "@node-projects/web-component-designer": "^0.2.5",
+    "@node-projects/web-component-designer": "^0.2.31",
     "@node-projects/web-component-designer-codeview-monaco": "^0.1.33",
-    "@node-projects/web-component-designer-zpl": "^0.2.0",
+    "@node-projects/web-component-designer-widgets-wunderbaum": "^0.2.1",
+    "@node-projects/web-component-designer-zpl": "^0.3.1",
     "es-module-shims": "^2.8.0",
-    "jsbarcode": "^3.12.3"
+    "wunderbaum": "^0.14.1"
   }
 }
