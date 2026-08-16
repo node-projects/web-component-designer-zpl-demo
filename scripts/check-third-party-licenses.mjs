@@ -6,8 +6,8 @@ for (const marker of ['ZPLab', 'Copyright (c) 2026 u8array', 'BWIP-JS', 'Wunderb
     if (!notice.includes(marker)) throw new Error(`THIRD-PARTY-LICENSES.md is missing: ${marker}`);
 }
 
-if (!existsSync(resolve('node_modules/@node-projects/web-component-designer/dist/index-min.js'))) {
-    throw new Error('Demo is missing the published designer-core bundle');
+if (!existsSync(resolve('node_modules/@node-projects/web-component-designer/dist/index.js'))) {
+    throw new Error('Demo is missing the published designer-core ESM entry point');
 }
 
 if (!existsSync(resolve('node_modules/@node-projects/web-component-designer/assets/images/tools/PointerTool.svg'))) {
