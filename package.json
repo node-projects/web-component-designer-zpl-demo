@@ -29,7 +29,7 @@
     "@node-projects/web-component-designer": "^0.2.31",
     "@node-projects/web-component-designer-codeview-monaco": "^0.1.33",
     "@node-projects/web-component-designer-widgets-wunderbaum": "^0.2.1",
-    "@node-projects/web-component-designer-zpl": "^0.3.1",
+    "@node-projects/web-component-designer-zpl": "^0.3.2",
     "es-module-shims": "^2.8.0",
     "wunderbaum": "^0.14.1"
   }
