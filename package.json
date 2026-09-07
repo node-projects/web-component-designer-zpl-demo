@@ -26,10 +26,10 @@
   "dependencies": {
     "@bwip-js/browser": "4.11.2",
     "@node-projects/base-custom-webcomponent": "0.46.0",
-    "@node-projects/web-component-designer": "^0.2.31",
-    "@node-projects/web-component-designer-codeview-monaco": "^0.1.33",
-    "@node-projects/web-component-designer-widgets-wunderbaum": "^0.2.1",
-    "@node-projects/web-component-designer-zpl": "^0.3.2",
+    "@node-projects/web-component-designer": "^0.2.32",
+    "@node-projects/web-component-designer-codeview-monaco": "^0.2.1",
+    "@node-projects/web-component-designer-widgets-wunderbaum": "^0.2.2",
+    "@node-projects/web-component-designer-zpl": "^0.3.3",
     "es-module-shims": "^2.8.0",
     "wunderbaum": "^0.14.1"
   }

@@ -8,7 +8,7 @@
     content="width=device-width, initial-scale=1.0, shrink-to-fit=no, maximum-scale=1.0, user-scalable=no">
   <link rel="manifest" href="./manifest.json">
 
-  <title>web-component-designer-simple-demo</title>
+  <title>ZPL Studio · Label designer</title>
 
   <script type="esms-options">
     {
@@ -19,6 +19,7 @@
   <script>
     const importMap = {
       imports: {
+        "monaco-editor": "./dist/monaco.js",
         "monaco-editor/": "./node_modules/monaco-editor/",
         "@node-projects/web-component-designer-codeview-monaco": "./node_modules/@node-projects/web-component-designer-codeview-monaco/dist/widgets/codeView/code-view-monaco.js",
         "@node-projects/web-component-designer-codeview-monaco/": "./node_modules/@node-projects/web-component-designer-codeview-monaco/",
@@ -41,96 +42,60 @@
   <script src="./node_modules/monaco-editor/min/vs/loader.js"></script>
   <script>
     require.config({ paths: { 'vs': 'node_modules/monaco-editor/min/vs', 'vs/css': { disabled: true } } });
-    require(['vs/editor/editor.main'], () => { });    
   </script>
 
-  <style>
-    body {
-      height: 100%;
-      width: 100%;
-      margin: 0;
-      font-family: 'Roboto', 'Noto', sans-serif;
-      line-height: 1.5;
-      background-color: white;
-      overflow: hidden;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    #root {
-      display: grid;
-      grid-template-areas:
-        "a c"
-        "t c"
-        "b c";
-      grid-template-columns: 240px minmax(0, 1fr);
-      grid-template-rows: minmax(0, 5fr) minmax(0, 3fr) minmax(0, 5fr);
-      height: 100%;
-      width: 100%;
-      gap: 3px;
-    }
-
-    node-projects-palette-view,
-    node-projects-web-component-designer-property-grid-with-header {
-      min-height: 0;
-      overflow: hidden;
-    }
-
-    #tree-panel {
-      grid-area: t;
-      display: flex;
-      min-height: 0;
-      flex-direction: column;
-      overflow: hidden;
-      background: var(--medium-grey, #2f3545);
-    }
-
-    #tree-panel-title {
-      box-sizing: border-box;
-      height: 30px;
-      flex: 0 0 30px;
-      padding: 6px 8px;
-      color: white;
-      background: var(--dark-grey, #232733);
-      font: 500 12px Arial;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    node-projects-tree-view-extended {
-      flex: 1;
-      min-height: 0;
-      overflow: hidden;
-    }
-
-    #licenses {
-      position: fixed;
-      right: 8px;
-      bottom: 5px;
-      z-index: 1000;
-      padding: 2px 6px;
-      border-radius: 3px;
-      background: rgba(255, 255, 255, .9);
-      font-size: 11px;
-    }
-  </style>
+  <link rel="stylesheet" href="./assets/styles.css">
 </head>
 
-<body style="height: 100%; width: 100%;">
-  <div id="root">
-    <node-projects-palette-view style="grid-area: a;"></node-projects-palette-view>
-    <section id="tree-panel">
-      <div id="tree-panel-title">Elements</div>
-      <node-projects-tree-view-extended></node-projects-tree-view-extended>
+<body>
+  <header class="app-header">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">▥</span> ZPL <span>STUDIO</span></div>
+    <span class="header-divider"></span>
+    <span class="app-title">Label designer</span>
+    <span class="document-name">shipping-label.zpl</span>
+    <span id="document-status" class="badge" role="status">Demo label</span>
+    <div class="header-actions">
+      <button id="undo" class="icon-button" title="Undo" aria-label="Undo" disabled>↶</button>
+      <button id="redo" class="icon-button" title="Redo" aria-label="Redo" disabled>↷</button>
+      <span class="header-divider"></span>
+      <button id="export" class="primary-button">Export ZPL <span aria-hidden="true">↓</span></button>
+    </div>
+  </header>
+
+  <main id="root">
+    <aside class="sidebar library" aria-label="Label elements">
+      <div id="insert-heading" class="panel-heading">Insert</div>
+      <section id="insert-panel" aria-labelledby="insert-heading">
+        <div class="search-wrap"><input id="palette-search" type="search" placeholder="Search elements or ^command" aria-label="Search elements"></div>
+        <div id="palette-list"></div>
+        <p id="no-results" hidden>No matching elements.</p>
+        <div class="panel-tip"><span aria-hidden="true">↖</span> Drag an element onto your label,<br>or select one and draw to place it.</div>
+      </section>
+    </aside>
+
+    <section id="workspace" aria-label="Label workspace">
+      <div class="workspace-heading"><span><span class="status-dot"></span> Design workspace</span><span class="media-size">4 × 6 in <span>·</span> 203 dpi</span></div>
+      <div id="editor"></div>
     </section>
-    <node-projects-web-component-designer-property-grid-with-header style="grid-area: b;"></node-projects-web-component-designer-property-grid-with-header>
 
-  </div>
-  <a id="licenses" href="./THIRD-PARTY-LICENSES.md" target="_blank" rel="license noopener">Acknowledgements &amp; third-party licenses</a>
+    <aside class="sidebar inspector" aria-label="Properties inspector">
+      <div class="panel-heading">Properties <span id="selection-type">Label</span></div>
+      <div id="inspector-empty">
+        <span class="empty-icon" aria-hidden="true">⌖</span>
+        <h2>Your label, your layout.</h2>
+        <p>Select an element on the canvas to edit its content, position, and appearance.</p>
+        <div class="label-details"><span>LABEL FORMAT</span><dl><dt>Width</dt><dd>4 in / 101.6 mm</dd><dt>Height</dt><dd>6 in / 152.4 mm</dd><dt>Resolution</dt><dd>203 dpi</dd></dl></div>
+      </div>
+      <node-projects-web-component-designer-property-grid-with-header hidden></node-projects-web-component-designer-property-grid-with-header>
+      <div class="inspector-footer">All positions and sizes are in printer dots.</div>
+    </aside>
+  </main>
 
+  <footer class="statusbar">
+    <span><span class="status-dot"></span> <span id="status-message" role="status">Ready to design</span></span>
+    <span class="status-hint">Double-click text to edit · Scroll to pan</span>
+    <a href="./THIRD-PARTY-LICENSES.md" target="_blank" rel="license noopener">Acknowledgements &amp; licenses ↗</a>
+  </footer>
+  <script type="module">importShim('./dist/initialize.js');</script>
 </body>
-
-<script type="module">
-  importShim('./dist/initialize.js');
-</script>
-
 </html>
